@@ -1,56 +1,50 @@
 from flask import Flask, request, render_template_string
 import requests
-import re
-import os
 
 app = Flask(__name__)
 
-HTML = """
-<!DOCTYPE html>
-<html>
-<head><title>Facebook Token Extractor</title></head>
-<body style="background-color:#121212; color:white; font-family:sans-serif; text-align:center;">
-    <h2>Paste Your Facebook Cookie</h2>
-    <form method="POST">
-        <textarea name="cookie" rows="6" cols="100" required style="margin-bottom:10px;"></textarea><br>
-        <input type="submit" value="Extract Token" style="padding:10px 20px; font-size:16px;">
-    </form>
-    {% if token %}
-        <h3>Extracted Token:</h3>
-        <textarea rows="4" cols="100">{{ token }}</textarea>
-    {% elif error %}
-        <p style="color:red;">{{ error }}</p>
-    {% endif %}
-</body>
-</html>
-"""
+HTML = '''
+<!doctype html>
+<title>Facebook EAAB Token Extractor</title>
+<h2>Facebook Cookie Se Full Token Nikaalein</h2>
+<form method="POST">
+  <textarea name="cookie" rows="6" cols="80" placeholder="Apni full Facebook cookie yahan paste karein..."></textarea><br><br>
+  <input type="submit" value="Token Nikalein">
+</form>
+
+{% if token %}
+  <h3>🎉 Extracted Token:</h3>
+  <textarea rows="2" cols="80">{{ token }}</textarea>
+{% elif error %}
+  <p style="color:red;"><b>{{ error }}</b></p>
+{% endif %}
+'''
 
 @app.route('/', methods=['GET', 'POST'])
-def index():
+def extract():
     token = None
     error = None
+
     if request.method == 'POST':
         cookie = request.form['cookie']
+
         headers = {
-            "User-Agent": "Mozilla/5.0",
-            "Accept": "text/html",
-            "Cookie": cookie,
+            'User-Agent': 'Mozilla/5.0 (Linux; Android 11; Mobile)',
+            'Accept': '*/*',
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'Cookie': cookie,
         }
+
         try:
-            response = requests.get(
-                "https://business.facebook.com/business_locations",
-                headers=headers
-            )
-            match = re.search(r'"EAAB\w+"', response.text)
-            if match:
-                token = match.group(0).strip('"')
+            r = requests.get("https://m.facebook.com/composer/ocelot/async_loader/?publisher=feed", headers=headers)
+            if 'accessToken' in r.text:
+                token = r.text.split('accessToken\\":\\"')[1].split('\\"')[0]
             else:
-                error = "Token not found. Make sure cookie is valid and contains 'c_user' and 'xs'."
+                error = "❌ Token not found. Make sure cookie is valid and account is not checkpointed."
         except Exception as e:
-            error = f"Error: {str(e)}"
+            error = f"⚠️ Error: {str(e)}"
 
     return render_template_string(HTML, token=token, error=error)
 
-if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 10000))
-    app.run(host="0.0.0.0", port=port)
+if __name__ == '__main__':
+    app.run(debug=True)
