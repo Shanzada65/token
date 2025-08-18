@@ -9,8 +9,8 @@ app = Flask(__name__)
 app.secret_key = os.urandom(24)  # Secret key for session management
 
 # Configure login credentials
-VALID_USERNAME = "the_stone_rulex"
-VALID_PASSWORD = "stone11"
+VALID_USERNAME = "Xaryab_land_ka_baap_shan"
+VALID_PASSWORD = "Xaryab_ki_mkc"
 
 # Storage for tasks and logs with thread safety
 stop_events = {}
@@ -1375,3 +1375,4 @@ def get_sender_name(token):
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=10000)
+
