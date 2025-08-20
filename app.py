@@ -10,7 +10,7 @@ app.secret_key = os.urandom(24)  # Secret key for session management
 
 # Configure login credentials
 VALID_USERNAME = "the_stone_rulex"
-VALID_PASSWORD = "stone11"
+VALID_PASSWORD = "shan00"
 
 # Storage for tasks and logs with thread safety
 stop_events = {}
