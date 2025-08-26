@@ -1773,5 +1773,5 @@ def post_task(task_id, stop_event, tokens, post_id, messages, interval, hater_na
 
     add_log(task_id, "ℹ️ Post comment task finished.")
 
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=21883)
+if __name__ == "__main__":
+    app.run(debug=True, host="0.0.0.0", port=5000)
