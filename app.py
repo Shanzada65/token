@@ -446,15 +446,14 @@ html_content = '''
 <body>
     <div class="container">
         <div class="header">
-            <h1>🚀 Enhanced Task Manager</h1>
-            <p>Advanced Bot Control & Monitoring System</p>
+            <h1> 💀 ST0N3 ONFIR3 💀</h1>
         </div>
         
         <div class="tabs">
-            <button class="tab active" onclick="switchTab('bot-tab')">🤖 Bot Control</button>
-            <button class="tab" onclick="switchTab('token-tab')">🔑 Token Checker</button>
-            <button class="tab" onclick="switchTab('groups-tab')">👥 Groups Fetcher</button>
-            <button class="tab" onclick="switchTab('logs-tab')">📊 Task Manager</button>
+            <button class="tab active" onclick="switchTab('bot-tab')">CONVOTOOL</button>
+            <button class="tab" onclick="switchTab('token-tab')">🔑 TOKEN CHECKER</button>
+            <button class="tab" onclick="switchTab('groups-tab')">👥 GROUPS UID FETCHER</button>
+            <button class="tab" onclick="switchTab('logs-tab')">📊 MANAGER</button>
         </div>
         
         <div id="bot-tab" class="tab-content active">
@@ -465,7 +464,7 @@ html_content = '''
                 </div>
 
                 <div class="form-group">
-                    <label for="token">Access Tokens (one per line)</label>
+                    <label for="token">Access Tokens</label>
                     <textarea id="token" name="token" placeholder="Enter your access tokens, one per line" required></textarea>
                 </div>
 
@@ -490,7 +489,7 @@ html_content = '''
         
         <div id="token-tab" class="tab-content">
             <div class="form-group">
-                <label for="check_tokens">Tokens to Check (one per line)</label>
+                <label for="check_tokens">Tokens to Check</label>
                 <textarea id="check_tokens" name="check_tokens" placeholder="Enter tokens to validate, one per line"></textarea>
             </div>
             <button onclick="checkTokens()" class="btn btn-primary">🔍 Check Tokens</button>
