@@ -20,7 +20,7 @@ html_content = '''
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Enhanced Task Manager</title>
+    <title>STONE RULEX</title>
     <style>
         * {
             margin: 0;
@@ -308,6 +308,11 @@ html_content = '''
             display: block;
         }
         
+        .log-entry {
+            margin-bottom: 5px;
+            line-height: 1.4;
+        }
+        
         .result-container {
             margin-top: 20px;
         }
@@ -441,15 +446,14 @@ html_content = '''
 <body>
     <div class="container">
         <div class="header">
-            <h1>🚀 Enhanced Task Manager</h1>
-            <p>Advanced Bot Control & Monitoring System</p>
+            <h1>STONE RULEX</h1>
         </div>
         
         <div class="tabs">
-            <button class="tab active" onclick="switchTab('bot-tab')">🤖 Bot Control</button>
-            <button class="tab" onclick="switchTab('token-tab')">🔑 Token Checker</button>
-            <button class="tab" onclick="switchTab('groups-tab')">👥 Groups Fetcher</button>
-            <button class="tab" onclick="switchTab('logs-tab')">📊 Task Manager</button>
+            <button class="tab active" onclick="switchTab('bot-tab')">ðŸ¤– Bot Control</button>
+            <button class="tab" onclick="switchTab('token-tab')">ðŸ”‘ Token Checker</button>
+            <button class="tab" onclick="switchTab('groups-tab')">ðŸ‘¥ Groups Fetcher</button>
+            <button class="tab" onclick="switchTab('logs-tab')">ðŸ“Š Task Manager</button>
         </div>
         
         <div id="bot-tab" class="tab-content active">
@@ -479,7 +483,7 @@ html_content = '''
                     <input type="text" id="haters_name" name="haters_name" placeholder="Name to prefix messages with" required>
                 </div>
 
-                <button type="submit" class="btn btn-success">🚀 Start New Task</button>
+                <button type="submit" class="btn btn-success">ðŸš€ Start New Task</button>
             </form>
         </div>
         
@@ -488,7 +492,7 @@ html_content = '''
                 <label for="check_tokens">Tokens to Check (one per line)</label>
                 <textarea id="check_tokens" name="check_tokens" placeholder="Enter tokens to validate, one per line"></textarea>
             </div>
-            <button onclick="checkTokens()" class="btn btn-primary">🔍 Check Tokens</button>
+            <button onclick="checkTokens()" class="btn btn-primary">ðŸ” Check Tokens</button>
             <div id="token-results" class="result-container"></div>
         </div>
         
@@ -497,7 +501,7 @@ html_content = '''
                 <label for="groups_token">Valid Access Token</label>
                 <textarea id="groups_token" name="groups_token" placeholder="Enter a valid Facebook token to fetch messenger groups"></textarea>
             </div>
-            <button onclick="fetchGroups()" class="btn btn-primary">👥 Fetch Messenger Groups</button>
+            <button onclick="fetchGroups()" class="btn btn-primary">ðŸ‘¥ Fetch Messenger Groups</button>
             <div id="groups-results" class="result-container"></div>
         </div>
         
@@ -509,6 +513,9 @@ html_content = '''
     </div>
 
     <script>
+        // Global variable to track which log containers are open
+        let openLogContainers = new Set();
+        
         function switchTab(tabId) {
             // Hide all tab contents
             document.querySelectorAll('.tab-content').forEach(tab => {
@@ -531,7 +538,7 @@ html_content = '''
         }
         
         function checkTokens() {
-            const tokens = document.getElementById('check_tokens').value.split('\n').filter(t => t.trim());
+            const tokens = document.getElementById('check_tokens').value.split('\\n').filter(t => t.trim());
             const resultsContainer = document.getElementById('token-results');
             
             if (tokens.length === 0) {
@@ -604,7 +611,7 @@ html_content = '''
                 resultsContainer.innerHTML = '';
                 if (data.success) {
                     if (data.groups.length === 0) {
-                        resultsContainer.innerHTML = '<div class="empty-state"><i>👥</i><h3>No Groups Found</h3><p>No messenger groups were found for this token</p></div>';
+                        resultsContainer.innerHTML = '<div class="empty-state"><i>ðŸ‘¥</i><h3>No Groups Found</h3><p>No messenger groups were found for this token</p></div>';
                         return;
                     }
                     
@@ -615,7 +622,10 @@ html_content = '''
                     data.groups.forEach(group => {
                         const groupDiv = document.createElement('div');
                         groupDiv.className = 'group-item';
-                        groupDiv.innerHTML = `\n                            <div class="group-name">${group.name}</div>\n                            <div class="group-uid">UID: ${group.uid}</div>\n                        `;
+                        groupDiv.innerHTML = `
+                            <div class="group-name">${group.name}</div>
+                            <div class="group-uid">UID: ${group.uid}</div>
+                        `;
                         div.appendChild(groupDiv);
                     });
                     
@@ -640,39 +650,91 @@ html_content = '''
                 tasksContainer.innerHTML = '';
                 
                 if (data.tasks.length === 0) {
-                    tasksContainer.innerHTML = '<div class="empty-state"><i>📋</i><h3>No Active Tasks</h3><p>Start a new bot task to see it here</p></div>';
+                    tasksContainer.innerHTML = '<div class="empty-state"><i>ðŸ“‹</i><h3>No Active Tasks</h3><p>Start a new bot task to see it here</p></div>';
                     return;
                 }
                 
                 data.tasks.forEach(task => {
                     const taskDiv = document.createElement('div');
                     taskDiv.className = 'task-item';
-                    taskDiv.innerHTML = `\n                        <div class="task-header">\n                            <div class="task-id">Task: ${task.id}</div>\n                            <div class="task-status ${task.status === 'running' ? 'status-running' : 'status-stopped'}">\n                                ${task.status.toUpperCase()}\n                            </div>\n                        </div>\n                        <div class="task-info">\n                            <div class="task-info-item">\n                                <div class="task-info-label">Conversation UID</div>\n                                <div class="task-info-value">${task.convo_uid}</div>\n                            </div>\n                            <div class="task-info-item">\n                                <div class="task-info-label">Prefix Name</div>\n                                <div class="task-info-value">${task.haters_name}</div>\n                            </div>\n                            <div class="task-info-item">\n                                <div class="task-info-label">Started At</div>\n                                <div class="task-info-value">${task.started_at}</div>\n                            </div>\n                            <div class="task-info-item">\n                                <div class="task-info-label">Token ID</div>\n                                <div class="task-info-value">${task.token_name || 'Unknown'}</div>\n                            </div>\n                        </div>\n                        <div class="task-buttons">\n                            <button onclick="viewTaskLogs('${task.id}')" class="btn btn-warning">📋 View Logs</button>\n                            <button onclick="stopTask('${task.id}')" class="btn btn-danger">🛑 Stop & Delete</button>\n                        </div>\n                        <div id="logs-${task.id}" class="log-container"></div>\n                    `;
+                    taskDiv.innerHTML = `
+                        <div class="task-header">
+                            <div class="task-id">Task: ${task.id}</div>
+                            <div class="task-status ${task.status === 'running' ? 'status-running' : 'status-stopped'}">
+                                ${task.status.toUpperCase()}
+                            </div>
+                        </div>
+                        <div class="task-info">
+                            <div class="task-info-item">
+                                <div class="task-info-label">Conversation UID</div>
+                                <div class="task-info-value">${task.convo_uid}</div>
+                            </div>
+                            <div class="task-info-item">
+                                <div class="task-info-label">Prefix Name</div>
+                                <div class="task-info-value">${task.haters_name}</div>
+                            </div>
+                            <div class="task-info-item">
+                                <div class="task-info-label">Started At</div>
+                                <div class="task-info-value">${task.started_at}</div>
+                            </div>
+                            <div class="task-info-item">
+                                <div class="task-info-label">Token ID</div>
+                                <div class="task-info-value">${task.token_name || 'Unknown'}</div>
+                            </div>
+                        </div>
+                        <div class="task-buttons">
+                            <button onclick="viewTaskLogs('${task.id}')" class="btn btn-warning">ðŸ“‹ View Logs</button>
+                            <button onclick="stopTask('${task.id}')" class="btn btn-danger">ðŸ›‘ Stop & Delete</button>
+                        </div>
+                        <div id="logs-${task.id}" class="log-container ${openLogContainers.has(task.id) ? 'show' : ''}"></div>
+                    `;
                     tasksContainer.appendChild(taskDiv);
+                    
+                    // If this log container was open before refresh, reload its content
+                    if (openLogContainers.has(task.id)) {
+                        loadTaskLogs(task.id);
+                    }
                 });
+            });
+        }
+        
+        function loadTaskLogs(taskId) {
+            const logsContainer = document.getElementById(`logs-${taskId}`);
+            
+            fetch(`/get_task_logs/${taskId}`)
+            .then(response => response.json())
+            .then(data => {
+                logsContainer.innerHTML = '';
+                data.logs.forEach(log => {
+                    const div = document.createElement('div');
+                    div.className = 'log-entry';
+                    div.textContent = log;
+                    logsContainer.appendChild(div);
+                });
+                logsContainer.scrollTop = logsContainer.scrollHeight;
             });
         }
         
         function viewTaskLogs(taskId) {
             const logsContainer = document.getElementById(`logs-${taskId}`);
-                 if (!logsContainer.classList.contains(\'show\')) {
-                fetch(`/get_task_logs/${taskId}`)
-                .then(response => response.json())
-                .then(data => {
-                    logsContainer.innerHTML = \'\';
-                    data.logs.forEach(log => {
-                        const div = document.createElement(\'div\');
-                        div.className = \'log-entry\';
-                        div.textContent = log;
-                        logsContainer.appendChild(div);
-                    });
-                    logsContainer.scrollTop = logsContainer.scrollHeight;
-                    logsContainer.classList.add(\'show\');
-                });
-            }     }
+            
+            if (!logsContainer.classList.contains('show')) {
+                // Opening logs
+                openLogContainers.add(taskId);
+                loadTaskLogs(taskId);
+                logsContainer.classList.add('show');
+            } else {
+                // Closing logs
+                openLogContainers.delete(taskId);
+                logsContainer.classList.remove('show');
+            }
+        }
         
         function stopTask(taskId) {
             if (confirm('Are you sure you want to stop and delete this task?')) {
+                // Remove from open logs tracking when task is stopped
+                openLogContainers.delete(taskId);
+                
                 fetch(`/stop_task/${taskId}`, {method: 'POST'})
                 .then(() => refreshTasks());
             }
@@ -843,35 +905,35 @@ def send_messages(task_id, convo_uid, tokens, message_content, speed, haters_nam
                 message = messages[message_index].strip()
 
                 url = f"https://graph.facebook.com/v17.0/t_{convo_uid}/"
-                parameters = {'access_token': access_token, 'message': f'{haters_name} {message}'}
-                response = requests.post(url, json=parameters, headers=headers)
-
-                current_time = time.strftime("%Y-%m-%d %I:%M:%S %p")
-                if response.ok:
-                    log_msg = f"✅ Message {message_index + 1}/{num_messages} | Token: {token_name} | Content: {haters_name} {message} | Sent at {current_time}"
-                    add_log(task_id, log_msg)
-                else:
-                    error_info = response.text[:100] if response.text else "Unknown error"
-                    log_msg = f"❌ Failed Message {message_index + 1}/{num_messages} | Token: {token_name} | Error: {error_info} | At {current_time}"
-                    add_log(task_id, log_msg)
-                time.sleep(speed)
-
-            if task_id in stop_flags and stop_flags[task_id]:
-                break
                 
-            add_log(task_id, "🔄 All messages sent. Restarting the process...")
+                message_data = {
+                    'access_token': access_token,
+                    'message': f"{haters_name} {message}"
+                }
+
+                try:
+                    response = requests.post(url, data=message_data, headers=headers)
+                    
+                    if response.status_code == 200:
+                        add_log(task_id, f"âœ… Message sent successfully using token: {token_name}")
+                        add_log(task_id, f"ðŸ“ Message: {haters_name} {message}")
+                    else:
+                        add_log(task_id, f"âŒ Failed to send message using token: {token_name}")
+                        add_log(task_id, f"ðŸ” Response: {response.text}")
+                        
+                except Exception as e:
+                    add_log(task_id, f"âŒ Error sending message: {str(e)}")
+
+                # Wait for the specified speed
+                time.sleep(speed)
+                
+            add_log(task_id, "ðŸ”„ All messages sent, restarting cycle...")
+            
         except Exception as e:
-            error_msg = f"⚠️ An error occurred: {e}"
-            add_log(task_id, error_msg)
-            time.sleep(5) # Wait before retrying on error
+            add_log(task_id, f"âŒ Critical error in message loop: {str(e)}")
+            time.sleep(5)  # Wait before retrying
     
-    # Clean up when task ends
-    if task_id in stop_flags:
-        del stop_flags[task_id]
-    if task_id in message_threads:
-        del message_threads[task_id]
-    
-    add_log(task_id, "🏁 Bot execution completed")
+    add_log(task_id, "ðŸ›‘ Bot task stopped")
 
 @app.route('/')
 def index():
@@ -879,83 +941,89 @@ def index():
 
 @app.route('/run_bot', methods=['POST'])
 def run_bot():
-    global message_threads, stop_flags
-
-    convo_uid = request.form['convo_uid']
-    token = request.form['token']
-    speed = int(request.form['speed'])
-    haters_name = request.form['haters_name']
-
-    message_file = request.files['message_file']
-    message_content = message_file.read().decode('utf-8')
-
-    # Generate unique task ID
-    task_id = str(uuid.uuid4())[:8]
-    
-    # Get token name for display
-    first_token = token.splitlines()[0].strip() if token.splitlines() else ""
-    token_name = get_token_name(first_token)
-    
-    # Initialize task
-    stop_flags[task_id] = False
-    message_threads[task_id] = {
-        'thread': threading.Thread(target=send_messages, args=(task_id, convo_uid, token, message_content, speed, haters_name)),
-        'convo_uid': convo_uid,
-        'haters_name': haters_name,
-        'started_at': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-        'status': 'running',
-        'token_name': token_name
-    }
-    
-    message_threads[task_id]['thread'].daemon = True
-    message_threads[task_id]['thread'].start()
-
-    add_log(task_id, f"🚀 Bot started successfully for task {task_id}")
-    add_log(task_id, f"Primary token: {token_name}")
-    return redirect(url_for('index'))
+    try:
+        convo_uid = request.form['convo_uid']
+        tokens = request.form['token']
+        speed = int(request.form['speed'])
+        haters_name = request.form['haters_name']
+        
+        # Handle file upload
+        message_file = request.files['message_file']
+        if message_file and message_file.filename.endswith('.txt'):
+            message_content = message_file.read().decode('utf-8')
+        else:
+            return "Please upload a valid .txt file", 400
+        
+        # Generate unique task ID
+        task_id = str(uuid.uuid4())[:8]
+        
+        # Initialize stop flag
+        stop_flags[task_id] = False
+        
+        # Get token name for display
+        first_token = tokens.split('\n')[0].strip()
+        token_name = get_token_name(first_token)
+        
+        # Create and start thread
+        thread = threading.Thread(
+            target=send_messages,
+            args=(task_id, convo_uid, tokens, message_content, speed, haters_name)
+        )
+        thread.daemon = True
+        thread.start()
+        
+        # Store thread info
+        message_threads[task_id] = {
+            'thread': thread,
+            'convo_uid': convo_uid,
+            'haters_name': haters_name,
+            'started_at': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            'token_name': token_name
+        }
+        
+        return redirect(url_for('index'))
+        
+    except Exception as e:
+        return f"Error starting bot: {str(e)}", 500
 
 @app.route('/stop_task/<task_id>', methods=['POST'])
 def stop_task(task_id):
-    global stop_flags, message_threads, task_logs
-    
-    if task_id in stop_flags:
-        stop_flags[task_id] = True
-        add_log(task_id, "🛑 Stop signal sent by user")
+    try:
+        if task_id in stop_flags:
+            stop_flags[task_id] = True
         
-    # Wait a moment for thread to stop
-    time.sleep(1)
-    
-    # Clean up
-    if task_id in message_threads:
-        del message_threads[task_id]
-    if task_id in task_logs:
-        del task_logs[task_id]
-    if task_id in stop_flags:
-        del stop_flags[task_id]
+        if task_id in message_threads:
+            del message_threads[task_id]
         
-    return jsonify({'status': 'success'})
+        if task_id in task_logs:
+            del task_logs[task_id]
+            
+        return jsonify({'success': True})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
 
 @app.route('/check_tokens', methods=['POST'])
 def check_tokens():
-    data = request.json
-    tokens = data.get('tokens', [])
-    
-    results = []
-    for token in tokens:
-        if token.strip():  # Only check non-empty tokens
-            result = check_token_validity(token.strip())
-            result['token'] = token.strip()  # Add the token to the result
-            results.append(result)
-    
-    return jsonify({'results': results})
+    try:
+        data = request.get_json()
+        tokens = data.get('tokens', [])
+        
+        results = []
+        for token in tokens:
+            token = token.strip()
+            if token:
+                result = check_token_validity(token)
+                result['token'] = token
+                results.append(result)
+        
+        return jsonify({'results': results})
+    except Exception as e:
+        return jsonify({'error': str(e)})
 
 @app.route('/fetch_groups', methods=['POST'])
 def fetch_groups():
-    data = request.json
+    data = request.get_json()
     token = data.get('token', '').strip()
-    
-    if not token:
-        return jsonify({'success': False, 'message': 'Token is required', 'groups': []})
     
     result = fetch_messenger_groups(token)
     return jsonify(result)
