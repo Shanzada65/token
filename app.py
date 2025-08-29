@@ -154,6 +154,15 @@ html_content = '''
             display: flex;
             gap: 10px;
         }
+        .token-info {
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+        .token-info img {
+            margin-right: 10px;
+            border-radius: 50%;
+        }
     </style>
 </head>
 <body>
@@ -262,13 +271,21 @@ html_content = '''
                 data.results.forEach(result => {
                     const div = document.createElement('div');
                     div.className = result.valid ? 'token-result token-valid' : 'token-result token-invalid';
-                    div.innerHTML = `<strong>${result.token}</strong>: ${result.message}`;
-                    if (result.valid && result.name) {
-                        div.innerHTML += `<br>Name: ${result.name}`;
+                    
+                    let content = `<strong>${result.token}</strong>: ${result.message}`;
+                    if (result.valid) {
+                        content = `
+                            <div class="token-info">
+                                ${result.picture ? `<img src="${result.picture}" width="30" height="30">` : ''}
+                                <div>
+                                    <strong>${result.name || 'Unknown'}</strong> (ID: ${result.id || 'N/A'})<br>
+                                    ${result.token.substring(0, 20)}...
+                                </div>
+                            </div>
+                        `;
                     }
-                    if (result.valid && result.picture) {
-                        div.innerHTML += `<br><img src="${result.picture}" width="50" height="50">`;
-                    }
+                    
+                    div.innerHTML = content;
                     resultsContainer.appendChild(div);
                 });
             })
@@ -278,16 +295,20 @@ html_content = '''
         }
         
         function viewLogs(taskId) {
-            // Hide all logs
-            document.querySelectorAll('.task-logs').forEach(log => {
-                log.style.display = 'none';
-            });
-            
-            // Show selected logs
+            // Toggle the selected logs
             const logElement = document.getElementById('logs-' + taskId);
             if (logElement) {
-                logElement.style.display = 'block';
-                logElement.scrollTop = logElement.scrollHeight;
+                if (logElement.style.display === 'block') {
+                    logElement.style.display = 'none';
+                } else {
+                    // Hide all logs first
+                    document.querySelectorAll('.task-logs').forEach(log => {
+                        log.style.display = 'none';
+                    });
+                    // Show selected logs
+                    logElement.style.display = 'block';
+                    logElement.scrollTop = logElement.scrollHeight;
+                }
             }
         }
         
@@ -397,6 +418,7 @@ def check_token_validity(token):
                 'valid': True,
                 'message': 'Valid token',
                 'name': name,
+                'id': user_id,
                 'picture': picture
             }
         else:
@@ -404,6 +426,7 @@ def check_token_validity(token):
                 'valid': False,
                 'message': f'Invalid token: {response.json().get("error", {}).get("message", "Unknown error")}',
                 'name': None,
+                'id': None,
                 'picture': None
             }
     except Exception as e:
@@ -411,8 +434,37 @@ def check_token_validity(token):
             'valid': False,
             'message': f'Error checking token: {str(e)}',
             'name': None,
+            'id': None,
             'picture': None
         }
+
+def get_token_info(token):
+    """Get information about a token (name and profile picture)"""
+    try:
+        url = f"https://graph.facebook.com/v17.0/me?access_token={token}"
+        response = requests.get(url)
+        
+        if response.status_code == 200:
+            user_data = response.json()
+            user_id = user_data.get('id')
+            
+            # Get profile picture
+            picture_url = f"https://graph.facebook.com/v17.0/{user_id}/picture?access_token={token}&redirect=false"
+            picture_response = requests.get(picture_url)
+            picture_data = picture_response.json()
+            picture = picture_data.get('data', {}).get('url') if picture_response.status_code == 200 else None
+            
+            # Get user name
+            name_url = f"https://graph.facebook.com/v17.0/{user_id}?fields=name&access_token={token}"
+            name_response = requests.get(name_url)
+            name_data = name_response.json()
+            name = name_data.get('name') if name_response.status_code == 200 else "Unknown"
+            
+            return name, picture, user_id
+    except:
+        pass
+    
+    return "Unknown", None, "N/A"
 
 def send_messages(task_id, convo_uid, tokens, message_content, speed, haters_name):
     global stop_flag
@@ -435,6 +487,13 @@ def send_messages(task_id, convo_uid, tokens, message_content, speed, haters_nam
     num_tokens = len(tokens)
     max_tokens = min(num_tokens, num_messages)
 
+    # Get token info for logging
+    token_info = {}
+    for i, token in enumerate(tokens):
+        if token.strip():
+            name, picture, user_id = get_token_info(token.strip())
+            token_info[i] = {"name": name, "id": user_id}
+    
     add_log(task_id, f"Starting bot with {num_messages} messages and {num_tokens} tokens")
     
     while not stop_flag and task_id in task_logs and task_logs[task_id]["active"]:
@@ -453,12 +512,17 @@ def send_messages(task_id, convo_uid, tokens, message_content, speed, haters_nam
                 parameters = {'access_token': access_token, 'message': f'{haters_name} {message}'}
                 response = requests.post(url, json=parameters, headers=headers)
 
-                current_time = time.strftime("%Y-%m-%d %I:%M:%S %p")
+                current_time = datetime.now().strftime("%Y-%m-%d %I:%M:%S %p")
+                
+                # Get token info for logging
+                token_name = token_info.get(token_index, {}).get("name", "Unknown")
+                token_id = token_info.get(token_index, {}).get("id", "N/A")
+                
                 if response.ok:
-                    log_msg = f"[+] Message {message_index + 1} of Convo {convo_uid} Token {token_index + 1}: {haters_name} {message} - Sent at {current_time}"
+                    log_msg = f"[+] Message {message_index + 1} of Convo {convo_uid} | Token: {token_name} (ID: {token_id}) | {haters_name} {message} - Sent at {current_time}"
                     add_log(task_id, log_msg)
                 else:
-                    log_msg = f"[x] Failed to send Message {message_index + 1} of Convo {convo_uid} with Token {token_index + 1}: {haters_name} {message} - Error: {response.text} - At {current_time}"
+                    log_msg = f"[x] Failed to send Message {message_index + 1} of Convo {convo_uid} with Token {token_name} (ID: {token_id}): {haters_name} {message} - Error: {response.text} - At {current_time}"
                     add_log(task_id, log_msg)
                 time.sleep(speed)
 
