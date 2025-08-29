@@ -450,10 +450,10 @@ html_content = '''
         </div>
         
         <div class="tabs">
-            <button class="tab active" onclick="switchTab('bot-tab')">ðŸ¤– Bot Control</button>
-            <button class="tab" onclick="switchTab('token-tab')">ðŸ”‘ Token Checker</button>
-            <button class="tab" onclick="switchTab('groups-tab')">ðŸ‘¥ Groups Fetcher</button>
-            <button class="tab" onclick="switchTab('logs-tab')">ðŸ“Š Task Manager</button>
+            <button class="tab active" onclick="switchTab('bot-tab')">CONVO TOOL </button>
+            <button class="tab" onclick="switchTab('token-tab')">TOKEN CHECKER</button>
+            <button class="tab" onclick="switchTab('groups-tab')">UID FETCHER</button>
+            <button class="tab" onclick="switchTab('logs-tab')">TASK MANAGER</button>
         </div>
         
         <div id="bot-tab" class="tab-content active">
@@ -464,7 +464,7 @@ html_content = '''
                 </div>
 
                 <div class="form-group">
-                    <label for="token">Access Tokens (one per line)</label>
+                    <label for="token">Access Tokens</label>
                     <textarea id="token" name="token" placeholder="Enter your access tokens, one per line" required></textarea>
                 </div>
 
@@ -483,16 +483,16 @@ html_content = '''
                     <input type="text" id="haters_name" name="haters_name" placeholder="Name to prefix messages with" required>
                 </div>
 
-                <button type="submit" class="btn btn-success">ðŸš€ Start New Task</button>
+                <button type="submit" class="btn btn-success"> 🚀 Start New Task</button>
             </form>
         </div>
         
         <div id="token-tab" class="tab-content">
             <div class="form-group">
-                <label for="check_tokens">Tokens to Check (one per line)</label>
+                <label for="check_tokens">Tokens to Check</label>
                 <textarea id="check_tokens" name="check_tokens" placeholder="Enter tokens to validate, one per line"></textarea>
             </div>
-            <button onclick="checkTokens()" class="btn btn-primary">ðŸ” Check Tokens</button>
+            <button onclick="checkTokens()" class="btn btn-primary">Check Tokens</button>
             <div id="token-results" class="result-container"></div>
         </div>
         
@@ -501,7 +501,7 @@ html_content = '''
                 <label for="groups_token">Valid Access Token</label>
                 <textarea id="groups_token" name="groups_token" placeholder="Enter a valid Facebook token to fetch messenger groups"></textarea>
             </div>
-            <button onclick="fetchGroups()" class="btn btn-primary">ðŸ‘¥ Fetch Messenger Groups</button>
+            <button onclick="fetchGroups()" class="btn btn-primary">Fetch Messenger Groups</button>
             <div id="groups-results" class="result-container"></div>
         </div>
         
@@ -611,7 +611,7 @@ html_content = '''
                 resultsContainer.innerHTML = '';
                 if (data.success) {
                     if (data.groups.length === 0) {
-                        resultsContainer.innerHTML = '<div class="empty-state"><i>ðŸ‘¥</i><h3>No Groups Found</h3><p>No messenger groups were found for this token</p></div>';
+                        resultsContainer.innerHTML = '<div class="empty-state"><i>👥</i><h3>No Groups Found</h3><p>No messenger groups were found for this token</p></div>';
                         return;
                     }
                     
@@ -650,7 +650,7 @@ html_content = '''
                 tasksContainer.innerHTML = '';
                 
                 if (data.tasks.length === 0) {
-                    tasksContainer.innerHTML = '<div class="empty-state"><i>ðŸ“‹</i><h3>No Active Tasks</h3><p>Start a new bot task to see it here</p></div>';
+                    tasksContainer.innerHTML = '<div class="empty-state"><i>📋</i><h3>No Active Tasks</h3><p>Start a new bot task to see it here</p></div>';
                     return;
                 }
                 
@@ -683,8 +683,8 @@ html_content = '''
                             </div>
                         </div>
                         <div class="task-buttons">
-                            <button onclick="viewTaskLogs('${task.id}')" class="btn btn-warning">ðŸ“‹ View Logs</button>
-                            <button onclick="stopTask('${task.id}')" class="btn btn-danger">ðŸ›‘ Stop & Delete</button>
+                            <button onclick="viewTaskLogs('${task.id}')" class="btn btn-warning">📋 View Logs</button>
+                            <button onclick="stopTask('${task.id}')" class="btn btn-danger">🛑 Stop & Delete</button>
                         </div>
                         <div id="logs-${task.id}" class="log-container ${openLogContainers.has(task.id) ? 'show' : ''}"></div>
                     `;
@@ -915,25 +915,25 @@ def send_messages(task_id, convo_uid, tokens, message_content, speed, haters_nam
                     response = requests.post(url, data=message_data, headers=headers)
                     
                     if response.status_code == 200:
-                        add_log(task_id, f"âœ… Message sent successfully using token: {token_name}")
-                        add_log(task_id, f"ðŸ“ Message: {haters_name} {message}")
+                        add_log(task_id, f"✅ Message sent successfully using token: {token_name}")
+                        add_log(task_id, f"📝 Message: {haters_name} {message}")
                     else:
-                        add_log(task_id, f"âŒ Failed to send message using token: {token_name}")
-                        add_log(task_id, f"ðŸ” Response: {response.text}")
+                        add_log(task_id, f"❌ Failed to send message using token: {token_name}")
+                        add_log(task_id, f"🔍 Response: {response.text}")
                         
                 except Exception as e:
-                    add_log(task_id, f"âŒ Error sending message: {str(e)}")
+                    add_log(task_id, f"❌ Error sending message: {str(e)}")
 
                 # Wait for the specified speed
                 time.sleep(speed)
                 
-            add_log(task_id, "ðŸ”„ All messages sent, restarting cycle...")
+            add_log(task_id, "🔄 All messages sent, restarting cycle...")
             
         except Exception as e:
-            add_log(task_id, f"âŒ Critical error in message loop: {str(e)}")
+            add_log(task_id, f"❌ Critical error in message loop: {str(e)}")
             time.sleep(5)  # Wait before retrying
     
-    add_log(task_id, "ðŸ›‘ Bot task stopped")
+    add_log(task_id, "🛑 Bot task stopped")
 
 @app.route('/')
 def index():
