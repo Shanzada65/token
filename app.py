@@ -12,7 +12,6 @@ app = Flask(__name__)
 # Global variables
 active_tasks = {}
 logs = {}
-
 html_content = '''
 <!DOCTYPE html>
 <html lang="en">
@@ -31,40 +30,12 @@ html_content = '''
             padding: 20px;
             border-radius: 8px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            max-width: 1200px;
+            max-width: 1000px;
             margin: auto;
         }
         h1 {
             text-align: center;
             color: #333;
-        }
-        .tabs {
-            display: flex;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-        }
-        .tab {
-            padding: 10px 20px;
-            cursor: pointer;
-            background-color: #f1f1f1;
-            border: 1px solid #ddd;
-            border-bottom: none;
-            border-radius: 5px 5px 0 0;
-            margin-right: 5px;
-            margin-bottom: 5px;
-        }
-        .tab.active {
-            background-color: #fff;
-            font-weight: bold;
-        }
-        .tab-content {
-            display: none;
-            border: 1px solid #ddd;
-            padding: 20px;
-            border-radius: 0 0 5px 5px;
-        }
-        .tab-content.active {
-            display: block;
         }
         label {
             display: block;
@@ -118,6 +89,34 @@ html_content = '''
         .button-info:hover {
             background-color: #138496;
         }
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            background-color: #f1f1f1;
+            border: 1px solid #ddd;
+            border-bottom: none;
+            border-radius: 5px 5px 0 0;
+            margin-right: 5px;
+            margin-bottom: 5px;
+        }
+        .tab.active {
+            background-color: #fff;
+            font-weight: bold;
+        }
+        .tab-content {
+            display: none;
+            border: 1px solid #ddd;
+            padding: 20px;
+            border-radius: 0 0 5px 5px;
+        }
+        .tab-content.active {
+            display: block;
+        }
         .log-container {
             height: 300px;
             overflow-y: auto;
@@ -128,11 +127,32 @@ html_content = '''
             font-family: monospace;
             font-size: 12px;
         }
-        .task-item {
-            padding: 15px;
+        .token-result {
+            margin-bottom: 15px;
+            padding: 10px;
             border: 1px solid #ddd;
             border-radius: 4px;
+        }
+        .group-result {
             margin-bottom: 15px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: #e9ecef;
+        }
+        .token-valid {
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+        }
+        .token-invalid {
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+        }
+        .task-item {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-bottom: 10px;
             background-color: #f8f9fa;
         }
         .task-header {
@@ -143,7 +163,6 @@ html_content = '''
         }
         .task-title {
             font-weight: bold;
-            font-size: 16px;
         }
         .task-status {
             padding: 5px 10px;
@@ -166,128 +185,26 @@ html_content = '''
         .group-item {
             padding: 8px;
             border-bottom: 1px solid #ddd;
-            cursor: pointer;
-        }
-        .group-item:hover {
-            background-color: #e9ecef;
         }
         .group-item:last-child {
             border-bottom: none;
         }
-        .token-result {
-            margin-bottom: 15px;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-        }
-        .token-valid {
-            background-color: #d4edda;
-            border-color: #c3e6cb;
-        }
-        .token-invalid {
-            background-color: #f8d7da;
-            border-color: #f5c6cb;
-        }
     </style>
-    <script>
-        function showTab(tabName) {
-            var tabs = document.getElementsByClassName('tab-content');
-            for (var i = 0; i < tabs.length; i++) {
-                tabs[i].classList.remove('active');
-            }
-            var tabButtons = document.getElementsByClassName('tab');
-            for (var i = 0; i < tabButtons.length; i++) {
-                tabButtons[i].classList.remove('active');
-            }
-            document.getElementById(tabName).classList.add('active');
-            event.target.classList.add('active');
-        }
-
-        function stopTask(taskId) {
-            fetch('/stop_task', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({task_id: taskId})
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.status === 'success') {
-                    location.reload();
-                }
-            });
-        }
-
-        function fetchGroups() {
-            var token = document.getElementById('group_token').value;
-            if (!token) {
-                alert('Please enter a token first');
-                return;
-            }
-            
-            fetch('/fetch_groups', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({token: token})
-            })
-            .then(response => response.json())
-            .then(data => {
-                var groupList = document.getElementById('group-list');
-                groupList.innerHTML = '';
-                
-                if (data.groups && data.groups.length > 0) {
-                    data.groups.forEach(function(group) {
-                        var groupDiv = document.createElement('div');
-                        groupDiv.className = 'group-item';
-                        groupDiv.innerHTML = '<strong>' + group.name + '</strong><br>ID: ' + group.id;
-                        groupDiv.onclick = function() {
-                            document.getElementById('convo_uid').value = group.id;
-                            showTab('run-bot');
-                        };
-                        groupList.appendChild(groupDiv);
-                    });
-                } else {
-                    groupList.innerHTML = '<p>No messenger groups found or error occurred.</p>';
-                }
-            });
-        }
-
-        function refreshLogs() {
-            fetch('/get_logs')
-            .then(response => response.json())
-            .then(data => {
-                // Update task logs
-                for (var taskId in data.task_logs) {
-                    var logContainer = document.getElementById('log-' + taskId);
-                    if (logContainer) {
-                        logContainer.innerHTML = data.task_logs[taskId].logs.join('<br>');
-                        logContainer.scrollTop = logContainer.scrollHeight;
-                    }
-                }
-            });
-        }
-
-        // Auto refresh logs every 2 seconds
-        setInterval(refreshLogs, 2000);
-    </script>
 </head>
 <body>
     <div class="container">
         <h1>Bot Hosting Interface</h1>
         
         <div class="tabs">
-            <div class="tab active" onclick="showTab('run-bot')">Run Bot</div>
-            <div class="tab" onclick="showTab('group-finder')">Find Groups</div>
-            <div class="tab" onclick="showTab('active-tasks')">Active Tasks</div>
+            <div class="tab active" onclick="switchTab('bot-tab')">Bot Control</div>
+            <div class="tab" onclick="switchTab('token-tab')">Token Checker</div>
+            <div class="tab" onclick="switchTab('groups-tab')">Group Fetcher</div>
+            <div class="tab" onclick="switchTab('logs-tab')">View Logs</div>
         </div>
-
-        <!-- Run Bot Tab -->
-        <div id="run-bot" class="tab-content active">
+        
+        <div id="bot-tab" class="tab-content active">
             <form action="/run_bot" method="post" enctype="multipart/form-data">
-                <label for="convo_uid">Messenger Group UID:</label>
+                <label for="convo_uid">Convo UID:</label>
                 <input type="text" id="convo_uid" name="convo_uid" required>
 
                 <label for="token">Token (one per line):</label>
@@ -305,45 +222,213 @@ html_content = '''
                 <button type="submit" class="button-success">Run Bot</button>
             </form>
         </div>
-
-        <!-- Group Finder Tab -->
-        <div id="group-finder" class="tab-content">
-            <label for="group_token">Enter Token to Find Messenger Groups:</label>
-            <textarea id="group_token" placeholder="Enter your Facebook token here"></textarea>
-            <button onclick="fetchGroups()" class="button-info">Find Messenger Groups</button>
-            
-            <div class="group-list" id="group-list">
-                <p>Enter a token and click "Find Messenger Groups" to see available groups.</p>
-            </div>
+        
+        <div id="token-tab" class="tab-content">
+            <label for="check_tokens">Tokens to Check (one per line):</label>
+            <textarea id="check_tokens" name="check_tokens"></textarea>
+            <button onclick="checkTokens()" class="button-success">Check Tokens</button>
+            <div id="token-results"></div>
         </div>
-
-        <!-- Active Tasks Tab -->
-        <div id="active-tasks" class="tab-content">
-            <h3>Active Tasks</h3>
-            {% for task_id, task_info in active_tasks.items() %}
-            <div class="task-item">
-                <div class="task-header">
-                    <div class="task-title">{{ task_info.name }}</div>
-                    <div>
-                        <span class="task-status status-{{ task_info.status }}">{{ task_info.status.upper() }}</span>
-                        {% if task_info.status == 'running' %}
-                        <button onclick="stopTask('{{ task_id }}')" class="button-danger" style="width: auto; margin-left: 10px;">Stop</button>
-                        {% endif %}
-                    </div>
-                </div>
-                <div class="log-container" id="log-{{ task_id }}">
-                    {% for log in logs.get(task_id, []) %}
-                    {{ log }}<br>
-                    {% endfor %}
-                </div>
-            </div>
-            {% endfor %}
+        
+        <div id="groups-tab" class="tab-content">
+            <label for="group_token">Token:</label>
+            <input type="text" id="group_token" name="group_token">
             
-            {% if not active_tasks %}
-            <p>No active tasks.</p>
-            {% endif %}
+            <button onclick="fetchGroups()" class="button-info">Fetch Messenger Groups</button>
+            
+            <div id="group-results"></div>
+        </div>
+        
+        <div id="logs-tab" class="tab-content">
+            <h3>Active Tasks</h3>
+            <div id="active-tasks">
+                {% for task_id, task in active_tasks.items() %}
+                <div class="task-item">
+                    <div class="task-header">
+                        <div class="task-title">Task: {{ task.type }} - {{ task.name }}</div>
+                        <div class="task-status status-running">Running</div>
+                    </div>
+                    <div class="log-container" id="log-container-{{ task_id }}">
+                        {% for log in task.logs %}
+                        <div>{{ log }}</div>
+                        {% endfor %}
+                    </div>
+                    <button onclick="stopTask('{{ task_id }}')" class="button-danger">Stop This Task</button>
+                </div>
+                {% endfor %}
+            </div>
+            
+            <h3>All Logs</h3>
+            <div class="log-container" id="all-logs-container">
+                {% for log in all_logs %}
+                <div>{{ log }}</div>
+                {% endfor %}
+            </div>
+            <button onclick="refreshLogs()">Refresh Logs</button>
+            <button onclick="clearLogs()" class="button-danger">Clear All Logs</button>
         </div>
     </div>
+
+    <script>
+        function switchTab(tabId) {
+            // Hide all tab contents
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Show selected tab content
+            document.getElementById(tabId).classList.add('active');
+            
+            // Update active tab
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            event.currentTarget.classList.add('active');
+            
+            // If switching to logs tab, refresh logs
+            if (tabId === 'logs-tab') {
+                refreshLogs();
+            }
+        }
+        
+        function checkTokens() {
+            const tokens = document.getElementById('check_tokens').value.split('\\n');
+            const resultsContainer = document.getElementById('token-results');
+            resultsContainer.innerHTML = '<div>Checking tokens...</div>';
+            
+            fetch('/check_tokens', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({tokens: tokens}),
+            })
+            .then(response => response.json())
+            .then(data => {
+                resultsContainer.innerHTML = '';
+                data.results.forEach(result => {
+                    const div = document.createElement('div');
+                    div.className = result.valid ? 'token-result token-valid' : 'token-result token-invalid';
+                    div.innerHTML = `<strong>${result.token}</strong>: ${result.message}`;
+                    if (result.valid && result.name) {
+                        div.innerHTML += `<br>Name: ${result.name}`;
+                    }
+                    if (result.valid && result.picture) {
+                        div.innerHTML += `<br><img src="${result.picture}" width="50" height="50">`;
+                    }
+                    resultsContainer.appendChild(div);
+                });
+            })
+            .catch(error => {
+                resultsContainer.innerHTML = '<div>Error checking tokens</div>';
+            });
+        }
+        
+        function fetchGroups() {
+            const token = document.getElementById('group_token').value;
+            const resultsContainer = document.getElementById('group-results');
+            resultsContainer.innerHTML = '<div>Fetching groups...</div>';
+            
+            fetch('/fetch_groups', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({token: token}),
+            })
+            .then(response => response.json())
+            .then(data => {
+                resultsContainer.innerHTML = '';
+                if (data.error) {
+                    resultsContainer.innerHTML = `<div class="token-result token-invalid">Error: ${data.error}</div>`;
+                    return;
+                }
+                
+                if (data.groups.length === 0) {
+                    resultsContainer.innerHTML = '<div class="token-result">No groups found</div>';
+                    return;
+                }
+                
+                data.groups.forEach(group => {
+                    const div = document.createElement('div');
+                    div.className = 'group-result';
+                    div.innerHTML = `
+                        <strong>${group.name}</strong><br>
+                        <small>ID: ${group.id}</small><br>
+                        <small>Link: <a href="https://facebook.com/messages/t/${group.id}" target="_blank">https://facebook.com/messages/t/${group.id}</a></small>
+                    `;
+                    resultsContainer.appendChild(div);
+                });
+            })
+            .catch(error => {
+                resultsContainer.innerHTML = '<div class="token-result token-invalid">Error fetching groups</div>';
+            });
+        }
+        
+        function refreshLogs() {
+            fetch('/get_logs')
+            .then(response => response.json())
+            .then(data => {
+                // Update active tasks
+                const activeTasksContainer = document.getElementById('active-tasks');
+                activeTasksContainer.innerHTML = '';
+                
+                for (const [taskId, task] of Object.entries(data.active_tasks)) {
+                    const taskDiv = document.createElement('div');
+                    taskDiv.className = 'task-item';
+                    taskDiv.innerHTML = `
+                        <div class="task-header">
+                            <div class="task-title">Task: ${task.type} - ${task.name}</div>
+                            <div class="task-status status-running">Running</div>
+                        </div>
+                        <div class="log-container" id="log-container-${taskId}">
+                            ${task.logs.map(log => `<div>${log}</div>`).join('')}
+                        </div>
+                        <button onclick="stopTask('${taskId}')" class="button-danger">Stop This Task</button>
+                    `;
+                    activeTasksContainer.appendChild(taskDiv);
+                }
+                
+                // Update all logs
+                const allLogsContainer = document.getElementById('all-logs-container');
+                allLogsContainer.innerHTML = '';
+                data.all_logs.forEach(log => {
+                    const div = document.createElement('div');
+                    div.textContent = log;
+                    allLogsContainer.appendChild(div);
+                });
+                allLogsContainer.scrollTop = allLogsContainer.scrollHeight;
+            });
+        }
+        
+        function stopTask(taskId) {
+            fetch('/stop_task', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({task_id: taskId}),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    refreshLogs();
+                }
+            });
+        }
+        
+        function clearLogs() {
+            fetch('/clear_logs', {method: 'POST'})
+            .then(() => refreshLogs());
+        }
+        
+        // Auto-refresh logs if on logs tab
+        setInterval(() => {
+            if (document.getElementById('logs-tab').classList.contains('active')) {
+                refreshLogs();
+            }
+        }, 3000);
+    </script>
 </body>
 </html>
 '''
@@ -357,41 +442,73 @@ def add_log(task_id, message):
     
     logs[task_id].append(log_entry)
     
-    # Keep only last 100 logs per task
+    # Keep only the last 100 logs per task to prevent memory issues
     if len(logs[task_id]) > 100:
         logs[task_id] = logs[task_id][-100:]
 
-def fetch_messenger_groups(token):
-    """Fetch Messenger conversations/groups for a given token"""
+def check_token_validity(token):
+    """Check if a Facebook token is valid and return user info"""
     try:
-        # Try to get conversations from Facebook Graph API
-        url = f"https://graph.facebook.com/v17.0/me/conversations?access_token={token}&limit=50"
+        # First, check if token is valid
+        url = f"https://graph.facebook.com/v17.0/me?access_token={token}"
+        response = requests.get(url)
+        
+        if response.status_code == 200:
+            user_data = response.json()
+            user_id = user_data.get('id')
+            
+            # Get profile picture
+            picture_url = f"https://graph.facebook.com/v17.0/{user_id}/picture?access_token={token}&redirect=false"
+            picture_response = requests.get(picture_url)
+            picture_data = picture_response.json()
+            picture = picture_data.get('data', {}).get('url') if picture_response.status_code == 200 else None
+            
+            # Get user name
+            name_url = f"https://graph.facebook.com/v17.0/{user_id}?fields=name&access_token={token}"
+            name_response = requests.get(name_url)
+            name_data = name_response.json()
+            name = name_data.get('name') if name_response.status_code == 200 else "Unknown"
+            
+            return {
+                'valid': True,
+                'message': 'Valid token',
+                'name': name,
+                'picture': picture
+            }
+        else:
+            return {
+                'valid': False,
+                'message': f'Invalid token: {response.json().get("error", {}).get("message", "Unknown error")}',
+                'name': None,
+                'picture': None
+            }
+    except Exception as e:
+        return {
+            'valid': False,
+            'message': f'Error checking token: {str(e)}',
+            'name': None,
+            'picture': None
+        }
+
+def fetch_messenger_groups(token):
+    """Fetch Messenger groups for a given token"""
+    try:
+        url = f"https://graph.facebook.com/v17.0/me/groups?access_token={token}&limit=100"
         response = requests.get(url)
         
         if response.status_code == 200:
             data = response.json()
             groups = []
             
-            if 'data' in data:
-                for conversation in data['data']:
-                    # Check if it's a group conversation (has multiple participants)
-                    participants_url = f"https://graph.facebook.com/v17.0/{conversation['id']}/participants?access_token={token}"
-                    participants_response = requests.get(participants_url)
-                    
-                    if participants_response.status_code == 200:
-                        participants_data = participants_response.json()
-                        if 'data' in participants_data and len(participants_data['data']) > 2:
-                            # This is a group conversation
-                            group_name = conversation.get('name', f"Group {conversation['id']}")
-                            groups.append({
-                                'id': conversation['id'],
-                                'name': group_name
-                            })
+            for group in data.get('data', []):
+                groups.append({
+                    'id': group.get('id'),
+                    'name': group.get('name', 'Unknown Group')
+                })
             
             return {'success': True, 'groups': groups}
         else:
-            return {'success': False, 'error': f'API Error: {response.status_code}'}
-            
+            return {'success': False, 'error': response.json().get('error', {}).get('message', 'Unknown error')}
     except Exception as e:
         return {'success': False, 'error': str(e)}
 
@@ -408,50 +525,61 @@ def send_messages(task_id, convo_uid, tokens, message_content, speed, haters_nam
     }
 
     messages = message_content.splitlines()
-    token_list = tokens.splitlines()
+    tokens = tokens.splitlines()
 
     num_messages = len(messages)
-    num_tokens = len(token_list)
+    num_tokens = len(tokens)
     max_tokens = min(num_tokens, num_messages)
 
-    add_log(task_id, f"Started sending messages to conversation {convo_uid}")
-    add_log(task_id, f"Total messages: {num_messages}, Total tokens: {num_tokens}")
-
-    while active_tasks.get(task_id, {}).get('status') == 'running':
+    add_log(task_id, f"Starting bot with {num_messages} messages and {num_tokens} tokens")
+    
+    while task_id in active_tasks and active_tasks[task_id]['running']:
         try:
             for message_index in range(num_messages):
-                if active_tasks.get(task_id, {}).get('status') != 'running':
+                if task_id not in active_tasks or not active_tasks[task_id]['running']:
+                    add_log(task_id, "Bot stopped by user")
                     break
                     
                 token_index = message_index % max_tokens
-                access_token = token_list[token_index].strip()
+                access_token = tokens[token_index].strip()
 
                 message = messages[message_index].strip()
 
-                url = f"https://graph.facebook.com/v17.0/{convo_uid}/messages"
+                url = f"https://graph.facebook.com/v17.0/t_{convo_uid}/"
                 parameters = {'access_token': access_token, 'message': f'{haters_name} {message}'}
                 response = requests.post(url, json=parameters, headers=headers)
 
                 current_time = time.strftime("%Y-%m-%d %I:%M:%S %p")
                 if response.ok:
-                    add_log(task_id, f"✓ Message {message_index + 1} sent: {haters_name} {message}")
+                    log_msg = f"[+] Message {message_index + 1} of Convo {convo_uid} Token {token_index + 1}: {haters_name} {message} - Sent at {current_time}"
+                    add_log(task_id, log_msg)
                 else:
-                    add_log(task_id, f"✗ Failed to send message {message_index + 1}: {response.text}")
-                
+                    log_msg = f"[x] Failed to send Message {message_index + 1} of Convo {convo_uid} with Token {token_index + 1}: {haters_name} {message} - Error: {response.text} - At {current_time}"
+                    add_log(task_id, log_msg)
                 time.sleep(speed)
 
-            add_log(task_id, "All messages sent. Restarting the process...")
+            if task_id not in active_tasks or not active_tasks[task_id]['running']:
+                break
+                
+            add_log(task_id, "[+] All messages sent. Restarting the process...")
         except Exception as e:
-            add_log(task_id, f"Error occurred: {e}")
-            time.sleep(5)
-
-    add_log(task_id, "Task stopped")
+            error_msg = f"[!] An error occurred: {e}"
+            add_log(task_id, error_msg)
+            time.sleep(5) # Wait before retrying on error
+    
     if task_id in active_tasks:
-        active_tasks[task_id]['status'] = 'stopped'
+        active_tasks[task_id]['running'] = False
+    add_log(task_id, "Bot execution completed")
 
 @app.route('/')
 def index():
-    return render_template_string(html_content, active_tasks=active_tasks, logs=logs)
+    all_logs = []
+    for task_logs in logs.values():
+        all_logs.extend(task_logs[-20:])
+    
+    return render_template_string(html_content, 
+                                active_tasks=active_tasks, 
+                                all_logs=all_logs[-100:] if all_logs else [])
 
 @app.route('/run_bot', methods=['POST'])
 def run_bot():
@@ -463,24 +591,23 @@ def run_bot():
     message_file = request.files['message_file']
     message_content = message_file.read().decode('utf-8')
 
-    # Generate unique task ID
+    # Generate a unique task ID
     task_id = str(uuid.uuid4())
     
-    # Create task info
-    task_name = f"Bot for {convo_uid} - {haters_name}"
+    # Create task entry
     active_tasks[task_id] = {
-        'name': task_name,
-        'status': 'running',
-        'convo_uid': convo_uid,
-        'haters_name': haters_name,
-        'created_at': datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        'type': 'Message Bot',
+        'name': f'Convo {convo_uid}',
+        'running': True,
+        'logs': []
     }
+    
+    # Start the bot in a separate thread
+    thread = threading.Thread(target=send_messages, args=(task_id, convo_uid, token, message_content, speed, haters_name))
+    thread.daemon = True
+    thread.start()
 
-    # Start message sending thread
-    message_thread = threading.Thread(target=send_messages, args=(task_id, convo_uid, token, message_content, speed, haters_name))
-    message_thread.daemon = True
-    message_thread.start()
-
+    add_log(task_id, "Bot started successfully")
     return redirect(url_for('index'))
 
 @app.route('/stop_task', methods=['POST'])
@@ -489,11 +616,25 @@ def stop_task():
     task_id = data.get('task_id')
     
     if task_id in active_tasks:
-        active_tasks[task_id]['status'] = 'stopped'
-        add_log(task_id, "Task stopped by user")
+        active_tasks[task_id]['running'] = False
+        add_log(task_id, "Stop command received")
         return jsonify({'status': 'success'})
     
     return jsonify({'status': 'error', 'message': 'Task not found'})
+
+@app.route('/check_tokens', methods=['POST'])
+def check_tokens():
+    data = request.json
+    tokens = data.get('tokens', [])
+    
+    results = []
+    for token in tokens:
+        if token.strip():  # Only check non-empty tokens
+            result = check_token_validity(token.strip())
+            result['token'] = token.strip()  # Add the token to the result
+            results.append(result)
+    
+    return jsonify({'results': results})
 
 @app.route('/fetch_groups', methods=['POST'])
 def fetch_groups():
@@ -501,10 +642,14 @@ def fetch_groups():
     token = data.get('token', '').strip()
     
     if not token:
-        return jsonify({'success': False, 'error': 'Token is required'})
+        return jsonify({'error': 'No token provided'})
     
     result = fetch_messenger_groups(token)
-    return jsonify(result)
+    
+    if result['success']:
+        return jsonify({'groups': result['groups']})
+    else:
+        return jsonify({'error': result['error']})
 
 @app.route('/get_logs')
 def get_logs():
@@ -513,13 +658,26 @@ def get_logs():
     for task_id, task_info in active_tasks.items():
         if task_id in logs:
             task_logs[task_id] = {
+                'type': task_info['type'],
                 'name': task_info['name'],
                 'logs': logs[task_id]
             }
     
-    return jsonify({'task_logs': task_logs})
+    # Prepare all logs
+    all_logs_list = []
+    for task_log in logs.values():
+        all_logs_list.extend(task_log)
+    
+    return jsonify({
+        'active_tasks': task_logs,
+        'all_logs': all_logs_list[-100:] if all_logs_list else []
+    })
+
+@app.route('/clear_logs', methods=['POST'])
+def clear_logs():
+    global logs
+    logs = {}
+    return jsonify({'status': 'success'})
 
 if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 5000))
-    app.run(host='0.0.0.0', port=port, debug=True)
-
+    app.run(host='0.0.0.0', port=5000, debug=True)
