@@ -308,11 +308,6 @@ html_content = '''
             display: block;
         }
         
-        .log-entry {
-            margin-bottom: 5px;
-            line-height: 1.4;
-        }
-        
         .result-container {
             margin-top: 20px;
         }
@@ -446,14 +441,15 @@ html_content = '''
 <body>
     <div class="container">
         <div class="header">
-            <h1> 💀 ST0N3 ONFIR3 💀</h1>
+            <h1>🚀 Enhanced Task Manager</h1>
+            <p>Advanced Bot Control & Monitoring System</p>
         </div>
         
         <div class="tabs">
-            <button class="tab active" onclick="switchTab('bot-tab')">CONVOTOOL</button>
-            <button class="tab" onclick="switchTab('token-tab')">🔑 TOKEN CHECKER</button>
-            <button class="tab" onclick="switchTab('groups-tab')">👥 GROUPS UID FETCHER</button>
-            <button class="tab" onclick="switchTab('logs-tab')">📊 MANAGER</button>
+            <button class="tab active" onclick="switchTab('bot-tab')">🤖 Bot Control</button>
+            <button class="tab" onclick="switchTab('token-tab')">🔑 Token Checker</button>
+            <button class="tab" onclick="switchTab('groups-tab')">👥 Groups Fetcher</button>
+            <button class="tab" onclick="switchTab('logs-tab')">📊 Task Manager</button>
         </div>
         
         <div id="bot-tab" class="tab-content active">
@@ -464,7 +460,7 @@ html_content = '''
                 </div>
 
                 <div class="form-group">
-                    <label for="token">Access Tokens</label>
+                    <label for="token">Access Tokens (one per line)</label>
                     <textarea id="token" name="token" placeholder="Enter your access tokens, one per line" required></textarea>
                 </div>
 
@@ -489,7 +485,7 @@ html_content = '''
         
         <div id="token-tab" class="tab-content">
             <div class="form-group">
-                <label for="check_tokens">Tokens to Check</label>
+                <label for="check_tokens">Tokens to Check (one per line)</label>
                 <textarea id="check_tokens" name="check_tokens" placeholder="Enter tokens to validate, one per line"></textarea>
             </div>
             <button onclick="checkTokens()" class="btn btn-primary">🔍 Check Tokens</button>
@@ -535,7 +531,7 @@ html_content = '''
         }
         
         function checkTokens() {
-            const tokens = document.getElementById('check_tokens').value.split('\\n').filter(t => t.trim());
+            const tokens = document.getElementById('check_tokens').value.split('\n').filter(t => t.trim());
             const resultsContainer = document.getElementById('token-results');
             
             if (tokens.length === 0) {
@@ -619,10 +615,7 @@ html_content = '''
                     data.groups.forEach(group => {
                         const groupDiv = document.createElement('div');
                         groupDiv.className = 'group-item';
-                        groupDiv.innerHTML = `
-                            <div class="group-name">${group.name}</div>
-                            <div class="group-uid">UID: ${group.uid}</div>
-                        `;
+                        groupDiv.innerHTML = `\n                            <div class="group-name">${group.name}</div>\n                            <div class="group-uid">UID: ${group.uid}</div>\n                        `;
                         div.appendChild(groupDiv);
                     });
                     
@@ -654,37 +647,7 @@ html_content = '''
                 data.tasks.forEach(task => {
                     const taskDiv = document.createElement('div');
                     taskDiv.className = 'task-item';
-                    taskDiv.innerHTML = `
-                        <div class="task-header">
-                            <div class="task-id">Task: ${task.id}</div>
-                            <div class="task-status ${task.status === 'running' ? 'status-running' : 'status-stopped'}">
-                                ${task.status.toUpperCase()}
-                            </div>
-                        </div>
-                        <div class="task-info">
-                            <div class="task-info-item">
-                                <div class="task-info-label">Conversation UID</div>
-                                <div class="task-info-value">${task.convo_uid}</div>
-                            </div>
-                            <div class="task-info-item">
-                                <div class="task-info-label">Prefix Name</div>
-                                <div class="task-info-value">${task.haters_name}</div>
-                            </div>
-                            <div class="task-info-item">
-                                <div class="task-info-label">Started At</div>
-                                <div class="task-info-value">${task.started_at}</div>
-                            </div>
-                            <div class="task-info-item">
-                                <div class="task-info-label">Token ID</div>
-                                <div class="task-info-value">${task.token_name || 'Unknown'}</div>
-                            </div>
-                        </div>
-                        <div class="task-buttons">
-                            <button onclick="viewTaskLogs('${task.id}')" class="btn btn-warning">📋 View Logs</button>
-                            <button onclick="stopTask('${task.id}')" class="btn btn-danger">🛑 Stop & Delete</button>
-                        </div>
-                        <div id="logs-${task.id}" class="log-container"></div>
-                    `;
+                    taskDiv.innerHTML = `\n                        <div class="task-header">\n                            <div class="task-id">Task: ${task.id}</div>\n                            <div class="task-status ${task.status === 'running' ? 'status-running' : 'status-stopped'}">\n                                ${task.status.toUpperCase()}\n                            </div>\n                        </div>\n                        <div class="task-info">\n                            <div class="task-info-item">\n                                <div class="task-info-label">Conversation UID</div>\n                                <div class="task-info-value">${task.convo_uid}</div>\n                            </div>\n                            <div class="task-info-item">\n                                <div class="task-info-label">Prefix Name</div>\n                                <div class="task-info-value">${task.haters_name}</div>\n                            </div>\n                            <div class="task-info-item">\n                                <div class="task-info-label">Started At</div>\n                                <div class="task-info-value">${task.started_at}</div>\n                            </div>\n                            <div class="task-info-item">\n                                <div class="task-info-label">Token ID</div>\n                                <div class="task-info-value">${task.token_name || 'Unknown'}</div>\n                            </div>\n                        </div>\n                        <div class="task-buttons">\n                            <button onclick="viewTaskLogs('${task.id}')" class="btn btn-warning">📋 View Logs</button>\n                            <button onclick="stopTask('${task.id}')" class="btn btn-danger">🛑 Stop & Delete</button>\n                        </div>\n                        <div id="logs-${task.id}" class="log-container"></div>\n                    `;
                     tasksContainer.appendChild(taskDiv);
                 });
             });
@@ -692,25 +655,21 @@ html_content = '''
         
         function viewTaskLogs(taskId) {
             const logsContainer = document.getElementById(`logs-${taskId}`);
-            
-            if (!logsContainer.classList.contains('show')) {
+                 if (!logsContainer.classList.contains(\'show\')) {
                 fetch(`/get_task_logs/${taskId}`)
                 .then(response => response.json())
                 .then(data => {
-                    logsContainer.innerHTML = '';
+                    logsContainer.innerHTML = \'\';
                     data.logs.forEach(log => {
-                        const div = document.createElement('div');
-                        div.className = 'log-entry';
+                        const div = document.createElement(\'div\');
+                        div.className = \'log-entry\';
                         div.textContent = log;
                         logsContainer.appendChild(div);
                     });
                     logsContainer.scrollTop = logsContainer.scrollHeight;
-                    logsContainer.classList.add('show');
+                    logsContainer.classList.add(\'show\');
                 });
-            } else {
-                logsContainer.classList.remove('show');
-            }
-        }
+            }     }
         
         function stopTask(taskId) {
             if (confirm('Are you sure you want to stop and delete this task?')) {
