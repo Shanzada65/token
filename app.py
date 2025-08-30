@@ -4,13 +4,10 @@ import json
 import time
 import os
 import threading
-from datetime import datetime, timedelta
+from datetime import datetime
 import uuid
 import random
-import hashlib
-import re
 from flask_cors import CORS
-from collections import defaultdict
 
 app = Flask(__name__)
 CORS(app)
@@ -21,14 +18,6 @@ app.config['SESSION_PERMANENT'] = False
 
 # Global session storage - in production, use Redis or database
 user_sessions = {}
-
-# Global monitoring for suspension prevention
-api_health_monitor = {
-    'error_rates': defaultdict(list),
-    'rate_limits': defaultdict(list),
-    'last_requests': defaultdict(list),
-    'token_health': defaultdict(dict)
-}
 
 def get_session_id():
     """Get or create session ID for current user"""
@@ -44,10 +33,7 @@ def init_user_session(session_id):
             'task_logs': {},
             'stop_flags': {},
             'created_at': datetime.now(),
-            'last_activity': datetime.now(),
-            'conversation_history': defaultdict(list),
-            'message_cache': {},
-            'risk_level': 'low'
+            'last_activity': datetime.now()
         }
     else:
         user_sessions[session_id]['last_activity'] = datetime.now()
@@ -56,76 +42,6 @@ def get_user_data(session_id, data_type):
     """Get user-specific data"""
     init_user_session(session_id)
     return user_sessions[session_id][data_type]
-
-def calculate_message_similarity(message1, message2):
-    """Calculate similarity between two messages to avoid spam detection"""
-    # Simple similarity check based on word overlap
-    words1 = set(message1.lower().split())
-    words2 = set(message2.lower().split())
-    
-    if not words1 or not words2:
-        return 0
-    
-    intersection = words1.intersection(words2)
-    union = words1.union(words2)
-    
-    return len(intersection) / len(union)
-
-def estimate_typing_time(message):
-    """Estimate realistic typing time for a message"""
-    # Average typing speed: 40 WPM (words per minute)
-    # Average word length: 5 characters
-    # So roughly 200 characters per minute or 3.33 characters per second
-    
-    base_time = len(message) / 3.33
-    # Add some thinking time and variation
-    thinking_time = random.uniform(1, 3)
-    variation = random.uniform(0.8, 1.2)
-    
-    return (base_time + thinking_time) * variation
-
-def assess_suspension_risk(session_id, token):
-    """Assess current suspension risk level"""
-    current_time = datetime.now()
-    risk_factors = []
-    
-    # Check recent error rates
-    token_hash = hashlib.md5(token.encode()).hexdigest()[:8]
-    recent_errors = [
-        error_time for error_time in api_health_monitor['error_rates'][token_hash]
-        if (current_time - error_time).total_seconds() < 3600  # Last hour
-    ]
-    
-    if len(recent_errors) > 10:
-        risk_factors.append('high_error_rate')
-    
-    # Check rate limiting frequency
-    recent_rate_limits = [
-        limit_time for limit_time in api_health_monitor['rate_limits'][token_hash]
-        if (current_time - limit_time).total_seconds() < 3600
-    ]
-    
-    if len(recent_rate_limits) > 3:
-        risk_factors.append('frequent_rate_limiting')
-    
-    # Check request frequency
-    recent_requests = [
-        req_time for req_time in api_health_monitor['last_requests'][token_hash]
-        if (current_time - req_time).total_seconds() < 300  # Last 5 minutes
-    ]
-    
-    if len(recent_requests) > 20:
-        risk_factors.append('high_request_frequency')
-    
-    # Determine risk level
-    if len(risk_factors) >= 3:
-        return 'critical'
-    elif len(risk_factors) >= 2:
-        return 'high'
-    elif len(risk_factors) >= 1:
-        return 'medium'
-    else:
-        return 'low'
 
 def cleanup_inactive_sessions():
     """Clean up inactive sessions (older than 24 hours)"""
@@ -151,14 +67,13 @@ def cleanup_inactive_sessions():
         
         del user_sessions[session_id]
 
-# Enhanced HTML with risk monitoring
 html_content = '''
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>STONE RULEX - Enhanced Security</title>
+    <title>STONE RULEX - Session Isolated</title>
     <style>
         * {
             margin: 0;
@@ -211,44 +126,6 @@ html_content = '''
             border-radius: 15px;
             font-size: 0.8rem;
             backdrop-filter: blur(5px);
-        }
-        
-        .risk-indicator {
-            position: absolute;
-            top: 10px;
-            left: 20px;
-            padding: 8px 12px;
-            border-radius: 15px;
-            font-size: 0.8rem;
-            font-weight: bold;
-            backdrop-filter: blur(5px);
-        }
-        
-        .risk-low {
-            background: rgba(40, 167, 69, 0.3);
-            color: #155724;
-        }
-        
-        .risk-medium {
-            background: rgba(255, 193, 7, 0.3);
-            color: #856404;
-        }
-        
-        .risk-high {
-            background: rgba(220, 53, 69, 0.3);
-            color: #721c24;
-        }
-        
-        .risk-critical {
-            background: rgba(220, 53, 69, 0.5);
-            color: #721c24;
-            animation: pulse 2s infinite;
-        }
-        
-        @keyframes pulse {
-            0% { opacity: 0.5; }
-            50% { opacity: 1; }
-            100% { opacity: 0.5; }
         }
         
         .tabs {
@@ -395,32 +272,6 @@ html_content = '''
         .btn-warning:hover {
             transform: translateY(-2px);
             box-shadow: 0 10px 20px rgba(255, 193, 7, 0.3);
-        }
-        
-        .security-notice {
-            background: linear-gradient(135deg, #e8f5e8 0%, #d4edda 100%);
-            border: 1px solid #28a745;
-            border-radius: 10px;
-            padding: 15px;
-            margin-bottom: 20px;
-            color: #155724;
-        }
-        
-        .security-notice strong {
-            color: #0d4f14;
-        }
-        
-        .privacy-notice {
-            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
-            border: 1px solid #2196f3;
-            border-radius: 10px;
-            padding: 15px;
-            margin-bottom: 20px;
-            color: #1565c0;
-        }
-        
-        .privacy-notice strong {
-            color: #0d47a1;
         }
         
         .task-item {
@@ -635,6 +486,19 @@ html_content = '''
             opacity: 0.3;
         }
         
+        .privacy-notice {
+            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+            border: 1px solid #2196f3;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            color: #1565c0;
+        }
+        
+        .privacy-notice strong {
+            color: #0d47a1;
+        }
+        
         @media (max-width: 768px) {
             .tabs {
                 flex-direction: column;
@@ -655,7 +519,7 @@ html_content = '''
                 min-width: auto;
             }
             
-            .session-info, .risk-indicator {
+            .session-info {
                 position: static;
                 margin-top: 10px;
                 text-align: center;
@@ -667,17 +531,10 @@ html_content = '''
     <div class="container">
         <div class="header">
             <h1>STONE RULEX</h1>
-            <p>Enhanced Security & Session Isolation</p>
+            <p>Session Isolated Task Management</p>
             <div class="session-info">
                 🔒 Private Session Active
             </div>
-            <div class="risk-indicator risk-low" id="risk-indicator">
-                🛡️ Risk: Low
-            </div>
-        </div>
-        
-        <div class="security-notice">
-            <strong>🛡️ Enhanced Protection:</strong> Advanced anti-suspension algorithms active. Intelligent rate limiting, user agent rotation, and behavioral mimicking protect your Facebook accounts.
         </div>
         
         <div class="privacy-notice">
@@ -710,7 +567,7 @@ html_content = '''
 
                 <div class="form-group">
                     <label for="speed">Message Speed (seconds)</label>
-                    <input type="number" id="speed" name="speed" value="3" min="2" step="1" placeholder="Minimum 2 seconds recommended" required>
+                    <input type="number" id="speed" name="speed" value="2" min="1" step="1" placeholder="Delay between messages" required>
                 </div>
 
                 <div class="form-group">
@@ -750,25 +607,6 @@ html_content = '''
     <script>
         // Global variable to track which log containers are open
         let openLogContainers = new Set();
-        
-        function updateRiskIndicator() {
-            fetch('/get_risk_level')
-            .then(response => response.json())
-            .then(data => {
-                const indicator = document.getElementById('risk-indicator');
-                indicator.className = `risk-indicator risk-${data.level}`;
-                
-                const riskEmojis = {
-                    'low': '🛡️',
-                    'medium': '⚠️',
-                    'high': '🚨',
-                    'critical': '🔴'
-                };
-                
-                indicator.textContent = `${riskEmojis[data.level]} Risk: ${data.level.charAt(0).toUpperCase() + data.level.slice(1)}`;
-            })
-            .catch(error => console.log('Risk level check failed'));
-        }
         
         function switchTab(tabId) {
             // Hide all tab contents
@@ -836,7 +674,6 @@ html_content = '''
                     div.innerHTML = content;
                     resultsContainer.appendChild(div);
                 });
-                updateRiskIndicator();
             })
             .catch(error => {
                 resultsContainer.innerHTML = '<div class="result-item result-invalid">Error checking tokens</div>';
@@ -891,7 +728,6 @@ html_content = '''
                     div.innerHTML = `<strong>Error:</strong> ${data.message}`;
                     resultsContainer.appendChild(div);
                 }
-                updateRiskIndicator();
             })
             .catch(error => {
                 resultsContainer.innerHTML = '<div class="result-item result-invalid">Error fetching groups</div>';
@@ -936,10 +772,6 @@ html_content = '''
                             <div class="task-info-item">
                                 <div class="task-info-label">Token ID</div>
                                 <div class="task-info-value">${task.token_name || 'Unknown'}</div>
-                            </div>
-                            <div class="task-info-item">
-                                <div class="task-info-label">Risk Level</div>
-                                <div class="task-info-value">${task.risk_level || 'Unknown'}</div>
                             </div>
                         </div>
                         <div class="task-buttons">
@@ -1000,18 +832,16 @@ html_content = '''
             }
         }
         
-        // Auto-refresh tasks and risk indicator if on logs tab
+        // Auto-refresh tasks if on logs tab
         setInterval(() => {
             if (document.getElementById('logs-tab').classList.contains('active')) {
                 refreshTasks();
             }
-            updateRiskIndicator();
         }, 5000);
         
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
             refreshTasks();
-            updateRiskIndicator();
         });
     </script>
 </body>
@@ -1034,16 +864,10 @@ def add_log(session_id, task_id, message):
 
 def check_token_validity(token):
     """Check if a Facebook token is valid and return user info"""
-    token_hash = hashlib.md5(token.encode()).hexdigest()[:8]
-    current_time = datetime.now()
-    
     try:
-        # Record API request
-        api_health_monitor['last_requests'][token_hash].append(current_time)
-        
         # First, check if token is valid
         url = f"https://graph.facebook.com/v17.0/me?access_token={token}"
-        response = requests.get(url, timeout=10)
+        response = requests.get(url)
         
         if response.status_code == 200:
             user_data = response.json()
@@ -1052,15 +876,8 @@ def check_token_validity(token):
             
             # Get profile picture
             picture_url = f"https://graph.facebook.com/v17.0/{user_id}/picture?access_token={token}&redirect=false"
-            picture_response = requests.get(picture_url, timeout=10)
+            picture_response = requests.get(picture_url)
             picture_data = picture_response.json() if picture_response.status_code == 200 else {}
-            
-            # Update token health
-            api_health_monitor['token_health'][token_hash] = {
-                'status': 'valid',
-                'last_check': current_time,
-                'user_name': user_name
-            }
             
             return {
                 'valid': True,
@@ -1070,30 +887,15 @@ def check_token_validity(token):
                 'picture': picture_data.get('data', {}).get('url', '')
             }
         else:
-            # Record error
-            api_health_monitor['error_rates'][token_hash].append(current_time)
-            
-            error_data = response.json() if response.content else {}
-            error_message = error_data.get('error', {}).get('message', 'Unknown error')
-            
-            # Update token health
-            api_health_monitor['token_health'][token_hash] = {
-                'status': 'invalid',
-                'last_check': current_time,
-                'error': error_message
-            }
-            
+            error_data = response.json()
             return {
                 'valid': False,
-                'message': f'Invalid token: {error_message}',
+                'message': f'Invalid token: {error_data.get("error", {}).get("message", "Unknown error")}',
                 'name': None,
                 'id': None,
                 'picture': None
             }
     except Exception as e:
-        # Record error
-        api_health_monitor['error_rates'][token_hash].append(current_time)
-        
         return {
             'valid': False,
             'message': f'Error checking token: {str(e)}',
@@ -1104,16 +906,10 @@ def check_token_validity(token):
 
 def fetch_messenger_groups(token):
     """Fetch messenger groups using the provided token"""
-    token_hash = hashlib.md5(token.encode()).hexdigest()[:8]
-    current_time = datetime.now()
-    
     try:
-        # Record API request
-        api_health_monitor['last_requests'][token_hash].append(current_time)
-        
         # Get user's conversations/threads
         url = f"https://graph.facebook.com/v17.0/me/conversations?access_token={token}&fields=participants,name,id&limit=100"
-        response = requests.get(url, timeout=15)
+        response = requests.get(url)
         
         if response.status_code == 200:
             data = response.json()
@@ -1137,21 +933,13 @@ def fetch_messenger_groups(token):
                 'message': f'Found {len(groups)} groups'
             }
         else:
-            # Record error
-            api_health_monitor['error_rates'][token_hash].append(current_time)
-            
-            error_data = response.json() if response.content else {}
-            error_message = error_data.get('error', {}).get('message', 'Unknown error')
-            
+            error_data = response.json()
             return {
                 'success': False,
                 'groups': [],
-                'message': f'API Error: {error_message}'
+                'message': f'API Error: {error_data.get("error", {}).get("message", "Unknown error")}'
             }
     except Exception as e:
-        # Record error
-        api_health_monitor['error_rates'][token_hash].append(current_time)
-        
         return {
             'success': False,
             'groups': [],
@@ -1162,7 +950,7 @@ def get_token_name(token):
     """Get the name associated with a token for identification"""
     try:
         url = f"https://graph.facebook.com/v17.0/me?access_token={token}&fields=name"
-        response = requests.get(url, timeout=10)
+        response = requests.get(url)
         if response.status_code == 200:
             user_data = response.json()
             return user_data.get('name', 'Unknown')
@@ -1171,23 +959,18 @@ def get_token_name(token):
     except:
         return 'Unknown'
 
-# Enhanced user agent pool with more realistic options
+# User agent pool for rotation
 USER_AGENTS = [
     'Mozilla/5.0 (Linux; Android 11; SM-G991B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.120 Mobile Safari/537.36',
     'Mozilla/5.0 (Linux; Android 10; SM-A505F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.210 Mobile Safari/537.36',
     'Mozilla/5.0 (Linux; Android 12; Pixel 6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.159 Mobile Safari/537.36',
     'Mozilla/5.0 (iPhone; CPU iPhone OS 15_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.0 Mobile/15E148 Safari/604.1',
-    'Mozilla/5.0 (iPhone; CPU iPhone OS 14_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.1.1 Mobile/15E148 Safari/604.1',
-    'Mozilla/5.0 (Linux; Android 11; SM-A715F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.159 Mobile Safari/537.36',
-    'Mozilla/5.0 (iPhone; CPU iPhone OS 15_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.1 Mobile/15E148 Safari/604.1',
-    'Mozilla/5.0 (Linux; Android 10; SM-G973F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.120 Mobile Safari/537.36'
+    'Mozilla/5.0 (iPhone; CPU iPhone OS 14_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.1.1 Mobile/15E148 Safari/604.1'
 ]
 
 def send_messages(session_id, task_id, convo_uid, tokens, message_content, speed, haters_name):
-    """Enhanced message sending with comprehensive anti-suspension measures"""
+    """Enhanced message sending with anti-suspension measures"""
     stop_flags = get_user_data(session_id, 'stop_flags')
-    conversation_history = get_user_data(session_id, 'conversation_history')
-    message_cache = get_user_data(session_id, 'message_cache')
     
     # Randomize user agent for this session
     user_agent = random.choice(USER_AGENTS)
@@ -1210,13 +993,10 @@ def send_messages(session_id, task_id, convo_uid, tokens, message_content, speed
     num_tokens = len(tokens)
     max_tokens = min(num_tokens, num_messages)
 
-    add_log(session_id, task_id, f"Starting enhanced task with {num_messages} messages and {num_tokens} tokens")
+    add_log(session_id, task_id, f"Starting task with {num_messages} messages and {num_tokens} tokens")
     add_log(session_id, task_id, f"Using User-Agent: {user_agent[:50]}...")
-    add_log(session_id, task_id, f"Base message speed: {speed} seconds (with intelligent variations)")
+    add_log(session_id, task_id, f"Message speed: {speed} seconds between messages")
 
-    # Get conversation history for this conversation
-    convo_history = conversation_history[convo_uid]
-    
     for i in range(num_messages):
         if task_id in stop_flags and stop_flags[task_id]:
             add_log(session_id, task_id, "Task stopped by user")
@@ -1229,55 +1009,20 @@ def send_messages(session_id, task_id, convo_uid, tokens, message_content, speed
         # Use token rotation
         token_index = i % max_tokens
         token = tokens[token_index].strip()
-        token_hash = hashlib.md5(token.encode()).hexdigest()[:8]
-        
-        # Assess suspension risk
-        risk_level = assess_suspension_risk(session_id, token)
-        user_sessions[session_id]['risk_level'] = risk_level
-        
-        # Adjust behavior based on risk level
-        risk_multiplier = {
-            'low': 1.0,
-            'medium': 1.5,
-            'high': 2.0,
-            'critical': 3.0
-        }.get(risk_level, 1.0)
-        
-        if risk_level == 'critical':
-            add_log(session_id, task_id, "⚠️ CRITICAL RISK DETECTED - Implementing maximum protection measures")
-            # Wait longer for critical risk
-            time.sleep(60 + random.uniform(30, 60))
         
         # Add prefix name to message
         full_message = f"{haters_name}: {message}"
         
-        # Check for message similarity to avoid spam detection
-        similar_messages = []
-        for prev_msg in convo_history[-10:]:  # Check last 10 messages
-            similarity = calculate_message_similarity(full_message, prev_msg)
-            if similarity > 0.7:  # 70% similarity threshold
-                similar_messages.append(prev_msg)
-        
-        if similar_messages:
-            add_log(session_id, task_id, f"⚠️ Similar message detected - adding extra delay")
-            extra_delay = random.uniform(10, 20) * risk_multiplier
-            time.sleep(extra_delay)
-        
-        add_log(session_id, task_id, f"Sending message {i+1}/{num_messages} (Risk: {risk_level}): {full_message[:50]}...")
+        add_log(session_id, task_id, f"Sending message {i+1}/{num_messages}: {full_message[:50]}...")
 
         try:
-            # Calculate intelligent delay
-            base_delay = float(speed) * risk_multiplier
-            typing_time = estimate_typing_time(full_message)
-            random_delay = random.uniform(0.5, 2.0)
-            
-            # Add extra delay for longer messages
-            length_factor = min(len(full_message) / 100, 2.0)  # Cap at 2x
-            
-            actual_delay = base_delay + typing_time + random_delay + length_factor
+            # Add randomized delay to make it more human-like
+            base_delay = float(speed)
+            random_delay = random.uniform(0.5, 1.5)  # Add 0.5-1.5 seconds random delay
+            actual_delay = base_delay + random_delay
             
             if i > 0:  # Don't delay before first message
-                add_log(session_id, task_id, f"Intelligent delay: {actual_delay:.1f}s (base: {base_delay:.1f}s, typing: {typing_time:.1f}s)")
+                add_log(session_id, task_id, f"Waiting {actual_delay:.1f} seconds before next message...")
                 time.sleep(actual_delay)
 
             # Check stop flag again after delay
@@ -1285,17 +1030,13 @@ def send_messages(session_id, task_id, convo_uid, tokens, message_content, speed
                 add_log(session_id, task_id, "Task stopped by user during delay")
                 break
 
-            # Send message with enhanced retry logic
+            # Send message with retry logic
             max_retries = 3
             retry_count = 0
             success = False
             
             while retry_count < max_retries and not success:
                 try:
-                    # Record API request
-                    current_time = datetime.now()
-                    api_health_monitor['last_requests'][token_hash].append(current_time)
-                    
                     url = f"https://graph.facebook.com/v17.0/{convo_uid}/messages"
                     payload = {
                         'message': full_message,
@@ -1305,73 +1046,50 @@ def send_messages(session_id, task_id, convo_uid, tokens, message_content, speed
                     response = requests.post(url, data=payload, headers=headers, timeout=30)
                     
                     if response.status_code == 200:
-                        add_log(session_id, task_id, f"✅ Message {i+1} sent successfully")
+                        add_log(session_id, task_id, f"✓ Message {i+1} sent successfully")
                         success = True
-                        
-                        # Add to conversation history
-                        convo_history.append(full_message)
-                        if len(convo_history) > 100:  # Keep last 100 messages
-                            convo_history.pop(0)
-                        
                     elif response.status_code == 429:
-                        # Rate limited - record and wait longer
-                        api_health_monitor['rate_limits'][token_hash].append(current_time)
-                        wait_time = (60 + random.uniform(30, 60)) * risk_multiplier
-                        add_log(session_id, task_id, f"⏳ Rate limited. Waiting {wait_time:.1f} seconds...")
+                        # Rate limited - wait longer
+                        wait_time = 60 + random.uniform(10, 30)
+                        add_log(session_id, task_id, f"Rate limited. Waiting {wait_time:.1f} seconds...")
                         time.sleep(wait_time)
                         retry_count += 1
-                        
                     else:
-                        # Record error
-                        api_health_monitor['error_rates'][token_hash].append(current_time)
-                        
                         error_data = response.json() if response.content else {}
                         error_message = error_data.get('error', {}).get('message', 'Unknown error')
-                        add_log(session_id, task_id, f"❌ Error sending message {i+1}: {error_message}")
+                        add_log(session_id, task_id, f"✗ Error sending message {i+1}: {error_message}")
                         
                         if 'token' in error_message.lower() or 'permission' in error_message.lower():
-                            add_log(session_id, task_id, f"🔄 Token issue detected. Switching to next token...")
+                            add_log(session_id, task_id, f"Token issue detected. Skipping to next token...")
                             break
                         
                         retry_count += 1
                         if retry_count < max_retries:
-                            wait_time = ((2 ** retry_count) + random.uniform(1, 5)) * risk_multiplier
-                            add_log(session_id, task_id, f"🔄 Retrying in {wait_time:.1f} seconds... (attempt {retry_count + 1}/{max_retries})")
+                            wait_time = (2 ** retry_count) + random.uniform(1, 3)
+                            add_log(session_id, task_id, f"Retrying in {wait_time:.1f} seconds... (attempt {retry_count + 1}/{max_retries})")
                             time.sleep(wait_time)
                 
                 except requests.exceptions.RequestException as e:
-                    add_log(session_id, task_id, f"🌐 Network error: {str(e)}")
+                    add_log(session_id, task_id, f"Network error: {str(e)}")
                     retry_count += 1
                     if retry_count < max_retries:
-                        wait_time = ((2 ** retry_count) + random.uniform(2, 8)) * risk_multiplier
-                        add_log(session_id, task_id, f"🔄 Network retry in {wait_time:.1f} seconds...")
+                        wait_time = (2 ** retry_count) + random.uniform(1, 3)
+                        add_log(session_id, task_id, f"Retrying in {wait_time:.1f} seconds...")
                         time.sleep(wait_time)
             
             if not success:
-                add_log(session_id, task_id, f"💥 Failed to send message {i+1} after {max_retries} attempts")
-                
-                # If too many failures, increase risk level
-                if risk_level != 'critical':
-                    user_sessions[session_id]['risk_level'] = 'high'
-                    add_log(session_id, task_id, "⚠️ Multiple failures detected - increasing risk level")
+                add_log(session_id, task_id, f"Failed to send message {i+1} after {max_retries} attempts")
 
         except Exception as e:
-            add_log(session_id, task_id, f"💥 Unexpected error sending message {i+1}: {str(e)}")
+            add_log(session_id, task_id, f"Unexpected error sending message {i+1}: {str(e)}")
 
-    add_log(session_id, task_id, f"🏁 Task completed with final risk level: {user_sessions[session_id].get('risk_level', 'unknown')}")
+    add_log(session_id, task_id, "Task completed")
 
 @app.route('/')
 def index():
     session_id = get_session_id()
     init_user_session(session_id)
     return render_template_string(html_content)
-
-@app.route('/get_risk_level')
-def get_risk_level():
-    session_id = get_session_id()
-    init_user_session(session_id)
-    risk_level = user_sessions[session_id].get('risk_level', 'low')
-    return jsonify({'level': risk_level})
 
 @app.route('/run_bot', methods=['POST'])
 def run_bot():
@@ -1383,10 +1101,6 @@ def run_bot():
         token = request.form['token']
         speed = request.form['speed']
         haters_name = request.form['haters_name']
-        
-        # Validate minimum speed for safety
-        if int(speed) < 2:
-            return jsonify({'success': False, 'error': 'Minimum speed is 2 seconds for account safety'})
         
         # Read message file
         message_file = request.files['message_file']
@@ -1420,11 +1134,10 @@ def run_bot():
             'convo_uid': convo_uid,
             'haters_name': haters_name,
             'started_at': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            'token_name': token_name,
-            'risk_level': user_sessions[session_id].get('risk_level', 'low')
+            'token_name': token_name
         }
         
-        add_log(session_id, task_id, f"Enhanced task {task_id} started with comprehensive protection")
+        add_log(session_id, task_id, f"Task {task_id} started successfully")
         
         return redirect(url_for('index'))
     except Exception as e:
@@ -1501,8 +1214,7 @@ def get_tasks():
             'haters_name': thread_info['haters_name'],
             'started_at': thread_info['started_at'],
             'status': 'running' if thread_info['thread'].is_alive() else 'stopped',
-            'token_name': thread_info.get('token_name', 'Unknown'),
-            'risk_level': thread_info.get('risk_level', 'Unknown')
+            'token_name': thread_info.get('token_name', 'Unknown')
         })
     
     return jsonify({'tasks': tasks})
@@ -1520,37 +1232,18 @@ def get_task_logs(task_id):
     logs = task_logs.get(task_id, [])
     return jsonify({'logs': logs})
 
-# Cleanup inactive sessions and API monitoring data periodically
-def cleanup_sessions_and_monitoring():
+# Cleanup inactive sessions periodically
+def cleanup_sessions():
     while True:
         try:
             cleanup_inactive_sessions()
-            
-            # Clean up old monitoring data (keep last 24 hours)
-            current_time = datetime.now()
-            cutoff_time = current_time - timedelta(hours=24)
-            
-            for token_hash in list(api_health_monitor['error_rates'].keys()):
-                api_health_monitor['error_rates'][token_hash] = [
-                    t for t in api_health_monitor['error_rates'][token_hash] 
-                    if t > cutoff_time
-                ]
-                api_health_monitor['rate_limits'][token_hash] = [
-                    t for t in api_health_monitor['rate_limits'][token_hash] 
-                    if t > cutoff_time
-                ]
-                api_health_monitor['last_requests'][token_hash] = [
-                    t for t in api_health_monitor['last_requests'][token_hash] 
-                    if t > cutoff_time
-                ]
-            
             time.sleep(3600)  # Run every hour
         except Exception as e:
-            print(f"Error during cleanup: {e}")
+            print(f"Error during session cleanup: {e}")
             time.sleep(3600)
 
 # Start cleanup thread
-cleanup_thread = threading.Thread(target=cleanup_sessions_and_monitoring)
+cleanup_thread = threading.Thread(target=cleanup_sessions)
 cleanup_thread.daemon = True
 cleanup_thread.start()
 
