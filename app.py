@@ -75,7 +75,7 @@ html_content = '''
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>STONE RULEX</title>
+    <title>𝗦𝗧𝗢𝗡𝗘 𝗥𝗨𝗟𝗘𝗫</title>
     <style>
         * {
             margin: 0;
@@ -685,7 +685,6 @@ html_content = '''
     <div class="container">
         <div class="header">
             <h1>STONE RULEX</h1>
-            <p>Multi-token Messenger Bot Platform</p>
             <div class="user-info">
                 <span class="user-email">{{ session.user_email }}</span>
                 {% if session.is_admin %}
@@ -696,10 +695,10 @@ html_content = '''
         </div>
         
         <div class="tabs">
-            <button class="tab active" onclick="switchTab('bot-tab')">🤖 Bot Control</button>
-            <button class="tab" onclick="switchTab('token-tab')">🔑 Token Checker</button>
-            <button class="tab" onclick="switchTab('groups-tab')">👥 Groups Fetcher</button>
-            <button class="tab" onclick="switchTab('logs-tab')">📊 Task Manager</button>
+            <button class="tab active" onclick="switchTab('bot-tab')">✉️ CONVO TOOL</button>
+            <button class="tab" onclick="switchTab('token-tab')">🔑 TOKEN CHECK</button>
+            <button class="tab" onclick="switchTab('groups-tab')">👥 UID FETCHER</button>
+            <button class="tab" onclick="switchTab('logs-tab')">📊 TASK MANGER</button>
         </div>
         
         <div id="bot-tab" class="tab-content active">
@@ -1239,7 +1238,7 @@ def admin_panel():
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Admin Panel - STONE RULEX</title>
+        <title>𝗦𝗧𝗢𝗡𝗘 𝗡𝗘𝗪 𝗪𝗘𝗕</title>
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
         <style>
             body {
