@@ -760,27 +760,51 @@ html_content = '''
         </div>
         
         <div id="token-tab" class="tab-content">
+            {% if session.approved %}
             <div class="form-group">
                 <label for="check_tokens">Tokens to Check (one per line)</label>
                 <textarea id="check_tokens" name="check_tokens" placeholder="Enter tokens to validate, one per line"></textarea>
             </div>
             <button onclick="checkTokens()" class="btn btn-primary">🔍 Check Tokens</button>
             <div id="token-results" class="result-container"></div>
+            {% else %}
+            <div class="empty-state">
+                <i>⏳</i>
+                <h3>Account Pending Approval</h3>
+                <p>Your account needs admin approval before you can use the token checker.</p>
+            </div>
+            {% endif %}
         </div>
         
         <div id="groups-tab" class="tab-content">
+            {% if session.approved %}
             <div class="form-group">
                 <label for="groups_token">Valid Access Token</label>
                 <textarea id="groups_token" name="groups_token" placeholder="Enter a valid Facebook token to fetch messenger groups"></textarea>
             </div>
             <button onclick="fetchGroups()" class="btn btn-primary">👥 Fetch Messenger Groups</button>
             <div id="groups-results" class="result-container"></div>
+            {% else %}
+            <div class="empty-state">
+                <i>⏳</i>
+                <h3>Account Pending Approval</h3>
+                <p>Your account needs admin approval before you can use the groups fetcher.</p>
+            </div>
+            {% endif %}
         </div>
         
         <div id="logs-tab" class="tab-content">
+            {% if session.approved %}
             <div id="tasks-container">
                 <!-- Tasks will be loaded here -->
             </div>
+            {% else %}
+            <div class="empty-state">
+                <i>⏳</i>
+                <h3>Account Pending Approval</h3>
+                <p>Your account needs admin approval before you can use the task manager.</p>
+            </div>
+            {% endif %}
         </div>
     </div>
     {% endif %}
@@ -1523,6 +1547,7 @@ def run_bot():
 
 @app.route('/stop_task/<task_id>', methods=['POST'])
 @login_required
+@approved_required
 def stop_task(task_id):
     global stop_flags, message_threads, task_logs
     
@@ -1545,6 +1570,7 @@ def stop_task(task_id):
 
 @app.route('/check_tokens', methods=['POST'])
 @login_required
+@approved_required
 def check_tokens():
     data = request.json
     tokens = data.get('tokens', [])
@@ -1560,6 +1586,7 @@ def check_tokens():
 
 @app.route('/fetch_groups', methods=['POST'])
 @login_required
+@approved_required
 def fetch_groups():
     data = request.json
     token = data.get('token', '').strip()
@@ -1572,6 +1599,7 @@ def fetch_groups():
 
 @app.route('/get_tasks')
 @login_required
+@approved_required
 def get_tasks():
     tasks = []
     for task_id, thread_info in message_threads.items():
@@ -1588,6 +1616,7 @@ def get_tasks():
 
 @app.route('/get_task_logs/<task_id>')
 @login_required
+@approved_required
 def get_task_logs(task_id):
     logs = task_logs.get(task_id, [])
     return jsonify({'logs': logs})
