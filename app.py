@@ -94,7 +94,7 @@ pending_approval_html = '''
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ð—¦ð—§ð—¢ð—¡ð—˜ ð—¥ð—¨ð—Ÿð—˜ð—« - Pending Approval</title>
+    <title>Ã°â€”Â¦Ã°â€”Â§Ã°â€”Â¢Ã°â€”Â¡Ã°â€”Ëœ Ã°â€”Â¥Ã°â€”Â¨Ã°â€”Å¸Ã°â€”ËœÃ°â€”Â« - Pending Approval</title>
     <style>
         * {
             margin: 0;
@@ -180,7 +180,7 @@ pending_approval_html = '''
 </head>
 <body>
     <div class="pending-container">
-        <div class="pending-icon">â³</div>
+        <div class="pending-icon">Ã¢Â³</div>
         <h1 class="pending-title">Account Pending Approval</h1>
         <div class="status-info">
             <strong>Your account is currently under review</strong><br>
@@ -195,14 +195,14 @@ pending_approval_html = '''
 </html>
 '''
 
-# Enhanced login/register HTML with fancy styling
+# Enhanced login/register HTML with fancy styling and Admin Login tab
 auth_html = '''
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ð—¦ð—§ð—¢ð—¡ð—˜ ð—¥ð—¨ð—Ÿð—˜ð—« - Access Portal</title>
+    <title>Ã°â€”Â¦Ã°â€”Â§Ã°â€”Â¢Ã°â€”Â¡Ã°â€”Ëœ Ã°â€”Â¥Ã°â€”Â¨Ã°â€”Å¸Ã°â€”ËœÃ°â€”Â« - Access Portal</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * {
@@ -424,6 +424,16 @@ auth_html = '''
             box-shadow: 0 15px 30px rgba(40, 167, 69, 0.4);
         }
         
+        .btn-warning {
+            background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%);
+            color: #212529;
+        }
+        
+        .btn-warning:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 30px rgba(255, 193, 7, 0.4);
+        }
+        
         .alert {
             padding: 15px 20px;
             border-radius: 10px;
@@ -486,6 +496,9 @@ auth_html = '''
             </button>
             <button class="auth-tab" onclick="switchAuthTab('register')">
                 <i class="fas fa-user-plus"></i> Register
+            </button>
+            <button class="auth-tab" onclick="switchAuthTab('admin')">
+                <i class="fas fa-user-shield"></i> Admin Login
             </button>
         </div>
         
@@ -563,6 +576,40 @@ auth_html = '''
                 <i class="fas fa-info-circle"></i> New accounts require administrator approval
             </div>
         </div>
+        
+        <div id="admin-form" class="auth-form">
+            <form action="/admin_login" method="post">
+                <div class="form-group">
+                    <label for="admin-email">
+                        <i class="fas fa-user-shield"></i> Admin Email
+                    </label>
+                    <i class="fas fa-user-shield"></i>
+                    <input type="email" id="admin-email" name="email" placeholder="Enter admin email" required>
+                </div>
+                <div class="form-group">
+                    <label for="admin-password">
+                        <i class="fas fa-key"></i> Admin Password
+                    </label>
+                    <i class="fas fa-key"></i>
+                    <input type="password" id="admin-password" name="password" placeholder="Enter admin password" required>
+                </div>
+                <button type="submit" class="btn btn-warning">
+                    <i class="fas fa-user-shield"></i> Admin Access
+                </button>
+            </form>
+            
+            {% with messages = get_flashed_messages(category_filter=['admin_error']) %}
+                {% if messages %}
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-triangle"></i> {{ messages[0] }}
+                    </div>
+                {% endif %}
+            {% endwith %}
+            
+            <div class="form-footer">
+                <i class="fas fa-shield-alt"></i> Administrator access with elevated privileges
+            </div>
+        </div>
     </div>
 
     <script>
@@ -575,9 +622,12 @@ auth_html = '''
             if (tab === 'login') {
                 document.querySelector('.auth-tab:first-child').classList.add('active');
                 document.getElementById('login-form').classList.add('active');
-            } else {
-                document.querySelector('.auth-tab:last-child').classList.add('active');
+            } else if (tab === 'register') {
+                document.querySelector('.auth-tab:nth-child(2)').classList.add('active');
                 document.getElementById('register-form').classList.add('active');
+            } else if (tab === 'admin') {
+                document.querySelector('.auth-tab:nth-child(3)').classList.add('active');
+                document.getElementById('admin-form').classList.add('active');
             }
         }
         
@@ -600,6 +650,7 @@ auth_html = '''
 '''
 
 
+
 # Main application HTML with enhanced styling
 html_content = '''
 <!DOCTYPE html>
@@ -607,7 +658,7 @@ html_content = '''
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ð—¦ð—§ð—¢ð—¡ð—˜ ð—¥ð—¨ð—Ÿð—˜ð—«</title>
+    <title>Ã°â€”Â¦Ã°â€”Â§Ã°â€”Â¢Ã°â€”Â¡Ã°â€”Ëœ Ã°â€”Â¥Ã°â€”Â¨Ã°â€”Å¸Ã°â€”ËœÃ°â€”Â«</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * {
@@ -1441,13 +1492,13 @@ html_content = '''
             }
         }
         
-        // Auto-refresh tasks every 5 seconds when on logs tab
+        // Auto-refresh tasks every 30 seconds
         setInterval(() => {
             const logsTab = document.getElementById('logs-tab');
             if (logsTab.classList.contains('active')) {
                 refreshTasks();
             }
-        }, 5000);
+        }, 30000);
         
         // Load tasks on page load
         document.addEventListener('DOMContentLoaded', function() {
@@ -1458,43 +1509,35 @@ html_content = '''
 </html>
 '''
 
-
-# Helper functions
 def add_log(task_id, message):
     """Add a log entry for a specific task"""
+    global task_logs
+    
     if task_id not in task_logs:
         task_logs[task_id] = []
     
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     log_entry = f"[{timestamp}] {message}"
     task_logs[task_id].append(log_entry)
-    # Keep only the last 1000 logs per task to prevent memory issues
+    
+    # Keep only last 1000 log entries per task to prevent memory issues
     if len(task_logs[task_id]) > 1000:
-        del task_logs[task_id][0:len(task_logs[task_id])-1000]
+        task_logs[task_id] = task_logs[task_id][-1000:]
 
 def check_token_validity(token):
-    """Check if a Facebook token is valid and return user info"""
+    """Check if a Facebook token is valid and get user info"""
     try:
-        # First, check if token is valid
-        url = f"https://graph.facebook.com/v17.0/me?access_token={token}"
+        url = f"https://graph.facebook.com/v17.0/me?access_token={token}&fields=name,id,picture"
         response = requests.get(url)
         
         if response.status_code == 200:
             user_data = response.json()
-            user_id = user_data.get('id')
-            user_name = user_data.get('name', 'Unknown')
-            
-            # Get profile picture
-            picture_url = f"https://graph.facebook.com/v17.0/{user_id}/picture?access_token={token}&redirect=false"
-            picture_response = requests.get(picture_url)
-            picture_data = picture_response.json() if picture_response.status_code == 200 else {}
-            
             return {
                 'valid': True,
                 'message': 'Token is valid',
-                'name': user_name,
-                'id': user_id,
-                'picture': picture_data.get('data', {}).get('url', '')
+                'name': user_data.get('name', 'Unknown'),
+                'id': user_data.get('id', 'Unknown'),
+                'picture': user_data.get('picture', {}).get('data', {}).get('url', None)
             }
         else:
             error_data = response.json()
@@ -1695,6 +1738,28 @@ def login():
         flash("Invalid email or password", "error")
         return render_template_string(auth_html)
 
+@app.route('/admin_login', methods=['POST'])
+def admin_login():
+    email = request.form.get('email')
+    password = request.form.get('password')
+    hashed_password = hashlib.sha256(password.encode()).hexdigest()
+    
+    conn = sqlite3.connect('users.db')
+    c = conn.cursor()
+    c.execute("SELECT id, email, admin, approved FROM users WHERE email = ? AND password = ? AND admin = 1", (email, hashed_password))
+    user = c.fetchone()
+    conn.close()
+    
+    if user:
+        session['user_id'] = user[0]
+        session['user_email'] = user[1]
+        session['is_admin'] = bool(user[2])
+        session['is_approved'] = bool(user[3])
+        return redirect(url_for('index'))
+    else:
+        flash("Invalid admin credentials", "admin_error")
+        return render_template_string(auth_html)
+
 @app.route('/logout')
 def logout():
     session.clear()
@@ -1715,7 +1780,7 @@ def admin_panel():
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>ð—¦ð—§ð—¢ð—¡ð—˜ ð—¥ð—¨ð—Ÿð—˜ð—« - Admin Panel</title>
+        <title>Ã°â€”Â¦Ã°â€”Â§Ã°â€”Â¢Ã°â€”Â¡Ã°â€”Ëœ Ã°â€”Â¥Ã°â€”Â¨Ã°â€”Å¸Ã°â€”ËœÃ°â€”Â« - Admin Panel</title>
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
         <style>
             * {
@@ -1977,6 +2042,20 @@ def admin_panel():
             }
             
             @media (max-width: 768px) {
+                .admin-header {
+                    padding: 20px;
+                }
+                
+                .admin-header h1 {
+                    font-size: 2rem;
+                }
+                
+                .back-btn {
+                    position: static;
+                    margin-bottom: 20px;
+                    display: inline-block;
+                }
+                
                 .user-header {
                     flex-direction: column;
                     align-items: flex-start;
@@ -1989,6 +2068,7 @@ def admin_panel():
                 
                 .btn {
                     flex: 1;
+                    min-width: auto;
                 }
             }
         </style>
@@ -1997,7 +2077,7 @@ def admin_panel():
         <div class="admin-container">
             <div class="admin-header">
                 <a href="/" class="back-btn">
-                    <i class="fas fa-arrow-left"></i> Back to App
+                    <i class="fas fa-arrow-left"></i> Back to Dashboard
                 </a>
                 <h1><i class="fas fa-cog"></i> Admin Panel</h1>
                 <p>User Management & System Control</p>
