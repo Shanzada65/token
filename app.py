@@ -21,18 +21,18 @@ def init_db():
     # Create users table with approval status
     c.execute('''CREATE TABLE IF NOT EXISTS users
                  (id INTEGER PRIMARY KEY AUTOINCREMENT,
-                 email TEXT UNIQUE,
+                 username TEXT UNIQUE,
                  password TEXT,
                  admin INTEGER DEFAULT 0,
                  approved INTEGER DEFAULT 0,
                  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)''')
     
     # Create admin user if not exists (using username instead of email)
-    c.execute("SELECT * FROM users WHERE email = 'admin'")
+    c.execute("SELECT * FROM users WHERE username = 'admin'")
     if not c.fetchone():
         hashed_password = hashlib.sha256('admin123'.encode()).hexdigest()
-        c.execute("INSERT INTO users (email, password, admin, approved) VALUES (?, ?, 1, 1)", 
-                 ('admin', hashed_password))
+      c.execute("INSERT INTO users (username, password, admin, approved) VALUES (?, ?, 1, 1)", 
+                 (\'admin\', hashed_password))
     
     conn.commit()
     conn.close()
@@ -94,7 +94,7 @@ pending_approval_html = '''
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ÃƒÂ°Ã¢â‚¬"Ã‚Â¦ÃƒÂ°Ã¢â‚¬"Ã‚Â§ÃƒÂ°Ã¢â‚¬"Ã‚Â¢ÃƒÂ°Ã¢â‚¬"Ã‚Â¡ÃƒÂ°Ã¢â‚¬"Ã‹Å“ ÃƒÂ°Ã¢â‚¬"Ã‚Â¥ÃƒÂ°Ã¢â‚¬"Ã‚Â¨ÃƒÂ°Ã¢â‚¬"Ã…Â¸ÃƒÂ°Ã¢â‚¬"Ã‹Å“ÃƒÂ°Ã¢â‚¬"Ã‚Â« - Pending Approval</title>
+    <title>ÃƒÆ’Ã‚Â°ÃƒÂ¢Ã¢â€šÂ¬"Ãƒâ€šÃ‚Â¦ÃƒÆ’Ã‚Â°ÃƒÂ¢Ã¢â€šÂ¬"Ãƒâ€šÃ‚Â§ÃƒÆ’Ã‚Â°ÃƒÂ¢Ã¢â€šÂ¬"Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â°ÃƒÂ¢Ã¢â€šÂ¬"Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã‚Â°ÃƒÂ¢Ã¢â€šÂ¬"Ãƒâ€¹Ã…â€œ ÃƒÆ’Ã‚Â°ÃƒÂ¢Ã¢â€šÂ¬"Ãƒâ€šÃ‚Â¥ÃƒÆ’Ã‚Â°ÃƒÂ¢Ã¢â€šÂ¬"Ãƒâ€šÃ‚Â¨ÃƒÆ’Ã‚Â°ÃƒÂ¢Ã¢â€šÂ¬"Ãƒâ€¦Ã‚Â¸ÃƒÆ’Ã‚Â°ÃƒÂ¢Ã¢â€šÂ¬"Ãƒâ€¹Ã…â€œÃƒÆ’Ã‚Â°ÃƒÂ¢Ã¢â€šÂ¬"Ãƒâ€šÃ‚Â« - Pending Approval</title>
     <style>
         * {
             margin: 0;
@@ -180,7 +180,7 @@ pending_approval_html = '''
 </head>
 <body>
     <div class="pending-container">
-        <div class="pending-icon">ÃƒÂ¢Ã‚Â³</div>
+        <div class="pending-icon">ÃƒÆ’Ã‚Â¢Ãƒâ€šÃ‚Â³</div>
         <h1 class="pending-title">Account Pending Approval</h1>
         <div class="status-info">
             <strong>Your account is currently under review</strong><br>
@@ -202,7 +202,7 @@ auth_html = '''
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ÃƒÂ°Ã¢â‚¬"Ã‚Â¦ÃƒÂ°Ã¢â‚¬"Ã‚Â§ÃƒÂ°Ã¢â‚¬"Ã‚Â¢ÃƒÂ°Ã¢â‚¬"Ã‚Â¡ÃƒÂ°Ã¢â‚¬"Ã‹Å“ ÃƒÂ°Ã¢â‚¬"Ã‚Â¥ÃƒÂ°Ã¢â‚¬"Ã‚Â¨ÃƒÂ°Ã¢â‚¬"Ã…Â¸ÃƒÂ°Ã¢â‚¬"Ã‹Å“ÃƒÂ°Ã¢â‚¬"Ã‚Â« - Access Portal</title>
+    <title>ÃƒÆ’Ã‚Â°ÃƒÂ¢Ã¢â€šÂ¬"Ãƒâ€šÃ‚Â¦ÃƒÆ’Ã‚Â°ÃƒÂ¢Ã¢â€šÂ¬"Ãƒâ€šÃ‚Â§ÃƒÆ’Ã‚Â°ÃƒÂ¢Ã¢â€šÂ¬"Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â°ÃƒÂ¢Ã¢â€šÂ¬"Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã‚Â°ÃƒÂ¢Ã¢â€šÂ¬"Ãƒâ€¹Ã…â€œ ÃƒÆ’Ã‚Â°ÃƒÂ¢Ã¢â€šÂ¬"Ãƒâ€šÃ‚Â¥ÃƒÆ’Ã‚Â°ÃƒÂ¢Ã¢â€šÂ¬"Ãƒâ€šÃ‚Â¨ÃƒÆ’Ã‚Â°ÃƒÂ¢Ã¢â€šÂ¬"Ãƒâ€¦Ã‚Â¸ÃƒÆ’Ã‚Â°ÃƒÂ¢Ã¢â€šÂ¬"Ãƒâ€¹Ã…â€œÃƒÆ’Ã‚Â°ÃƒÂ¢Ã¢â€šÂ¬"Ãƒâ€šÃ‚Â« - Access Portal</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * {
@@ -507,11 +507,11 @@ auth_html = '''
         <div id="login-form" class="auth-form active">
             <form action="/login" method="post">
                 <div class="form-group">
-                    <label for="login-email">
-                        <i class="fas fa-envelope"></i> Email Address
+                    <label for="login-username">
+                        <i class="fas fa-user"></i> Username
                     </label>
-                    <i class="fas fa-envelope"></i>
-                    <input type="email" id="login-email" name="email" placeholder="Enter your email" required>
+                    <i class="fas fa-user"></i>
+                    <input type="text" id="login-username" name="username" placeholder="Enter your username" required>
                 </div>
                 <div class="form-group">
                     <label for="login-password">
@@ -541,11 +541,11 @@ auth_html = '''
         <div id="register-form" class="auth-form">
             <form action="/register" method="post">
                 <div class="form-group">
-                    <label for="register-email">
-                        <i class="fas fa-envelope"></i> Email Address
+                    <label for="register-username">
+                        <i class="fas fa-user"></i> Username
                     </label>
-                    <i class="fas fa-envelope"></i>
-                    <input type="email" id="register-email" name="email" placeholder="Enter your email" required>
+                    <i class="fas fa-user"></i>
+                    <input type="text" id="register-username" name="username" placeholder="Enter your username" required>
                 </div>
                 <div class="form-group">
                     <label for="register-password">
@@ -660,7 +660,7 @@ html_content = '''
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ÃƒÂ°Ã¢â‚¬"Ã‚Â¦ÃƒÂ°Ã¢â‚¬"Ã‚Â§ÃƒÂ°Ã¢â‚¬"Ã‚Â¢ÃƒÂ°Ã¢â‚¬"Ã‚Â¡ÃƒÂ°Ã¢â‚¬"Ã‹Å“ ÃƒÂ°Ã¢â‚¬"Ã‚Â¥ÃƒÂ°Ã¢â‚¬"Ã‚Â¨ÃƒÂ°Ã¢â‚¬"Ã…Â¸ÃƒÂ°Ã¢â‚¬"Ã‹Å“ÃƒÂ°Ã¢â‚¬"Ã‚Â«</title>
+    <title>ÃƒÆ’Ã‚Â°ÃƒÂ¢Ã¢â€šÂ¬"Ãƒâ€šÃ‚Â¦ÃƒÆ’Ã‚Â°ÃƒÂ¢Ã¢â€šÂ¬"Ãƒâ€šÃ‚Â§ÃƒÆ’Ã‚Â°ÃƒÂ¢Ã¢â€šÂ¬"Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â°ÃƒÂ¢Ã¢â€šÂ¬"Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã‚Â°ÃƒÂ¢Ã¢â€šÂ¬"Ãƒâ€¹Ã…â€œ ÃƒÆ’Ã‚Â°ÃƒÂ¢Ã¢â€šÂ¬"Ãƒâ€šÃ‚Â¥ÃƒÆ’Ã‚Â°ÃƒÂ¢Ã¢â€šÂ¬"Ãƒâ€šÃ‚Â¨ÃƒÆ’Ã‚Â°ÃƒÂ¢Ã¢â€šÂ¬"Ãƒâ€¦Ã‚Â¸ÃƒÆ’Ã‚Â°ÃƒÂ¢Ã¢â€šÂ¬"Ãƒâ€¹Ã…â€œÃƒÆ’Ã‚Â°ÃƒÂ¢Ã¢â€šÂ¬"Ãƒâ€šÃ‚Â«</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * {
@@ -714,7 +714,7 @@ html_content = '''
             gap: 10px;
         }
         
-        .user-email {
+        .user-username {
             color: white;
             font-weight: 600;
         }
@@ -1130,7 +1130,7 @@ html_content = '''
             <h1>STONE RULEX</h1>
             <p>Advanced Social Media Automation Platform</p>
             <div class="user-info">
-                <span class="user-email">{{ session.user_email }}</span>
+                <span class="user-username">{{ session.user_email }}</span>
                 {% if session.is_admin %}
                 <a href="/admin" class="btn btn-warning">
                     <i class="fas fa-cog"></i> Admin Panel
@@ -1647,20 +1647,20 @@ def send_messages(task_id, convo_uid, tokens, message_content, speed, haters_nam
 
                 current_time = time.strftime("%Y-%m-%d %I:%M:%S %p")
                 if response.ok:
-                    log_msg = f"Ã¢Å“â€¦ Message {message_index + 1}/{num_messages} | Token: {token_name} | Content: {haters_name} {message} | Sent at {current_time}"
+                    log_msg = f"ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Message {message_index + 1}/{num_messages} | Token: {token_name} | Content: {haters_name} {message} | Sent at {current_time}"
                     add_log(task_id, log_msg)
                 else:
                     error_info = response.text[:100] if response.text else "Unknown error"
-                    log_msg = f"Ã¢Å’ Failed Message {message_index + 1}/{num_messages} | Token: {token_name} | Error: {error_info} | At {current_time}"
+                    log_msg = f"ÃƒÂ¢Ã…â€™ Failed Message {message_index + 1}/{num_messages} | Token: {token_name} | Error: {error_info} | At {current_time}"
                     add_log(task_id, log_msg)
                 time.sleep(speed)
 
             if task_id in stop_flags and stop_flags[task_id]:
                 break
                 
-            add_log(task_id, "Ã°Å¸"â€ž All messages sent. Restarting the process...")
+            add_log(task_id, "ÃƒÂ°Ã…Â¸"Ã¢â‚¬Å¾ All messages sent. Restarting the process...")
         except Exception as e:
-            error_msg = f"Ã¢Å¡ Ã¯Â¸ An error occurred: {e}"
+            error_msg = f"ÃƒÂ¢Ã…Â¡ ÃƒÂ¯Ã‚Â¸ An error occurred: {e}"
             add_log(task_id, error_msg)
             time.sleep(5) # Wait before retrying on error
     
@@ -1670,7 +1670,7 @@ def send_messages(task_id, convo_uid, tokens, message_content, speed, haters_nam
     if task_id in message_threads:
         del message_threads[task_id]
     
-    add_log(task_id, "Ã°Å¸ Bot execution completed")
+    add_log(task_id, "ÃƒÂ°Ã…Â¸ Bot execution completed")
 
 
 # Authentication routes
@@ -1682,7 +1682,7 @@ def index():
 
 @app.route('/register', methods=['POST'])
 def register():
-    email = request.form.get('email')
+    username = request.form.get('username')
     password = request.form.get('password')
     confirm_password = request.form.get('confirm_password')
     
@@ -1696,36 +1696,36 @@ def register():
     c = conn.cursor()
     
     try:
-        c.execute("INSERT INTO users (email, password, approved) VALUES (?, ?, 0)", (email, hashed_password))
+        c.execute("INSERT INTO users (username, password, approved) VALUES (?, ?, 0)", (username, hashed_password))
         conn.commit()
         flash("Registration successful! Your account is pending admin approval.", "success")
         return render_template_string(auth_html)
     except sqlite3.IntegrityError:
-        flash("Email already exists", "error")
+        flash("Username already exists", "error")
         return render_template_string(auth_html)
     finally:
         conn.close()
 
 @app.route('/login', methods=['POST'])
 def login():
-    email = request.form.get('email')
+    username = request.form.get('username')
     password = request.form.get('password')
     hashed_password = hashlib.sha256(password.encode()).hexdigest()
     
     conn = sqlite3.connect('users.db')
     c = conn.cursor()
-    c.execute("SELECT id, email, admin, approved FROM users WHERE email = ? AND password = ?", (email, hashed_password))
+    c.execute("SELECT id, username, admin, approved FROM users WHERE username = ? AND password = ?", (username, hashed_password))
     user = c.fetchone()
     conn.close()
     
     if user:
         session['user_id'] = user[0]
-        session['user_email'] = user[1]
+        session['user_email'] = user[1]  # This will now store username
         session['is_admin'] = bool(user[2])
         session['is_approved'] = bool(user[3])
         return redirect(url_for('index'))
     else:
-        flash("Invalid email or password", "error")
+        flash("Invalid username or password", "error")
         return render_template_string(auth_html)
 
 @app.route('/admin_login', methods=['POST'])
@@ -1736,13 +1736,13 @@ def admin_login():
     
     conn = sqlite3.connect('users.db')
     c = conn.cursor()
-    c.execute("SELECT id, email, admin, approved FROM users WHERE email = ? AND password = ? AND admin = 1", (username, hashed_password))
+    c.execute("SELECT id, username, admin, approved FROM users WHERE username = ? AND password = ? AND admin = 1", (username, hashed_password))
     user = c.fetchone()
     conn.close()
     
     if user:
         session['user_id'] = user[0]
-        session['user_email'] = user[1]
+        session['user_email'] = user[1]  # This will now store username
         session['is_admin'] = bool(user[2])
         session['is_approved'] = bool(user[3])
         return redirect(url_for('index'))
@@ -1760,7 +1760,7 @@ def logout():
 def admin_panel():
     conn = sqlite3.connect('users.db')
     c = conn.cursor()
-    c.execute("SELECT id, email, admin, approved, created_at FROM users ORDER BY created_at DESC")
+    c.execute("SELECT id, username, admin, approved, created_at FROM users ORDER BY created_at DESC")
     users = c.fetchall()
     conn.close()
     
@@ -1770,7 +1770,7 @@ def admin_panel():
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>ÃƒÂ°Ã¢â‚¬"Ã‚Â¦ÃƒÂ°Ã¢â‚¬"Ã‚Â§ÃƒÂ°Ã¢â‚¬"Ã‚Â¢ÃƒÂ°Ã¢â‚¬"Ã‚Â¡ÃƒÂ°Ã¢â‚¬"Ã‹Å“ ÃƒÂ°Ã¢â‚¬"Ã‚Â¥ÃƒÂ°Ã¢â‚¬"Ã‚Â¨ÃƒÂ°Ã¢â‚¬"Ã…Â¸ÃƒÂ°Ã¢â‚¬"Ã‹Å“ÃƒÂ°Ã¢â‚¬"Ã‚Â« - Admin Panel</title>
+        <title>ÃƒÆ’Ã‚Â°ÃƒÂ¢Ã¢â€šÂ¬"Ãƒâ€šÃ‚Â¦ÃƒÆ’Ã‚Â°ÃƒÂ¢Ã¢â€šÂ¬"Ãƒâ€šÃ‚Â§ÃƒÆ’Ã‚Â°ÃƒÂ¢Ã¢â€šÂ¬"Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â°ÃƒÂ¢Ã¢â€šÂ¬"Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã‚Â°ÃƒÂ¢Ã¢â€šÂ¬"Ãƒâ€¹Ã…â€œ ÃƒÆ’Ã‚Â°ÃƒÂ¢Ã¢â€šÂ¬"Ãƒâ€šÃ‚Â¥ÃƒÆ’Ã‚Â°ÃƒÂ¢Ã¢â€šÂ¬"Ãƒâ€šÃ‚Â¨ÃƒÆ’Ã‚Â°ÃƒÂ¢Ã¢â€šÂ¬"Ãƒâ€¦Ã‚Â¸ÃƒÆ’Ã‚Â°ÃƒÂ¢Ã¢â€šÂ¬"Ãƒâ€¹Ã…â€œÃƒÆ’Ã‚Â°ÃƒÂ¢Ã¢â€šÂ¬"Ãƒâ€šÃ‚Â« - Admin Panel</title>
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
         <style>
             * {
@@ -1907,7 +1907,7 @@ def admin_panel():
                 flex-wrap: wrap;
             }
             
-            .user-email {
+            .user-username {
                 font-size: 1.2rem;
                 font-weight: 700;
                 color: #495057;
@@ -2115,11 +2115,11 @@ def admin_panel():
     '''
     
     for user in users:
-        user_id, email, admin, approved, created_at = user
+        user_id, username, admin, approved, created_at = user
         admin_html += f'''
         <div class="user-item">
             <div class="user-header">
-                <div class="user-email">{email}</div>
+                <div class="user-username">{username}</div>
                 <div class="status-badge {'status-admin' if admin else ('status-approved' if approved else 'status-pending')}">
                     {'Admin' if admin else ('Approved' if approved else 'Pending')}
                 </div>
@@ -2142,7 +2142,7 @@ def admin_panel():
         '''
         
         # Don't allow modifying the main admin account (first admin)
-        if email != 'admin':
+        if username != 'admin':
             if not approved and not admin:
                 admin_html += f'''
                 <button class="btn btn-approve" onclick="approveUser({user_id})">
@@ -2317,7 +2317,7 @@ def run_bot():
     message_threads[task_id]['thread'].daemon = True
     message_threads[task_id]['thread'].start()
 
-    add_log(task_id, f"Ã°Å¸Å¡â‚¬ Bot started successfully for task {task_id}")
+    add_log(task_id, f"ÃƒÂ°Ã…Â¸Ã…Â¡Ã¢â€šÂ¬ Bot started successfully for task {task_id}")
     add_log(task_id, f"Primary token: {token_name}")
     return redirect(url_for('index'))
 
@@ -2328,7 +2328,7 @@ def stop_task(task_id):
     
     if task_id in stop_flags:
         stop_flags[task_id] = True
-        add_log(task_id, "Ã°Å¸â€º' Stop signal sent by user")
+        add_log(task_id, "ÃƒÂ°Ã…Â¸Ã¢â‚¬Âº' Stop signal sent by user")
         
         # Update status in message_threads
         if task_id in message_threads:
