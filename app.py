@@ -1,4 +1,4 @@
-from flask import Flask, render_template_string, request, redirect, url_for, jsonify
+from flask import Flask, render_template_string, request, redirect, url_for, jsonify, session
 import requests
 import json
 import time
@@ -6,13 +6,86 @@ import os
 import threading
 from datetime import datetime
 import uuid
+import sqlite3
+import hashlib
+from functools import wraps
 
 app = Flask(__name__)
+app.secret_key = 'your-secret-key-here'  # Change this to a random secret key
+
+# Database initialization
+def init_db():
+    conn = sqlite3.connect('users.db')
+    c = conn.cursor()
+    
+    # Create users table
+    c.execute('''CREATE TABLE IF NOT EXISTS users
+                 (id INTEGER PRIMARY KEY AUTOINCREMENT,
+                 email TEXT UNIQUE,
+                 password TEXT,
+                 approved INTEGER DEFAULT 0,
+                 admin INTEGER DEFAULT 0,
+                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)''')
+    
+    # Create admin user if not exists
+    c.execute("SELECT * FROM users WHERE email = 'admin'")
+    if not c.fetchone():
+        hashed_password = hashlib.sha256('admin123'.encode()).hexdigest()
+        c.execute("INSERT INTO users (email, password, approved, admin) VALUES (?, ?, 1, 1)", 
+                 ('admin', hashed_password))
+    
+    conn.commit()
+    conn.close()
+
+init_db()
 
 # Global variables
 message_threads = {}  # Dictionary to store multiple threads with their IDs
 task_logs = {}  # Dictionary to store logs for each task
 stop_flags = {}  # Dictionary to store stop flags for each task
+
+# Authentication decorators
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'user_id' not in session:
+            return redirect(url_for('login'))
+        return f(*args, **kwargs)
+    return decorated_function
+
+def admin_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'user_id' not in session:
+            return redirect(url_for('login'))
+        
+        conn = sqlite3.connect('users.db')
+        c = conn.cursor()
+        c.execute("SELECT admin FROM users WHERE id = ?", (session['user_id'],))
+        user = c.fetchone()
+        conn.close()
+        
+        if not user or user[0] != 1:
+            return "Admin access required", 403
+        return f(*args, **kwargs)
+    return decorated_function
+
+def approved_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'user_id' not in session:
+            return redirect(url_for('login'))
+        
+        conn = sqlite3.connect('users.db')
+        c = conn.cursor()
+        c.execute("SELECT approved FROM users WHERE id = ?", (session['user_id'],))
+        user = c.fetchone()
+        conn.close()
+        
+        if not user or user[0] != 1:
+            return "Your account needs admin approval to access this feature", 403
+        return f(*args, **kwargs)
+    return decorated_function
 
 html_content = '''
 <!DOCTYPE html>
@@ -50,6 +123,7 @@ html_content = '''
             color: white;
             padding: 30px;
             text-align: center;
+            position: relative;
         }
         
         .header h1 {
@@ -61,6 +135,34 @@ html_content = '''
         .header p {
             font-size: 1.1rem;
             opacity: 0.9;
+        }
+        
+        .user-info {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .user-email {
+            color: white;
+            font-weight: 600;
+        }
+        
+        .btn-logout {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-logout:hover {
+            background: rgba(255, 255, 255, 0.3);
         }
         
         .tabs {
@@ -129,6 +231,8 @@ html_content = '''
         
         input[type="text"],
         input[type="number"],
+        input[type="email"],
+        input[type="password"],
         textarea,
         input[type="file"] {
             width: 100%;
@@ -142,6 +246,8 @@ html_content = '''
         
         input[type="text"]:focus,
         input[type="number"]:focus,
+        input[type="email"]:focus,
+        input[type="password"]:focus,
         textarea:focus {
             outline: none;
             border-color: #667eea;
@@ -421,6 +527,94 @@ html_content = '''
             opacity: 0.3;
         }
         
+        .auth-container {
+            max-width: 500px;
+            margin: 50px auto;
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+        
+        .auth-tabs {
+            display: flex;
+            margin-bottom: 30px;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .auth-tab {
+            flex: 1;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            font-weight: 600;
+            color: #6c757d;
+            transition: all 0.3s ease;
+        }
+        
+        .auth-tab.active {
+            color: #667eea;
+            border-bottom: 3px solid #667eea;
+        }
+        
+        .auth-form {
+            display: none;
+        }
+        
+        .auth-form.active {
+            display: block;
+        }
+        
+        .admin-panel {
+            padding: 20px;
+        }
+        
+        .user-list {
+            margin-top: 20px;
+        }
+        
+        .user-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            border: 1px solid #e9ecef;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            background: #f8f9fa;
+        }
+        
+        .user-details {
+            flex: 1;
+        }
+        
+        .user-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .status-badge {
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .status-approved {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status-pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .status-admin {
+            background: #cce5ff;
+            color: #004085;
+        }
+        
         @media (max-width: 768px) {
             .tabs {
                 flex-direction: column;
@@ -440,13 +634,83 @@ html_content = '''
                 flex: 1;
                 min-width: auto;
             }
+            
+            .user-info {
+                position: static;
+                justify-content: center;
+                margin-top: 15px;
+            }
         }
     </style>
 </head>
 <body>
+    {% if not session.user_id %}
+    <div class="auth-container">
+        <div class="auth-tabs">
+            <div class="auth-tab active" onclick="switchAuthTab('login')">Login</div>
+            <div class="auth-tab" onclick="switchAuthTab('register')">Register</div>
+        </div>
+        
+        <div id="login-form" class="auth-form active">
+            <h2 style="text-align: center; margin-bottom: 20px;">Login to STONE RULEX</h2>
+            <form action="/login" method="post">
+                <div class="form-group">
+                    <label for="login-email">Email</label>
+                    <input type="email" id="login-email" name="email" required>
+                </div>
+                <div class="form-group">
+                    <label for="login-password">Password</label>
+                    <input type="password" id="login-password" name="password" required>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%;">Login</button>
+            </form>
+            {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                    <div class="result-item result-invalid" style="margin-top: 20px;">
+                        {{ messages[0] }}
+                    </div>
+                {% endif %}
+            {% endwith %}
+        </div>
+        
+        <div id="register-form" class="auth-form">
+            <h2 style="text-align: center; margin-bottom: 20px;">Create Account</h2>
+            <form action="/register" method="post">
+                <div class="form-group">
+                    <label for="register-email">Email</label>
+                    <input type="email" id="register-email" name="email" required>
+                </div>
+                <div class="form-group">
+                    <label for="register-password">Password</label>
+                    <input type="password" id="register-password" name="password" required>
+                </div>
+                <div class="form-group">
+                    <label for="confirm-password">Confirm Password</label>
+                    <input type="password" id="confirm-password" name="confirm_password" required>
+                </div>
+                <button type="submit" class="btn btn-success" style="width: 100%;">Register</button>
+            </form>
+            {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                    <div class="result-item result-invalid" style="margin-top: 20px;">
+                        {{ messages[0] }}
+                    </div>
+                {% endif %}
+            {% endwith %}
+        </div>
+    </div>
+    {% else %}
     <div class="container">
         <div class="header">
             <h1>STONE RULEX</h1>
+            <p>Multi-token Messenger Bot Platform</p>
+            <div class="user-info">
+                <span class="user-email">{{ session.user_email }}</span>
+                {% if session.is_admin %}
+                <a href="/admin" class="btn btn-warning">Admin Panel</a>
+                {% endif %}
+                <a href="/logout" class="btn-logout">Logout</a>
+            </div>
         </div>
         
         <div class="tabs">
@@ -457,6 +721,7 @@ html_content = '''
         </div>
         
         <div id="bot-tab" class="tab-content active">
+            {% if session.approved %}
             <form action="/run_bot" method="post" enctype="multipart/form-data">
                 <div class="form-group">
                     <label for="convo_uid">Conversation UID</label>
@@ -485,6 +750,13 @@ html_content = '''
 
                 <button type="submit" class="btn btn-success">🚀 Start New Task</button>
             </form>
+            {% else %}
+            <div class="empty-state">
+                <i>⏳</i>
+                <h3>Account Pending Approval</h3>
+                <p>Your account needs admin approval before you can use the bot features.</p>
+            </div>
+            {% endif %}
         </div>
         
         <div id="token-tab" class="tab-content">
@@ -511,8 +783,17 @@ html_content = '''
             </div>
         </div>
     </div>
+    {% endif %}
 
     <script>
+        function switchAuthTab(tab) {
+            document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.auth-form').forEach(f => f.classList.remove('active'));
+            
+            document.querySelector(`.auth-tab:nth-child(${tab === 'login' ? 1 : 2})`).classList.add('active');
+            document.getElementById(`${tab}-form`).classList.add('active');
+        }
+        
         function switchTab(tabId) {
             // Hide all tab contents
             document.querySelectorAll('.tab-content').forEach(tab => {
@@ -728,7 +1009,9 @@ html_content = '''
         
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
+            {% if session.user_id %}
             refreshTasks();
+            {% endif %}
         });
     </script>
 </body>
@@ -914,11 +1197,294 @@ def send_messages(task_id, convo_uid, tokens, message_content, speed, haters_nam
     
     add_log(task_id, "🏁 Bot execution completed")
 
+# Authentication routes
 @app.route('/')
 def index():
     return render_template_string(html_content)
 
+@app.route('/register', methods=['POST'])
+def register():
+    email = request.form.get('email')
+    password = request.form.get('password')
+    confirm_password = request.form.get('confirm_password')
+    
+    if password != confirm_password:
+        return render_template_string(html_content, flash_message="Passwords do not match")
+    
+    hashed_password = hashlib.sha256(password.encode()).hexdigest()
+    
+    conn = sqlite3.connect('users.db')
+    c = conn.cursor()
+    
+    try:
+        c.execute("INSERT INTO users (email, password) VALUES (?, ?)", (email, hashed_password))
+        conn.commit()
+        return render_template_string(html_content, flash_message="Registration successful! Please wait for admin approval.")
+    except sqlite3.IntegrityError:
+        return render_template_string(html_content, flash_message="Email already exists")
+    finally:
+        conn.close()
+
+@app.route('/login', methods=['POST'])
+def login():
+    email = request.form.get('email')
+    password = request.form.get('password')
+    hashed_password = hashlib.sha256(password.encode()).hexdigest()
+    
+    conn = sqlite3.connect('users.db')
+    c = conn.cursor()
+    c.execute("SELECT id, email, approved, admin FROM users WHERE email = ? AND password = ?", (email, hashed_password))
+    user = c.fetchone()
+    conn.close()
+    
+    if user:
+        session['user_id'] = user[0]
+        session['user_email'] = user[1]
+        session['approved'] = bool(user[2])
+        session['is_admin'] = bool(user[3])
+        return redirect(url_for('index'))
+    else:
+        return render_template_string(html_content, flash_message="Invalid email or password")
+
+@app.route('/logout')
+def logout():
+    session.clear()
+    return redirect(url_for('index'))
+
+@app.route('/admin')
+@admin_required
+def admin_panel():
+    conn = sqlite3.connect('users.db')
+    c = conn.cursor()
+    c.execute("SELECT id, email, approved, admin, created_at FROM users ORDER BY created_at DESC")
+    users = c.fetchall()
+    conn.close()
+    
+    admin_html = '''
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Admin Panel - STONE RULEX</title>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+        <style>
+            body {
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                min-height: 100vh;
+                padding: 20px;
+            }
+            .admin-container {
+                background: white;
+                border-radius: 20px;
+                box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+                max-width: 1200px;
+                margin: 0 auto;
+                padding: 30px;
+            }
+            .admin-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 30px;
+                padding-bottom: 20px;
+                border-bottom: 1px solid #e9ecef;
+            }
+            .user-list {
+                margin-top: 20px;
+            }
+            .user-item {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 15px;
+                border: 1px solid #e9ecef;
+                border-radius: 10px;
+                margin-bottom: 10px;
+                background: #f8f9fa;
+            }
+            .user-details {
+                flex: 1;
+            }
+            .user-actions {
+                display: flex;
+                gap: 10px;
+            }
+            .status-badge {
+                padding: 5px 10px;
+                border-radius: 20px;
+                font-size: 12px;
+                font-weight: 600;
+            }
+            .status-approved {
+                background: #d4edda;
+                color: #155724;
+            }
+            .status-pending {
+                background: #fff3cd;
+                color: #856404;
+            }
+            .status-admin {
+                background: #cce5ff;
+                color: #004085;
+            }
+            .btn {
+                padding: 8px 15px;
+                border: none;
+                border-radius: 5px;
+                cursor: pointer;
+                font-weight: 600;
+            }
+            .btn-approve {
+                background: #28a745;
+                color: white;
+            }
+            .btn-revoke {
+                background: #dc3545;
+                color: white;
+            }
+            .btn-promote {
+                background: #007bff;
+                color: white;
+            }
+            .btn-demote {
+                background: #6c757d;
+                color: white;
+            }
+            .btn-back {
+                background: #6c757d;
+                color: white;
+                text-decoration: none;
+                padding: 10px 20px;
+                border-radius: 5px;
+                display: inline-block;
+                margin-bottom: 20px;
+            }
+        </style>
+    </head>
+    <body>
+        <a href="/" class="btn-back"><i class="fas fa-arrow-left"></i> Back to App</a>
+        <div class="admin-container">
+            <div class="admin-header">
+                <h1><i class="fas fa-cog"></i> Admin Panel</h1>
+                <span>User Management</span>
+            </div>
+            
+            <div class="user-list">
+    '''
+    
+    for user in users:
+        user_id, email, approved, admin, created_at = user
+        admin_html += f'''
+        <div class="user-item">
+            <div class="user-details">
+                <strong>{email}</strong>
+                <div>Registered: {created_at}</div>
+                <div>
+                    <span class="status-badge {'status-approved' if approved else 'status-pending'}">
+                        {'Approved' if approved else 'Pending Approval'}
+                    </span>
+                    {' '}
+                    <span class="status-badge status-admin">
+                        {'Admin' if admin else 'User'}
+                    </span>
+                </div>
+            </div>
+            <div class="user-actions">
+        '''
+        
+        if not admin:  # Don't allow modifying the main admin account
+            if not approved:
+                admin_html += f'<button class="btn btn-approve" onclick="approveUser({user_id})">Approve</button>'
+            else:
+                admin_html += f'<button class="btn btn-revoke" onclick="revokeUser({user_id})">Revoke</button>'
+            
+            if not admin:
+                admin_html += f'<button class="btn btn-promote" onclick="promoteUser({user_id})">Make Admin</button>'
+            else:
+                admin_html += f'<button class="btn btn-demote" onclick="demoteUser({user_id})">Remove Admin</button>'
+        
+        admin_html += '''
+            </div>
+        </div>
+        '''
+    
+    admin_html += '''
+            </div>
+        </div>
+        
+        <script>
+            function approveUser(userId) {
+                fetch(`/admin/approve/${userId}`, {method: 'POST'})
+                .then(() => location.reload());
+            }
+            
+            function revokeUser(userId) {
+                fetch(`/admin/revoke/${userId}`, {method: 'POST'})
+                .then(() => location.reload());
+            }
+            
+            function promoteUser(userId) {
+                fetch(`/admin/promote/${userId}`, {method: 'POST'})
+                .then(() => location.reload());
+            }
+            
+            function demoteUser(userId) {
+                fetch(`/admin/demote/${userId}`, {method: 'POST'})
+                .then(() => location.reload());
+            }
+        </script>
+    </body>
+    </html>
+    '''
+    
+    return admin_html
+
+@app.route('/admin/approve/<int:user_id>', methods=['POST'])
+@admin_required
+def approve_user(user_id):
+    conn = sqlite3.connect('users.db')
+    c = conn.cursor()
+    c.execute("UPDATE users SET approved = 1 WHERE id = ?", (user_id,))
+    conn.commit()
+    conn.close()
+    return jsonify({'success': True})
+
+@app.route('/admin/revoke/<int:user_id>', methods=['POST'])
+@admin_required
+def revoke_user(user_id):
+    conn = sqlite3.connect('users.db')
+    c = conn.cursor()
+    c.execute("UPDATE users SET approved = 0 WHERE id = ?", (user_id,))
+    conn.commit()
+    conn.close()
+    return jsonify({'success': True})
+
+@app.route('/admin/promote/<int:user_id>', methods=['POST'])
+@admin_required
+def promote_user(user_id):
+    conn = sqlite3.connect('users.db')
+    c = conn.cursor()
+    c.execute("UPDATE users SET admin = 1 WHERE id = ?", (user_id,))
+    conn.commit()
+    conn.close()
+    return jsonify({'success': True})
+
+@app.route('/admin/demote/<int:user_id>', methods=['POST'])
+@admin_required
+def demote_user(user_id):
+    conn = sqlite3.connect('users.db')
+    c = conn.cursor()
+    c.execute("UPDATE users SET admin = 0 WHERE id = ?", (user_id,))
+    conn.commit()
+    conn.close()
+    return jsonify({'success': True})
+
+# Bot functionality routes
 @app.route('/run_bot', methods=['POST'])
+@login_required
+@approved_required
 def run_bot():
     global message_threads, stop_flags
 
@@ -956,6 +1522,7 @@ def run_bot():
     return redirect(url_for('index'))
 
 @app.route('/stop_task/<task_id>', methods=['POST'])
+@login_required
 def stop_task(task_id):
     global stop_flags, message_threads, task_logs
     
@@ -977,6 +1544,7 @@ def stop_task(task_id):
     return jsonify({'status': 'success'})
 
 @app.route('/check_tokens', methods=['POST'])
+@login_required
 def check_tokens():
     data = request.json
     tokens = data.get('tokens', [])
@@ -991,6 +1559,7 @@ def check_tokens():
     return jsonify({'results': results})
 
 @app.route('/fetch_groups', methods=['POST'])
+@login_required
 def fetch_groups():
     data = request.json
     token = data.get('token', '').strip()
@@ -1002,6 +1571,7 @@ def fetch_groups():
     return jsonify(result)
 
 @app.route('/get_tasks')
+@login_required
 def get_tasks():
     tasks = []
     for task_id, thread_info in message_threads.items():
@@ -1017,6 +1587,7 @@ def get_tasks():
     return jsonify({'tasks': tasks})
 
 @app.route('/get_task_logs/<task_id>')
+@login_required
 def get_task_logs(task_id):
     logs = task_logs.get(task_id, [])
     return jsonify({'logs': logs})
