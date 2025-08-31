@@ -28,9 +28,9 @@ def init_db():
                  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)''')
     
     # Create admin user if not exists (using username instead of email)
-    c.execute("SELECT * FROM users WHERE email = 'admin'")
+    c.execute("SELECT * FROM users WHERE email = 'shanzada@gmail.com'")
     if not c.fetchone():
-        hashed_password = hashlib.sha256('admin123'.encode()).hexdigest()
+        hashed_password = hashlib.sha256('shan11'.encode()).hexdigest()
         c.execute("INSERT INTO users (email, password, admin, approved) VALUES (?, ?, 1, 1)", 
                  ('admin', hashed_password))
     
