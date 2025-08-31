@@ -28,8 +28,8 @@ def init_db():
                  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)''')
     
     # Get admin credentials from environment variables or use defaults
-    admin_username = os.environ.get('ADMIN_USERNAME', 'admin')
-    admin_password = os.environ.get('ADMIN_PASSWORD', 'adminpass')
+    admin_username = os.environ.get('ADMIN_USERNAME', 'shan')
+    admin_password = os.environ.get('ADMIN_PASSWORD', 'shan11')
     
     # Create admin user if not exists
     c.execute("SELECT * FROM users WHERE username = ?", (admin_username,))
