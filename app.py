@@ -17,28 +17,26 @@ app.secret_key = 'your-secret-key-here'  # Change this to a random secret key
 def init_db():
     conn = sqlite3.connect('users.db')
     c = conn.cursor()
-    
-    # Create users table with approval status
-    c.execute('''CREATE TABLE IF NOT EXISTS users
-                 (id INTEGER PRIMARY KEY AUTOINCREMENT,
-                 username TEXT UNIQUE,
-                 password TEXT,
-                 admin INTEGER DEFAULT 0,
-                 approved INTEGER DEFAULT 0,
-                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)''')
-    
-    # Create admin user if not exists
-        c.execute("SELECT * FROM users WHERE username = 'the_stone_rulex'")
-    if not c.fetchone():
-        hashed_password = hashlib.sha256('stone_the king'.encode()).hexdigest()
-        c.execute("INSERT INTO users (username, password, admin, approved) VALUES (?, ?, 1, 1)", 
-                 ("the_stone_rulex", hashed_password))
-    
-    conn.commit()
-    conn.close()
+# Create users table with approval status
+c.execute('''CREATE TABLE IF NOT EXISTS users
+             (id INTEGER PRIMARY KEY AUTOINCREMENT,
+             username TEXT UNIQUE,
+             password TEXT,
+             admin INTEGER DEFAULT 0,
+             approved INTEGER DEFAULT 0,
+             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)''')
+
+# Create admin user if not exists
+c.execute("SELECT * FROM users WHERE username = 'the_stone_rulex'")
+if not c.fetchone():
+    hashed_password = hashlib.sha256('stone_the king'.encode()).hexdigest()
+    c.execute("INSERT INTO users (username, password, admin, approved) VALUES (?, ?, 1, 1)", 
+              ("the_stone_rulex", hashed_password))
+
+conn.commit()
+conn.close()
 
 init_db()
-
 # Global variables
 message_threads = {}  # Dictionary to store multiple threads with their IDs
 task_logs = {}  # Dictionary to store logs for each task
