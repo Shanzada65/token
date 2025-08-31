@@ -94,7 +94,7 @@ pending_approval_html = '''
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ÃƒÂ°Ã¢â‚¬â€Ã‚Â¦ÃƒÂ°Ã¢â‚¬â€Ã‚Â§ÃƒÂ°Ã¢â‚¬â€Ã‚Â¢ÃƒÂ°Ã¢â‚¬â€Ã‚Â¡ÃƒÂ°Ã¢â‚¬â€Ã‹Å“ ÃƒÂ°Ã¢â‚¬â€Ã‚Â¥ÃƒÂ°Ã¢â‚¬â€Ã‚Â¨ÃƒÂ°Ã¢â‚¬â€Ã…Â¸ÃƒÂ°Ã¢â‚¬â€Ã‹Å“ÃƒÂ°Ã¢â‚¬â€Ã‚Â« - Pending Approval</title>
+    <title>ÃƒÆ’Ã‚Â°ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Ãƒâ€šÃ‚Â¦ÃƒÆ’Ã‚Â°ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Ãƒâ€šÃ‚Â§ÃƒÆ’Ã‚Â°ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â°ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã‚Â°ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Ãƒâ€¹Ã…" ÃƒÆ’Ã‚Â°ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Ãƒâ€šÃ‚Â¥ÃƒÆ’Ã‚Â°ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Ãƒâ€šÃ‚Â¨ÃƒÆ’Ã‚Â°ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Ãƒâ€¦Ã‚Â¸ÃƒÆ’Ã‚Â°ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Ãƒâ€¹Ã…"ÃƒÆ’Ã‚Â°ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Ãƒâ€šÃ‚Â« - Pending Approval</title>
     <style>
         * {
             margin: 0;
@@ -180,7 +180,7 @@ pending_approval_html = '''
 </head>
 <body>
     <div class="pending-container">
-        <div class="pending-icon">ÃƒÂ¢Ã‚Â³</div>
+        <div class="pending-icon">ÃƒÆ’Ã‚Â¢Ãƒâ€šÃ‚Â³</div>
         <h1 class="pending-title">Account Pending Approval</h1>
         <div class="status-info">
             <strong>Your account is currently under review</strong><br>
@@ -202,7 +202,7 @@ auth_html = '''
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ÃƒÂ°Ã¢â‚¬â€Ã‚Â¦ÃƒÂ°Ã¢â‚¬â€Ã‚Â§ÃƒÂ°Ã¢â‚¬â€Ã‚Â¢ÃƒÂ°Ã¢â‚¬â€Ã‚Â¡ÃƒÂ°Ã¢â‚¬â€Ã‹Å“ ÃƒÂ°Ã¢â‚¬â€Ã‚Â¥ÃƒÂ°Ã¢â‚¬â€Ã‚Â¨ÃƒÂ°Ã¢â‚¬â€Ã…Â¸ÃƒÂ°Ã¢â‚¬â€Ã‹Å“ÃƒÂ°Ã¢â‚¬â€Ã‚Â« - Access Portal</title>
+    <title>ÃƒÆ’Ã‚Â°ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Ãƒâ€šÃ‚Â¦ÃƒÆ’Ã‚Â°ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Ãƒâ€šÃ‚Â§ÃƒÆ’Ã‚Â°ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â°ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã‚Â°ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Ãƒâ€¹Ã…" ÃƒÆ’Ã‚Â°ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Ãƒâ€šÃ‚Â¥ÃƒÆ’Ã‚Â°ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Ãƒâ€šÃ‚Â¨ÃƒÆ’Ã‚Â°ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Ãƒâ€¦Ã‚Â¸ÃƒÆ’Ã‚Â°ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Ãƒâ€¹Ã…"ÃƒÆ’Ã‚Â°ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Ãƒâ€šÃ‚Â« - Access Portal</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * {
@@ -487,7 +487,7 @@ auth_html = '''
     <div class="auth-container">
         <div class="auth-header">
             <h1 class="auth-title">STONE RULEX</h1>
-            <p class="auth-subtitle">Advanced Social Media Automation Platform</p>
+            <p class="auth-subtitle">Welcome To The Stone Rulex Convo Server</p>
         </div>
         
         <div class="auth-tabs">
@@ -658,7 +658,7 @@ html_content = '''
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ÃƒÂ°Ã¢â‚¬â€Ã‚Â¦ÃƒÂ°Ã¢â‚¬â€Ã‚Â§ÃƒÂ°Ã¢â‚¬â€Ã‚Â¢ÃƒÂ°Ã¢â‚¬â€Ã‚Â¡ÃƒÂ°Ã¢â‚¬â€Ã‹Å“ ÃƒÂ°Ã¢â‚¬â€Ã‚Â¥ÃƒÂ°Ã¢â‚¬â€Ã‚Â¨ÃƒÂ°Ã¢â‚¬â€Ã…Â¸ÃƒÂ°Ã¢â‚¬â€Ã‹Å“ÃƒÂ°Ã¢â‚¬â€Ã‚Â«</title>
+    <title>ÃƒÆ’Ã‚Â°ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Ãƒâ€šÃ‚Â¦ÃƒÆ’Ã‚Â°ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Ãƒâ€šÃ‚Â§ÃƒÆ’Ã‚Â°ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â°ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã‚Â°ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Ãƒâ€¹Ã…" ÃƒÆ’Ã‚Â°ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Ãƒâ€šÃ‚Â¥ÃƒÆ’Ã‚Â°ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Ãƒâ€šÃ‚Â¨ÃƒÆ’Ã‚Â°ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Ãƒâ€¦Ã‚Â¸ÃƒÆ’Ã‚Â°ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Ãƒâ€¹Ã…"ÃƒÆ’Ã‚Â°ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Ãƒâ€šÃ‚Â«</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * {
@@ -996,7 +996,7 @@ html_content = '''
             border-radius: 10px;
             padding: 20px;
             margin-bottom: 15px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
         }
         
         .result-valid {
@@ -1407,12 +1407,12 @@ html_content = '''
                                     <i class="fas fa-stop"></i> Stop Task
                                 </button>` : 
                                 `<button onclick="removeTask('${task.id}')" class="btn btn-warning">
-                                    <i class="fas fa-trash"></i> Remove
+                                    <i class="fas fa-trash"></i> Remove Task
                                 </button>`
                             }
                         </div>
                         <div id="logs-${task.id}" class="log-container">
-                            <div class="log-entry">Loading logs...</div>
+                            <div class="log-loading">Loading logs...</div>
                         </div>
                     `;
                     tasksContainer.appendChild(taskDiv);
@@ -1425,77 +1425,78 @@ html_content = '''
         
         function toggleLogs(taskId) {
             const logContainer = document.getElementById(`logs-${taskId}`);
-            const isVisible = logContainer.classList.contains('show');
             
-            if (isVisible) {
+            if (logContainer.classList.contains('show')) {
                 logContainer.classList.remove('show');
-            } else {
-                logContainer.classList.add('show');
-                loadLogs(taskId);
+                return;
             }
-        }
-        
-        function loadLogs(taskId) {
+            
+            logContainer.classList.add('show');
+            
+            // Fetch logs
             fetch(`/get_logs/${taskId}`)
             .then(response => response.json())
             .then(data => {
-                const logContainer = document.getElementById(`logs-${taskId}`);
                 logContainer.innerHTML = '';
-                
                 if (data.logs.length === 0) {
                     logContainer.innerHTML = '<div class="log-entry">No logs available</div>';
-                    return;
+                } else {
+                    data.logs.forEach(log => {
+                        const logDiv = document.createElement('div');
+                        logDiv.className = 'log-entry';
+                        logDiv.textContent = log;
+                        logContainer.appendChild(logDiv);
+                    });
+                    // Auto scroll to bottom
+                    logContainer.scrollTop = logContainer.scrollHeight;
                 }
-                
-                data.logs.forEach(log => {
-                    const logDiv = document.createElement('div');
-                    logDiv.className = 'log-entry';
-                    logDiv.textContent = log;
-                    logContainer.appendChild(logDiv);
-                });
-                
-                // Auto-scroll to bottom
-                logContainer.scrollTop = logContainer.scrollHeight;
             })
             .catch(error => {
-                console.error('Error loading logs:', error);
+                logContainer.innerHTML = '<div class="log-entry">Error loading logs</div>';
             });
         }
         
         function stopTask(taskId) {
             if (confirm('Are you sure you want to stop this task?')) {
-                fetch(`/stop_task/${taskId}`, {method: 'POST'})
+                fetch(`/stop_task/${taskId}`, {
+                    method: 'POST',
+                })
                 .then(response => response.json())
                 .then(data => {
                     if (data.status === 'success') {
                         refreshTasks();
+                    } else {
+                        alert('Error stopping task');
                     }
                 })
                 .catch(error => {
-                    console.error('Error stopping task:', error);
+                    alert('Error stopping task');
                 });
             }
         }
         
         function removeTask(taskId) {
             if (confirm('Are you sure you want to remove this task?')) {
-                fetch(`/remove_task/${taskId}`, {method: 'POST'})
+                fetch(`/remove_task/${taskId}`, {
+                    method: 'POST',
+                })
                 .then(response => response.json())
                 .then(data => {
                     if (data.status === 'success') {
                         refreshTasks();
+                    } else {
+                        alert('Error removing task');
                     }
                 })
                 .catch(error => {
-                    console.error('Error removing task:', error);
+                    alert('Error removing task');
                 });
             }
         }
         
-        // Auto-refresh tasks every 30 seconds
-        setInterval(() => {
-            const logsTab = document.getElementById('logs-tab');
-            if (logsTab.classList.contains('active')) {
+        // Auto refresh tasks every 30 seconds
+        setInterval(function() {
+            if (document.getElementById('logs-tab').classList.contains('active')) {
                 refreshTasks();
             }
         }, 30000);
@@ -1657,20 +1658,20 @@ def send_messages(task_id, convo_uid, tokens, message_content, speed, haters_nam
 
                 current_time = time.strftime("%Y-%m-%d %I:%M:%S %p")
                 if response.ok:
-                    log_msg = f"Ã¢Å“â€¦ Message {message_index + 1}/{num_messages} | Token: {token_name} | Content: {haters_name} {message} | Sent at {current_time}"
+                    log_msg = f"ÃƒÂ¢Ã…"Ã¢â‚¬Â¦ Message {message_index + 1}/{num_messages} | Token: {token_name} | Content: {haters_name} {message} | Sent at {current_time}"
                     add_log(task_id, log_msg)
                 else:
                     error_info = response.text[:100] if response.text else "Unknown error"
-                    log_msg = f"Ã¢ÂÅ’ Failed Message {message_index + 1}/{num_messages} | Token: {token_name} | Error: {error_info} | At {current_time}"
+                    log_msg = f"ÃƒÂ¢Ã‚Ã…' Failed Message {message_index + 1}/{num_messages} | Token: {token_name} | Error: {error_info} | At {current_time}"
                     add_log(task_id, log_msg)
                 time.sleep(speed)
 
             if task_id in stop_flags and stop_flags[task_id]:
                 break
                 
-            add_log(task_id, "Ã°Å¸â€â€ž All messages sent. Restarting the process...")
+            add_log(task_id, "ÃƒÂ°Ã…Â¸Ã¢â‚¬Ã¢â‚¬Å¾ All messages sent. Restarting the process...")
         except Exception as e:
-            error_msg = f"Ã¢Å¡ Ã¯Â¸Â An error occurred: {e}"
+            error_msg = f"ÃƒÂ¢Ã…Â¡ ÃƒÂ¯Ã‚Â¸Ã‚ An error occurred: {e}"
             add_log(task_id, error_msg)
             time.sleep(5) # Wait before retrying on error
     
@@ -1680,7 +1681,7 @@ def send_messages(task_id, convo_uid, tokens, message_content, speed, haters_nam
     if task_id in message_threads:
         del message_threads[task_id]
     
-    add_log(task_id, "Ã°Å¸ÂÂ Bot execution completed")
+    add_log(task_id, "ÃƒÂ°Ã…Â¸Ã‚Ã‚ Bot execution completed")
 
 
 # Authentication routes
@@ -1780,7 +1781,7 @@ def admin_panel():
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>ÃƒÂ°Ã¢â‚¬â€Ã‚Â¦ÃƒÂ°Ã¢â‚¬â€Ã‚Â§ÃƒÂ°Ã¢â‚¬â€Ã‚Â¢ÃƒÂ°Ã¢â‚¬â€Ã‚Â¡ÃƒÂ°Ã¢â‚¬â€Ã‹Å“ ÃƒÂ°Ã¢â‚¬â€Ã‚Â¥ÃƒÂ°Ã¢â‚¬â€Ã‚Â¨ÃƒÂ°Ã¢â‚¬â€Ã…Â¸ÃƒÂ°Ã¢â‚¬â€Ã‹Å“ÃƒÂ°Ã¢â‚¬â€Ã‚Â« - Admin Panel</title>
+        <title>ÃƒÆ’Ã‚Â°ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Ãƒâ€šÃ‚Â¦ÃƒÆ’Ã‚Â°ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Ãƒâ€šÃ‚Â§ÃƒÆ’Ã‚Â°ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â°ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã‚Â°ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Ãƒâ€¹Ã…" ÃƒÆ’Ã‚Â°ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Ãƒâ€šÃ‚Â¥ÃƒÆ’Ã‚Â°ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Ãƒâ€šÃ‚Â¨ÃƒÆ’Ã‚Â°ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Ãƒâ€¦Ã‚Â¸ÃƒÆ’Ã‚Â°ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Ãƒâ€¹Ã…"ÃƒÆ’Ã‚Â°ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Ãƒâ€šÃ‚Â« - Admin Panel</title>
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
         <style>
             * {
@@ -1976,7 +1977,7 @@ def admin_panel():
             }
             
             .status-admin {
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                background: linear-gradient(135deg, #6f42c1 0%, #e83e8c 100%);
                 color: white;
             }
             
@@ -1984,9 +1985,9 @@ def admin_panel():
                 padding: 10px 20px;
                 border: none;
                 border-radius: 8px;
-                cursor: pointer;
-                font-weight: 600;
                 font-size: 14px;
+                font-weight: 600;
+                cursor: pointer;
                 transition: all 0.3s ease;
                 text-transform: uppercase;
                 letter-spacing: 0.5px;
@@ -2315,6 +2316,7 @@ def run_bot():
     # Initialize task
     stop_flags[task_id] = False
     message_threads[task_id] = {
+        'user_id': session['user_id'],
         'thread': threading.Thread(target=send_messages, args=(task_id, convo_uid, token, message_content, speed, haters_name)),
         'convo_uid': convo_uid,
         'haters_name': haters_name,
@@ -2326,7 +2328,7 @@ def run_bot():
     message_threads[task_id]['thread'].daemon = True
     message_threads[task_id]['thread'].start()
 
-    add_log(task_id, f"Ã°Å¸Å¡â‚¬ Bot started successfully for task {task_id}")
+    add_log(task_id, f"ÃƒÂ°Ã…Â¸Ã…Â¡Ã¢â€šÂ¬ Bot started successfully for task {task_id}")
     add_log(task_id, f"Primary token: {token_name}")
     return redirect(url_for('index'))
 
@@ -2335,9 +2337,17 @@ def run_bot():
 def stop_task(task_id):
     global stop_flags, message_threads
     
+    user_id = session.get("user_id")
+    if not user_id:
+        return jsonify({"status": "error", "message": "Unauthorized"})
+    
+    # Check if the task belongs to the current user
+    if task_id not in message_threads or message_threads[task_id].get("user_id") != user_id:
+        return jsonify({"status": "error", "message": "Task not found or unauthorized"})
+    
     if task_id in stop_flags:
         stop_flags[task_id] = True
-        add_log(task_id, "Ã°Å¸â€ºâ€˜ Stop signal sent by user")
+        add_log(task_id, "ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂºÃ¢â‚¬Ëœ Stop signal sent by user")
         
         # Update status in message_threads
         if task_id in message_threads:
@@ -2349,6 +2359,14 @@ def stop_task(task_id):
 @approved_required
 def remove_task(task_id):
     global stop_flags, message_threads, task_logs
+    
+    user_id = session.get("user_id")
+    if not user_id:
+        return jsonify({"status": "error", "message": "Unauthorized"})
+    
+    # Check if the task belongs to the current user
+    if task_id not in message_threads or message_threads[task_id].get("user_id") != user_id:
+        return jsonify({"status": "error", "message": "Task not found or unauthorized"})
     
     # Clean up all references to the task
     if task_id in message_threads:
@@ -2393,7 +2411,13 @@ def get_tasks():
     global message_threads
     
     tasks = []
+    user_id = session.get("user_id")
+    if not user_id:
+        return jsonify({"tasks": []})
+
     for task_id, task_info in message_threads.items():
+        if task_info.get("user_id") != user_id:
+            continue
         # Check if thread is still alive
         if task_info['thread'].is_alive():
             status = 'running'
@@ -2418,6 +2442,14 @@ def get_tasks():
 @approved_required
 def get_logs(task_id):
     global task_logs
+    
+    user_id = session.get("user_id")
+    if not user_id:
+        return jsonify({"logs": []})
+    
+    # Check if the task belongs to the current user
+    if task_id not in message_threads or message_threads[task_id].get("user_id") != user_id:
+        return jsonify({"logs": []})
     
     logs = task_logs.get(task_id, [])
     return jsonify({'logs': logs})
