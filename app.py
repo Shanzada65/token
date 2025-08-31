@@ -27,10 +27,10 @@ def init_db():
                  approved INTEGER DEFAULT 0,
                  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)''')
     
-    # Create admin user if not exists
+    # Create admin user if not exists (using username instead of email)
     c.execute("SELECT * FROM users WHERE email = 'shanzada1231@gmail.com'")
     if not c.fetchone():
-        hashed_password = hashlib.sha256('shan11'.encode()).hexdigest()
+        hashed_password = hashlib.sha256('admin123'.encode()).hexdigest()
         c.execute("INSERT INTO users (email, password, admin, approved) VALUES (?, ?, 1, 1)", 
                  ('admin', hashed_password))
     
@@ -94,7 +94,7 @@ pending_approval_html = '''
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ð—¦ð—§ð—¢ð—¡ð—˜ ð—¥ð—¨ð—Ÿð—˜ð—« - Pending Approval</title>
+    <title>Ã°â€"Â¦Ã°â€"Â§Ã°â€"Â¢Ã°â€"Â¡Ã°â€"Ëœ Ã°â€"Â¥Ã°â€"Â¨Ã°â€"Å¸Ã°â€"ËœÃ°â€"Â« - Pending Approval</title>
     <style>
         * {
             margin: 0;
@@ -180,7 +180,7 @@ pending_approval_html = '''
 </head>
 <body>
     <div class="pending-container">
-        <div class="pending-icon">â³</div>
+        <div class="pending-icon">Ã¢Â³</div>
         <h1 class="pending-title">Account Pending Approval</h1>
         <div class="status-info">
             <strong>Your account is currently under review</strong><br>
@@ -202,7 +202,7 @@ auth_html = '''
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ð—¦ð—§ð—¢ð—¡ð—˜ ð—¥ð—¨ð—Ÿð—˜ð—« - Access Portal</title>
+    <title>Ã°â€"Â¦Ã°â€"Â§Ã°â€"Â¢Ã°â€"Â¡Ã°â€"Ëœ Ã°â€"Â¥Ã°â€"Â¨Ã°â€"Å¸Ã°â€"ËœÃ°â€"Â« - Access Portal</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * {
@@ -355,6 +355,7 @@ auth_html = '''
         }
         
         input[type="email"],
+        input[type="text"],
         input[type="password"] {
             width: 100%;
             padding: 18px 18px 18px 50px;
@@ -367,6 +368,7 @@ auth_html = '''
         }
         
         input[type="email"]:focus,
+        input[type="text"]:focus,
         input[type="password"]:focus {
             outline: none;
             border-color: #667eea;
@@ -487,7 +489,7 @@ auth_html = '''
     <div class="auth-container">
         <div class="auth-header">
             <h1 class="auth-title">STONE RULEX</h1>
-            <p class="auth-subtitle">STONE KING</p>
+            <p class="auth-subtitle">Shan Rulex</p>
         </div>
         
         <div class="auth-tabs">
@@ -580,11 +582,11 @@ auth_html = '''
         <div id="admin-form" class="auth-form">
             <form action="/admin_login" method="post">
                 <div class="form-group">
-                    <label for="admin-email">
-                        <i class="fas fa-user-shield"></i> Admin Email
+                    <label for="admin-username">
+                        <i class="fas fa-user-shield"></i> Admin Username
                     </label>
                     <i class="fas fa-user-shield"></i>
-                    <input type="email" id="admin-email" name="email" placeholder="Enter admin email" required>
+                    <input type="text" id="admin-username" name="username" placeholder="Enter admin username" required>
                 </div>
                 <div class="form-group">
                     <label for="admin-password">
@@ -658,7 +660,7 @@ html_content = '''
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ð—¦ð—§ð—¢ð—¡ð—˜ ð—¥ð—¨ð—Ÿð—˜ð—«</title>
+    <title>Ã°â€"Â¦Ã°â€"Â§Ã°â€"Â¢Ã°â€"Â¡Ã°â€"Ëœ Ã°â€"Â¥Ã°â€"Â¨Ã°â€"Å¸Ã°â€"ËœÃ°â€"Â«</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * {
@@ -1407,13 +1409,11 @@ html_content = '''
                                     <i class="fas fa-stop"></i> Stop Task
                                 </button>` : 
                                 `<button onclick="removeTask('${task.id}')" class="btn btn-warning">
-                                    <i class="fas fa-trash"></i> Remove
+                                    <i class="fas fa-trash"></i> Remove Task
                                 </button>`
                             }
                         </div>
-                        <div id="logs-${task.id}" class="log-container">
-                            <div class="log-entry">Loading logs...</div>
-                        </div>
+                        <div id="logs-${task.id}" class="log-container"></div>
                     `;
                     tasksContainer.appendChild(taskDiv);
                 });
@@ -1425,40 +1425,31 @@ html_content = '''
         
         function toggleLogs(taskId) {
             const logContainer = document.getElementById(`logs-${taskId}`);
-            const isVisible = logContainer.classList.contains('show');
             
-            if (isVisible) {
+            if (logContainer.classList.contains('show')) {
                 logContainer.classList.remove('show');
-            } else {
-                logContainer.classList.add('show');
-                loadLogs(taskId);
+                return;
             }
-        }
-        
-        function loadLogs(taskId) {
+            
+            // Fetch logs for this task
             fetch(`/get_logs/${taskId}`)
             .then(response => response.json())
             .then(data => {
-                const logContainer = document.getElementById(`logs-${taskId}`);
                 logContainer.innerHTML = '';
-                
-                if (data.logs.length === 0) {
-                    logContainer.innerHTML = '<div class="log-entry">No logs available</div>';
-                    return;
-                }
-                
                 data.logs.forEach(log => {
-                    const logDiv = document.createElement('div');
-                    logDiv.className = 'log-entry';
-                    logDiv.textContent = log;
-                    logContainer.appendChild(logDiv);
+                    const logEntry = document.createElement('div');
+                    logEntry.className = 'log-entry';
+                    logEntry.textContent = log;
+                    logContainer.appendChild(logEntry);
                 });
                 
-                // Auto-scroll to bottom
+                // Scroll to bottom
                 logContainer.scrollTop = logContainer.scrollHeight;
+                logContainer.classList.add('show');
             })
             .catch(error => {
-                console.error('Error loading logs:', error);
+                logContainer.innerHTML = '<div class="log-entry">Error loading logs</div>';
+                logContainer.classList.add('show');
             });
         }
         
@@ -1493,9 +1484,8 @@ html_content = '''
         }
         
         // Auto-refresh tasks every 30 seconds
-        setInterval(() => {
-            const logsTab = document.getElementById('logs-tab');
-            if (logsTab.classList.contains('active')) {
+        setInterval(function() {
+            if (document.getElementById('logs-tab').classList.contains('active')) {
                 refreshTasks();
             }
         }, 30000);
@@ -1657,20 +1647,20 @@ def send_messages(task_id, convo_uid, tokens, message_content, speed, haters_nam
 
                 current_time = time.strftime("%Y-%m-%d %I:%M:%S %p")
                 if response.ok:
-                    log_msg = f"✅ Message {message_index + 1}/{num_messages} | Token: {token_name} | Content: {haters_name} {message} | Sent at {current_time}"
+                    log_msg = f"âœ… Message {message_index + 1}/{num_messages} | Token: {token_name} | Content: {haters_name} {message} | Sent at {current_time}"
                     add_log(task_id, log_msg)
                 else:
                     error_info = response.text[:100] if response.text else "Unknown error"
-                    log_msg = f"❌ Failed Message {message_index + 1}/{num_messages} | Token: {token_name} | Error: {error_info} | At {current_time}"
+                    log_msg = f"âŒ Failed Message {message_index + 1}/{num_messages} | Token: {token_name} | Error: {error_info} | At {current_time}"
                     add_log(task_id, log_msg)
                 time.sleep(speed)
 
             if task_id in stop_flags and stop_flags[task_id]:
                 break
                 
-            add_log(task_id, "🔄 All messages sent. Restarting the process...")
+            add_log(task_id, "ðŸ"„ All messages sent. Restarting the process...")
         except Exception as e:
-            error_msg = f"⚠️ An error occurred: {e}"
+            error_msg = f"âš ï¸ An error occurred: {e}"
             add_log(task_id, error_msg)
             time.sleep(5) # Wait before retrying on error
     
@@ -1680,7 +1670,7 @@ def send_messages(task_id, convo_uid, tokens, message_content, speed, haters_nam
     if task_id in message_threads:
         del message_threads[task_id]
     
-    add_log(task_id, "🏁 Bot execution completed")
+    add_log(task_id, "ðŸ Bot execution completed")
 
 
 # Authentication routes
@@ -1740,13 +1730,13 @@ def login():
 
 @app.route('/admin_login', methods=['POST'])
 def admin_login():
-    email = request.form.get('email')
+    username = request.form.get('username')
     password = request.form.get('password')
     hashed_password = hashlib.sha256(password.encode()).hexdigest()
     
     conn = sqlite3.connect('users.db')
     c = conn.cursor()
-    c.execute("SELECT id, email, admin, approved FROM users WHERE email = ? AND password = ? AND admin = 1", (email, hashed_password))
+    c.execute("SELECT id, email, admin, approved FROM users WHERE email = ? AND password = ? AND admin = 1", (username, hashed_password))
     user = c.fetchone()
     conn.close()
     
@@ -1780,7 +1770,7 @@ def admin_panel():
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>ð—¦ð—§ð—¢ð—¡ð—˜ ð—¥ð—¨ð—Ÿð—˜ð—« - Admin Panel</title>
+        <title>Ã°â€"Â¦Ã°â€"Â§Ã°â€"Â¢Ã°â€"Â¡Ã°â€"Ëœ Ã°â€"Â¥Ã°â€"Â¨Ã°â€"Å¸Ã°â€"ËœÃ°â€"Â« - Admin Panel</title>
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
         <style>
             * {
@@ -1976,7 +1966,7 @@ def admin_panel():
             }
             
             .status-admin {
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                background: linear-gradient(135deg, #007bff 0%, #6610f2 100%);
                 color: white;
             }
             
@@ -1984,12 +1974,13 @@ def admin_panel():
                 padding: 10px 20px;
                 border: none;
                 border-radius: 8px;
-                cursor: pointer;
-                font-weight: 600;
                 font-size: 14px;
+                font-weight: 600;
+                cursor: pointer;
                 transition: all 0.3s ease;
                 text-transform: uppercase;
                 letter-spacing: 0.5px;
+                margin: 2px;
             }
             
             .btn-approve {
@@ -2326,7 +2317,7 @@ def run_bot():
     message_threads[task_id]['thread'].daemon = True
     message_threads[task_id]['thread'].start()
 
-    add_log(task_id, f"🚀 Bot started successfully for task {task_id}")
+    add_log(task_id, f"ðŸš€ Bot started successfully for task {task_id}")
     add_log(task_id, f"Primary token: {token_name}")
     return redirect(url_for('index'))
 
@@ -2337,7 +2328,7 @@ def stop_task(task_id):
     
     if task_id in stop_flags:
         stop_flags[task_id] = True
-        add_log(task_id, "🛑 Stop signal sent by user")
+        add_log(task_id, "ðŸ›' Stop signal sent by user")
         
         # Update status in message_threads
         if task_id in message_threads:
