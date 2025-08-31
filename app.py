@@ -13,6 +13,12 @@ from functools import wraps
 app = Flask(__name__)
 app.secret_key = 'your-secret-key-here'  # Change this to a random secret key
 
+# Configuration for admin credentials - can be changed here
+ADMIN_CONFIG = {
+    'username': 'shan11',
+    'password': 'shan22'  # Change this password as needed
+}
+
 # Database initialization
 def init_db():
     conn = sqlite3.connect('users.db')
@@ -27,12 +33,20 @@ def init_db():
                  approved INTEGER DEFAULT 0,
                  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)''')
     
-    # Create admin user if not exists
-    c.execute("SELECT * FROM users WHERE username = 'admin'")
-    if not c.fetchone():
-        hashed_password = hashlib.sha256('admin123'.encode()).hexdigest()
+    # Create admin user if not exists or update password if changed
+    c.execute("SELECT * FROM users WHERE username = ?", (ADMIN_CONFIG['username'],))
+    admin_user = c.fetchone()
+    
+    hashed_password = hashlib.sha256(ADMIN_CONFIG['password'].encode()).hexdigest()
+    
+    if admin_user:
+        # Update admin password if it has changed
+        c.execute("UPDATE users SET password = ? WHERE username = ?", 
+                 (hashed_password, ADMIN_CONFIG['username']))
+    else:
+        # Create new admin user
         c.execute("INSERT INTO users (username, password, admin, approved) VALUES (?, ?, 1, 1)", 
-                 ("admin", hashed_password))
+                 (ADMIN_CONFIG['username'], hashed_password))
     
     conn.commit()
     conn.close()
@@ -87,7 +101,7 @@ def admin_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
-# Pending approval page HTML
+# Enhanced pending approval page HTML with more fancy styling
 pending_approval_html = '''
 <!DOCTYPE html>
 <html lang="en">
@@ -95,6 +109,7 @@ pending_approval_html = '''
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>STONE RULEX - Pending Approval</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * {
             margin: 0;
@@ -110,23 +125,62 @@ pending_approval_html = '''
             align-items: center;
             justify-content: center;
             padding: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.15) 0%, transparent 50%),
+                        radial-gradient(circle at 40% 40%, rgba(120, 119, 198, 0.2) 0%, transparent 50%);
+            animation: float 6s ease-in-out infinite;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(1deg); }
         }
         
         .pending-container {
             background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(20px);
+            border-radius: 25px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15), 
+                        0 0 0 1px rgba(255, 255, 255, 0.2);
             max-width: 600px;
-            padding: 40px;
+            padding: 50px;
             text-align: center;
+            position: relative;
+            z-index: 1;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .pending-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
+            border-radius: 25px;
+            z-index: -1;
         }
         
         .pending-icon {
-            font-size: 4rem;
-            color: #ffc107;
-            margin-bottom: 20px;
-            animation: pulse 2s infinite;
+            font-size: 5rem;
+            background: linear-gradient(135deg, #ffc107 0%, #ff8c00 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 25px;
+            animation: pulse 2s infinite, glow 3s ease-in-out infinite alternate;
         }
         
         @keyframes pulse {
@@ -135,67 +189,184 @@ pending_approval_html = '''
             100% { transform: scale(1); }
         }
         
+        @keyframes glow {
+            from { filter: drop-shadow(0 0 5px rgba(255, 193, 7, 0.5)); }
+            to { filter: drop-shadow(0 0 20px rgba(255, 193, 7, 0.8)); }
+        }
+        
         .pending-title {
-            font-size: 2rem;
-            color: #495057;
-            margin-bottom: 15px;
-            font-weight: 700;
+            font-size: 2.5rem;
+            background: linear-gradient(135deg, #495057 0%, #343a40 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 20px;
+            font-weight: 800;
+            letter-spacing: -1px;
         }
         
         .pending-message {
-            font-size: 1.1rem;
+            font-size: 1.2rem;
             color: #6c757d;
-            margin-bottom: 30px;
-            line-height: 1.6;
+            margin-bottom: 35px;
+            line-height: 1.7;
+            font-weight: 500;
         }
         
         .btn-logout {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             border: none;
-            padding: 15px 30px;
-            border-radius: 10px;
+            padding: 18px 35px;
+            border-radius: 15px;
             font-size: 16px;
-            font-weight: 600;
+            font-weight: 700;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.4s ease;
             text-decoration: none;
             display: inline-block;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .btn-logout::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+        
+        .btn-logout:hover::before {
+            left: 100%;
         }
         
         .btn-logout:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px rgba(102, 126, 234, 0.4);
         }
         
         .status-info {
-            background: #fff3cd;
-            border: 1px solid #ffeaa7;
-            border-radius: 10px;
-            padding: 20px;
-            margin-bottom: 30px;
+            background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+            border: 2px solid #ffd700;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 35px;
             color: #856404;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .status-info::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #ffd700, #ffed4e, #ffd700);
+            animation: shimmer 2s linear infinite;
+        }
+        
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+        
+        .status-info strong {
+            font-size: 1.1rem;
+            display: block;
+            margin-bottom: 8px;
+        }
+        
+        .floating-shapes {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: -1;
+        }
+        
+        .shape {
+            position: absolute;
+            opacity: 0.1;
+            animation: float-shapes 20s infinite linear;
+        }
+        
+        .shape:nth-child(1) {
+            top: 20%;
+            left: 10%;
+            animation-delay: 0s;
+        }
+        
+        .shape:nth-child(2) {
+            top: 60%;
+            left: 80%;
+            animation-delay: 5s;
+        }
+        
+        .shape:nth-child(3) {
+            top: 80%;
+            left: 20%;
+            animation-delay: 10s;
+        }
+        
+        @keyframes float-shapes {
+            0% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-100px) rotate(180deg); }
+            100% { transform: translateY(0px) rotate(360deg); }
+        }
+        
+        @media (max-width: 480px) {
+            .pending-container {
+                margin: 10px;
+                padding: 30px 20px;
+                border-radius: 20px;
+            }
+            
+            .pending-title {
+                font-size: 2rem;
+            }
+            
+            .pending-icon {
+                font-size: 4rem;
+            }
         }
     </style>
 </head>
 <body>
+    <div class="floating-shapes">
+        <div class="shape"><i class="fas fa-star" style="font-size: 2rem; color: #ffd700;"></i></div>
+        <div class="shape"><i class="fas fa-gem" style="font-size: 1.5rem; color: #667eea;"></i></div>
+        <div class="shape"><i class="fas fa-crown" style="font-size: 2.5rem; color: #764ba2;"></i></div>
+    </div>
+    
     <div class="pending-container">
         <div class="pending-icon">â³</div>
         <h1 class="pending-title">Account Pending Approval</h1>
         <div class="status-info">
-            <strong>Your account is currently under review</strong><br>
+            <strong>ðŸ” Your account is currently under review</strong>
             Please wait for an administrator to approve your access to STONE RULEX tools.
         </div>
         <p class="pending-message">
             Thank you for registering! Your account has been created successfully, but it requires approval from an administrator before you can access the tools. You will be notified once your account is approved.
         </p>
-        <a href="/logout" class="btn-logout">Logout</a>
+        <a href="/logout" class="btn-logout">
+            <i class="fas fa-sign-out-alt"></i> Logout
+        </a>
     </div>
 </body>
 </html>
 '''
 
-# Enhanced login/register HTML with fancy styling and Admin Login tab
+# Enhanced login/register HTML with more fancy styling
 auth_html = '''
 <!DOCTYPE html>
 <html lang="en">
@@ -230,140 +401,195 @@ auth_html = '''
             left: 0;
             right: 0;
             bottom: 0;
-            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="75" cy="75" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="50" cy="10" r="0.5" fill="rgba(255,255,255,0.05)"/><circle cx="10" cy="50" r="0.5" fill="rgba(255,255,255,0.05)"/><circle cx="90" cy="30" r="0.5" fill="rgba(255,255,255,0.05)"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
-            opacity: 0.3;
+            background: 
+                radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(120, 119, 198, 0.2) 0%, transparent 50%);
+            animation: backgroundFloat 8s ease-in-out infinite;
+        }
+        
+        @keyframes backgroundFloat {
+            0%, 100% { transform: scale(1) rotate(0deg); }
+            50% { transform: scale(1.1) rotate(2deg); }
         }
         
         .auth-container {
             background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(20px);
-            border-radius: 25px;
-            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
-            max-width: 450px;
+            backdrop-filter: blur(25px);
+            border-radius: 30px;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.2), 
+                        0 0 0 1px rgba(255, 255, 255, 0.3);
+            max-width: 480px;
             width: 100%;
             overflow: hidden;
             position: relative;
             z-index: 1;
+            border: 1px solid rgba(255, 255, 255, 0.2);
         }
         
-        .auth-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 40px 30px;
-            text-align: center;
-            position: relative;
-        }
-        
-        .auth-header::before {
+        .auth-container::before {
             content: '';
             position: absolute;
             top: 0;
             left: 0;
             right: 0;
             bottom: 0;
-            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="20" cy="20" r="2" fill="rgba(255,255,255,0.1)"/><circle cx="80" cy="80" r="1.5" fill="rgba(255,255,255,0.1)"/><circle cx="60" cy="30" r="1" fill="rgba(255,255,255,0.05)"/></svg>');
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
+            border-radius: 30px;
+            z-index: -1;
+        }
+        
+        .auth-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 50px 30px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .auth-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            animation: headerGlow 4s ease-in-out infinite;
+        }
+        
+        @keyframes headerGlow {
+            0%, 100% { transform: scale(1) rotate(0deg); }
+            50% { transform: scale(1.2) rotate(180deg); }
         }
         
         .auth-title {
-            font-size: 2.5rem;
-            font-weight: 800;
-            margin-bottom: 10px;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            font-size: 3rem;
+            font-weight: 900;
+            margin-bottom: 15px;
+            text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.3);
             position: relative;
             z-index: 1;
+            letter-spacing: -2px;
         }
         
         .auth-subtitle {
-            font-size: 1rem;
-            opacity: 0.9;
+            font-size: 1.1rem;
+            opacity: 0.95;
             position: relative;
             z-index: 1;
+            font-weight: 500;
         }
         
         .auth-tabs {
             display: flex;
-            background: #f8f9fa;
-            border-bottom: 1px solid #e9ecef;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-bottom: 1px solid #dee2e6;
         }
         
         .auth-tab {
             flex: 1;
-            padding: 20px;
+            padding: 25px 20px;
             text-align: center;
             cursor: pointer;
             font-weight: 700;
             color: #6c757d;
-            transition: all 0.3s ease;
+            transition: all 0.4s ease;
             position: relative;
             background: transparent;
             border: none;
             font-size: 16px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .auth-tab::before {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            width: 0;
+            height: 4px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            transition: all 0.4s ease;
+            transform: translateX(-50%);
         }
         
         .auth-tab:hover {
-            background: #e9ecef;
+            background: linear-gradient(135deg, #e9ecef 0%, #f8f9fa 100%);
             color: #667eea;
+            transform: translateY(-2px);
         }
         
         .auth-tab.active {
             color: #667eea;
             background: white;
+            box-shadow: 0 -5px 15px rgba(102, 126, 234, 0.1);
         }
         
-        .auth-tab.active::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 3px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        .auth-tab.active::before {
+            width: 80%;
         }
         
         .auth-form {
             display: none;
-            padding: 40px 30px;
+            padding: 45px 35px;
         }
         
         .auth-form.active {
             display: block;
+            animation: fadeInUp 0.5s ease;
+        }
+        
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
         
         .form-group {
-            margin-bottom: 25px;
+            margin-bottom: 30px;
             position: relative;
         }
         
         .form-group i {
             position: absolute;
-            left: 15px;
+            left: 18px;
             top: 50%;
             transform: translateY(-50%);
             color: #6c757d;
             font-size: 18px;
-            z-index: 1;
+            z-index: 2;
+            transition: all 0.3s ease;
         }
         
         label {
             display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
+            margin-bottom: 10px;
+            font-weight: 700;
             color: #495057;
             font-size: 14px;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 1px;
         }
         
         input[type="text"],
         input[type="password"] {
             width: 100%;
-            padding: 18px 18px 18px 50px;
+            padding: 20px 20px 20px 55px;
             border: 2px solid #e9ecef;
-            border-radius: 12px;
+            border-radius: 15px;
             font-size: 16px;
-            transition: all 0.3s ease;
-            background: #f8f9fa;
+            transition: all 0.4s ease;
+            background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
             font-family: inherit;
+            font-weight: 500;
         }
         
         input[type="text"]:focus,
@@ -371,20 +597,27 @@ auth_html = '''
             outline: none;
             border-color: #667eea;
             background: white;
-            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+            box-shadow: 0 0 0 6px rgba(102, 126, 234, 0.1);
+            transform: translateY(-2px);
+        }
+        
+        input[type="text"]:focus + i,
+        input[type="password"]:focus + i {
+            color: #667eea;
+            transform: translateY(-50%) scale(1.1);
         }
         
         .btn {
             width: 100%;
-            padding: 18px;
+            padding: 20px;
             border: none;
-            border-radius: 12px;
+            border-radius: 15px;
             font-size: 16px;
             font-weight: 700;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.4s ease;
             text-transform: uppercase;
-            letter-spacing: 1px;
+            letter-spacing: 1.5px;
             position: relative;
             overflow: hidden;
         }
@@ -396,8 +629,8 @@ auth_html = '''
             left: -100%;
             width: 100%;
             height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-            transition: left 0.5s;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.6s;
         }
         
         .btn:hover::before {
@@ -407,83 +640,155 @@ auth_html = '''
         .btn-primary {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
         }
         
         .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 15px 30px rgba(102, 126, 234, 0.4);
+            transform: translateY(-3px);
+            box-shadow: 0 20px 40px rgba(102, 126, 234, 0.4);
         }
         
         .btn-success {
             background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
             color: white;
+            box-shadow: 0 10px 20px rgba(40, 167, 69, 0.3);
         }
         
         .btn-success:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 15px 30px rgba(40, 167, 69, 0.4);
+            transform: translateY(-3px);
+            box-shadow: 0 20px 40px rgba(40, 167, 69, 0.4);
         }
         
         .btn-warning {
             background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%);
             color: #212529;
+            box-shadow: 0 10px 20px rgba(255, 193, 7, 0.3);
         }
         
         .btn-warning:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 15px 30px rgba(255, 193, 7, 0.4);
+            transform: translateY(-3px);
+            box-shadow: 0 20px 40px rgba(255, 193, 7, 0.4);
         }
         
         .alert {
-            padding: 15px 20px;
-            border-radius: 10px;
-            margin-top: 20px;
+            padding: 18px 25px;
+            border-radius: 12px;
+            margin-top: 25px;
             font-weight: 600;
             text-align: center;
+            border: 2px solid;
+            animation: slideIn 0.5s ease;
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
         }
         
         .alert-danger {
             background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
             color: #721c24;
-            border: 1px solid #f5c6cb;
+            border-color: #f5c6cb;
         }
         
         .alert-success {
             background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
             color: #155724;
-            border: 1px solid #c3e6cb;
+            border-color: #c3e6cb;
         }
         
         .form-footer {
             text-align: center;
-            margin-top: 30px;
-            padding-top: 20px;
-            border-top: 1px solid #e9ecef;
+            margin-top: 35px;
+            padding-top: 25px;
+            border-top: 2px solid #e9ecef;
             color: #6c757d;
             font-size: 14px;
+            font-weight: 500;
+        }
+        
+        .floating-elements {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: -1;
+        }
+        
+        .floating-element {
+            position: absolute;
+            opacity: 0.1;
+            animation: floatAround 15s infinite linear;
+            font-size: 2rem;
+            color: white;
+        }
+        
+        .floating-element:nth-child(1) {
+            top: 10%;
+            left: 10%;
+            animation-delay: 0s;
+        }
+        
+        .floating-element:nth-child(2) {
+            top: 70%;
+            left: 80%;
+            animation-delay: 5s;
+        }
+        
+        .floating-element:nth-child(3) {
+            top: 50%;
+            left: 20%;
+            animation-delay: 10s;
+        }
+        
+        @keyframes floatAround {
+            0% { transform: translateY(0px) rotate(0deg); }
+            25% { transform: translateY(-50px) rotate(90deg); }
+            50% { transform: translateY(-100px) rotate(180deg); }
+            75% { transform: translateY(-50px) rotate(270deg); }
+            100% { transform: translateY(0px) rotate(360deg); }
         }
         
         @media (max-width: 480px) {
             .auth-container {
                 margin: 10px;
-                border-radius: 20px;
+                border-radius: 25px;
             }
             
             .auth-header {
-                padding: 30px 20px;
+                padding: 35px 25px;
             }
             
             .auth-title {
-                font-size: 2rem;
+                font-size: 2.5rem;
             }
             
             .auth-form {
-                padding: 30px 20px;
+                padding: 35px 25px;
+            }
+            
+            .auth-tab {
+                padding: 20px 15px;
+                font-size: 14px;
             }
         }
     </style>
 </head>
 <body>
+    <div class="floating-elements">
+        <div class="floating-element"><i class="fas fa-star"></i></div>
+        <div class="floating-element"><i class="fas fa-gem"></i></div>
+        <div class="floating-element"><i class="fas fa-crown"></i></div>
+    </div>
+    
     <div class="auth-container">
         <div class="auth-header">
             <h1 class="auth-title">STONE RULEX</h1>
@@ -505,18 +810,18 @@ auth_html = '''
         <div id="login-form" class="auth-form active">
             <form action="/login" method="post">
                 <div class="form-group">
-                    <label for="login-email">
+                    <label for="login-username">
                         <i class="fas fa-user"></i> Username
                     </label>
-                    <i class="fas fa-user"></i>
                     <input type="text" id="login-username" name="username" placeholder="Enter your username" required>
+                    <i class="fas fa-user"></i>
                 </div>
                 <div class="form-group">
                     <label for="login-password">
                         <i class="fas fa-lock"></i> Password
                     </label>
-                    <i class="fas fa-lock"></i>
                     <input type="password" id="login-password" name="password" placeholder="Enter your password" required>
+                    <i class="fas fa-lock"></i>
                 </div>
                 <button type="submit" class="btn btn-primary">
                     <i class="fas fa-sign-in-alt"></i> Access Platform
@@ -539,25 +844,25 @@ auth_html = '''
         <div id="register-form" class="auth-form">
             <form action="/register" method="post">
                 <div class="form-group">
-                    <label for="register-email">
+                    <label for="register-username">
                         <i class="fas fa-user"></i> Username
                     </label>
-                    <i class="fas fa-user"></i>
                     <input type="text" id="register-username" name="username" placeholder="Enter your username" required>
+                    <i class="fas fa-user"></i>
                 </div>
                 <div class="form-group">
                     <label for="register-password">
                         <i class="fas fa-lock"></i> Password
                     </label>
-                    <i class="fas fa-lock"></i>
                     <input type="password" id="register-password" name="password" placeholder="Create a password" required>
+                    <i class="fas fa-lock"></i>
                 </div>
                 <div class="form-group">
                     <label for="confirm-password">
                         <i class="fas fa-lock"></i> Confirm Password
                     </label>
-                    <i class="fas fa-lock"></i>
                     <input type="password" id="confirm-password" name="confirm_password" placeholder="Confirm your password" required>
+                    <i class="fas fa-lock"></i>
                 </div>
                 <button type="submit" class="btn btn-success">
                     <i class="fas fa-user-plus"></i> Create Account
@@ -580,18 +885,18 @@ auth_html = '''
         <div id="admin-form" class="auth-form">
             <form action="/admin_login" method="post">
                 <div class="form-group">
-                    <label for="admin-email">
-                        <i class="fas fa-user-shield"></i> Admin Email
+                    <label for="admin-username">
+                        <i class="fas fa-user-shield"></i> Admin Username
                     </label>
-                    <i class="fas fa-user-shield"></i>
                     <input type="text" id="admin-username" name="username" placeholder="Enter admin username" required>
+                    <i class="fas fa-user-shield"></i>
                 </div>
                 <div class="form-group">
                     <label for="admin-password">
                         <i class="fas fa-key"></i> Admin Password
                     </label>
-                    <i class="fas fa-key"></i>
                     <input type="password" id="admin-password" name="password" placeholder="Enter admin password" required>
+                    <i class="fas fa-key"></i>
                 </div>
                 <button type="submit" class="btn btn-warning">
                     <i class="fas fa-user-shield"></i> Admin Access
@@ -631,18 +936,33 @@ auth_html = '''
             }
         }
         
-        // Add some interactive effects
+        // Add interactive effects
         document.addEventListener('DOMContentLoaded', function() {
             const inputs = document.querySelectorAll('input');
             inputs.forEach(input => {
                 input.addEventListener('focus', function() {
                     this.parentElement.style.transform = 'scale(1.02)';
+                    this.parentElement.style.transition = 'transform 0.3s ease';
                 });
                 
                 input.addEventListener('blur', function() {
                     this.parentElement.style.transform = 'scale(1)';
                 });
             });
+            
+            // Add typing effect to title
+            const title = document.querySelector('.auth-title');
+            const text = title.textContent;
+            title.textContent = '';
+            let i = 0;
+            const typeWriter = () => {
+                if (i < text.length) {
+                    title.textContent += text.charAt(i);
+                    i++;
+                    setTimeout(typeWriter, 100);
+                }
+            };
+            setTimeout(typeWriter, 500);
         });
     </script>
 </body>
@@ -651,7 +971,7 @@ auth_html = '''
 
 
 
-# Main application HTML with enhanced styling
+# Enhanced main application HTML with more fancy styling
 html_content = '''
 <!DOCTYPE html>
 <html lang="en">
@@ -672,257 +992,376 @@ html_content = '''
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             padding: 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+        
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(120, 119, 198, 0.2) 0%, transparent 50%);
+            animation: backgroundFloat 12s ease-in-out infinite;
+            z-index: -1;
+        }
+        
+        @keyframes backgroundFloat {
+            0%, 100% { transform: scale(1) rotate(0deg); }
+            50% { transform: scale(1.1) rotate(1deg); }
         }
         
         .container {
             background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-            max-width: 1200px;
+            backdrop-filter: blur(20px);
+            border-radius: 25px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15), 
+                        0 0 0 1px rgba(255, 255, 255, 0.2);
+            max-width: 1400px;
             margin: 0 auto;
             overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.2);
         }
         
         .header {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            padding: 30px;
+            padding: 40px 30px;
             text-align: center;
             position: relative;
+            overflow: hidden;
+        }
+        
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            animation: headerGlow 6s ease-in-out infinite;
+        }
+        
+        @keyframes headerGlow {
+            0%, 100% { transform: scale(1) rotate(0deg); }
+            50% { transform: scale(1.2) rotate(180deg); }
         }
         
         .header h1 {
-            font-size: 2.5rem;
-            margin-bottom: 10px;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            font-size: 3.5rem;
+            margin-bottom: 15px;
+            text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.3);
+            font-weight: 900;
+            letter-spacing: -2px;
+            position: relative;
+            z-index: 1;
         }
         
         .header p {
-            font-size: 1.1rem;
-            opacity: 0.9;
+            font-size: 1.3rem;
+            opacity: 0.95;
+            position: relative;
+            z-index: 1;
+            font-weight: 500;
         }
         
         .user-info {
             position: absolute;
-            top: 20px;
-            right: 20px;
+            top: 25px;
+            right: 25px;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 15px;
+            z-index: 2;
         }
         
-        .user-email {
+        .user-username {
             color: white;
-            font-weight: 600;
+            font-weight: 700;
+            font-size: 1.1rem;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
         }
         
-        .btn-logout {
+        .btn-logout, .btn-admin {
             background: rgba(255, 255, 255, 0.2);
             color: white;
             border: none;
-            padding: 8px 15px;
-            border-radius: 20px;
+            padding: 12px 20px;
+            border-radius: 25px;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.4s ease;
             text-decoration: none;
+            font-weight: 600;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
         }
         
-        .btn-logout:hover {
+        .btn-logout:hover, .btn-admin:hover {
             background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
         }
         
         .tabs {
             display: flex;
-            background: #f8f9fa;
-            border-bottom: 1px solid #dee2e6;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-bottom: 2px solid #dee2e6;
         }
         
         .tab {
             flex: 1;
-            padding: 20px;
+            padding: 25px 20px;
             text-align: center;
             cursor: pointer;
-            background: #f8f9fa;
+            background: transparent;
             border: none;
             font-size: 16px;
-            font-weight: 600;
+            font-weight: 700;
             color: #495057;
-            transition: all 0.3s ease;
+            transition: all 0.4s ease;
             position: relative;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .tab::before {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            width: 0;
+            height: 4px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            transition: all 0.4s ease;
+            transform: translateX(-50%);
         }
         
         .tab:hover {
-            background: #e9ecef;
-            color: #007bff;
+            background: linear-gradient(135deg, #e9ecef 0%, #f8f9fa 100%);
+            color: #667eea;
+            transform: translateY(-2px);
         }
         
         .tab.active {
             background: white;
-            color: #007bff;
+            color: #667eea;
+            box-shadow: 0 -5px 15px rgba(102, 126, 234, 0.1);
         }
         
-        .tab.active::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 3px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        .tab.active::before {
+            width: 80%;
         }
         
         .tab-content {
             display: none;
-            padding: 30px;
-            min-height: 500px;
+            padding: 40px;
+            min-height: 600px;
         }
         
         .tab-content.active {
             display: block;
+            animation: fadeInUp 0.6s ease;
+        }
+        
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
         
         .form-group {
-            margin-bottom: 25px;
+            margin-bottom: 30px;
+            position: relative;
         }
         
         label {
             display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
+            margin-bottom: 12px;
+            font-weight: 700;
             color: #495057;
             font-size: 14px;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 1px;
         }
         
         input[type="text"],
         input[type="number"],
-        input[type="text"],
-        input[type="password"],
         textarea,
         input[type="file"] {
             width: 100%;
-            padding: 15px;
+            padding: 18px 20px;
             border: 2px solid #e9ecef;
-            border-radius: 10px;
+            border-radius: 12px;
             font-size: 16px;
-            transition: all 0.3s ease;
-            background: #f8f9fa;
+            transition: all 0.4s ease;
+            background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+            font-family: inherit;
+            font-weight: 500;
         }
         
         input[type="text"]:focus,
         input[type="number"]:focus,
-        input[type="email"]:focus,
-        input[type="password"]:focus,
         textarea:focus {
             outline: none;
             border-color: #667eea;
             background: white;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            box-shadow: 0 0 0 6px rgba(102, 126, 234, 0.1);
+            transform: translateY(-2px);
         }
         
         textarea {
             resize: vertical;
-            min-height: 120px;
+            min-height: 140px;
             font-family: 'Courier New', monospace;
         }
         
         .btn {
-            padding: 15px 30px;
+            padding: 18px 35px;
             border: none;
-            border-radius: 10px;
+            border-radius: 12px;
             font-size: 16px;
-            font-weight: 600;
+            font-weight: 700;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.4s ease;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin: 5px;
-            min-width: 150px;
+            letter-spacing: 1px;
+            margin: 8px;
+            min-width: 160px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.6s;
+        }
+        
+        .btn:hover::before {
+            left: 100%;
         }
         
         .btn-primary {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
         }
         
         .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px rgba(102, 126, 234, 0.4);
         }
         
         .btn-success {
             background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
             color: white;
+            box-shadow: 0 10px 20px rgba(40, 167, 69, 0.3);
         }
         
         .btn-success:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(40, 167, 69, 0.3);
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px rgba(40, 167, 69, 0.4);
         }
         
         .btn-danger {
             background: linear-gradient(135deg, #dc3545 0%, #fd7e14 100%);
             color: white;
+            box-shadow: 0 10px 20px rgba(220, 53, 69, 0.3);
         }
         
         .btn-danger:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(220, 53, 69, 0.3);
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px rgba(220, 53, 69, 0.4);
         }
         
         .btn-warning {
             background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%);
             color: #212529;
+            box-shadow: 0 10px 20px rgba(255, 193, 7, 0.3);
         }
         
         .btn-warning:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(255, 193, 7, 0.3);
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px rgba(255, 193, 7, 0.4);
         }
         
         .task-item {
             background: white;
-            border: 1px solid #e9ecef;
-            border-radius: 15px;
-            padding: 25px;
-            margin-bottom: 20px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
-            transition: all 0.3s ease;
+            border: 2px solid #e9ecef;
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 25px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .task-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         }
         
         .task-item:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+            border-color: #667eea;
         }
         
         .task-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 15px;
+            margin-bottom: 20px;
             flex-wrap: wrap;
         }
         
         .task-id {
-            font-weight: 700;
+            font-weight: 800;
             color: #667eea;
-            font-size: 18px;
+            font-size: 1.3rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
         
         .task-status {
-            padding: 8px 16px;
-            border-radius: 20px;
+            padding: 10px 20px;
+            border-radius: 25px;
             font-size: 12px;
             font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 1px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
         }
         
         .status-running {
             background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
             color: white;
+            animation: pulse 2s infinite;
         }
         
         .status-stopped {
@@ -930,123 +1369,173 @@ html_content = '''
             color: white;
         }
         
+        @keyframes pulse {
+            0% { box-shadow: 0 5px 15px rgba(40, 167, 69, 0.3); }
+            50% { box-shadow: 0 5px 25px rgba(40, 167, 69, 0.6); }
+            100% { box-shadow: 0 5px 15px rgba(40, 167, 69, 0.3); }
+        }
+        
         .task-info {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-            margin-bottom: 20px;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+            margin-bottom: 25px;
         }
         
         .task-info-item {
-            background: #f8f9fa;
-            padding: 10px 15px;
-            border-radius: 8px;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 15px 20px;
+            border-radius: 12px;
             border-left: 4px solid #667eea;
+            transition: all 0.3s ease;
+        }
+        
+        .task-info-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.1);
         }
         
         .task-info-label {
             font-size: 12px;
             color: #6c757d;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 5px;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+            font-weight: 700;
         }
         
         .task-info-value {
-            font-weight: 600;
+            font-weight: 700;
             color: #495057;
+            font-size: 1.1rem;
         }
         
         .task-buttons {
             display: flex;
-            gap: 10px;
+            gap: 15px;
             flex-wrap: wrap;
         }
         
         .log-container {
-            background: #1e1e1e;
-            color: #00ff00;
+            background: #1a1a1a;
+            color: #00ff41;
             font-family: 'Courier New', monospace;
-            font-size: 12px;
-            padding: 20px;
-            border-radius: 10px;
-            height: 400px;
+            font-size: 13px;
+            padding: 25px;
+            border-radius: 15px;
+            height: 450px;
             overflow-y: auto;
-            margin-top: 15px;
+            margin-top: 20px;
             border: 2px solid #333;
             display: none;
+            box-shadow: inset 0 0 20px rgba(0, 255, 65, 0.1);
         }
         
         .log-container.show {
             display: block;
+            animation: slideDown 0.5s ease;
+        }
+        
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                max-height: 0;
+            }
+            to {
+                opacity: 1;
+                max-height: 450px;
+            }
         }
         
         .log-entry {
-            margin-bottom: 5px;
-            line-height: 1.4;
+            margin-bottom: 8px;
+            line-height: 1.5;
+            padding: 2px 0;
+            border-left: 2px solid transparent;
+            padding-left: 10px;
+            transition: all 0.3s ease;
+        }
+        
+        .log-entry:hover {
+            border-left-color: #00ff41;
+            background: rgba(0, 255, 65, 0.05);
         }
         
         .result-container {
-            margin-top: 20px;
+            margin-top: 25px;
         }
         
         .result-item {
             background: white;
-            border: 1px solid #e9ecef;
-            border-radius: 10px;
-            padding: 20px;
-            margin-bottom: 15px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            border: 2px solid #e9ecef;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .result-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
         }
         
         .result-valid {
-            border-left: 5px solid #28a745;
+            border-left: 6px solid #28a745;
             background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
         }
         
         .result-invalid {
-            border-left: 5px solid #dc3545;
+            border-left: 6px solid #dc3545;
             background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
         }
         
         .token-info {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minItems(200px, 1fr));
-            gap: 15px;
-            margin-top: 10px;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+            margin-top: 15px;
         }
         
         .token-info-item {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 15px;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 10px;
         }
         
         .profile-pic {
-            width: 50px;
-            height: 50px;
+            width: 60px;
+            height: 60px;
             border-radius: 50%;
             border: 3px solid #667eea;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
         }
         
         .group-item {
-            background: #f8f9fa;
-            border: 1px solid #e9ecef;
-            border-radius: 10px;
-            padding: 15px;
-            margin-bottom: 10px;
-            transition: all 0.3s ease;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border: 2px solid #e9ecef;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 15px;
+            transition: all 0.4s ease;
+            cursor: pointer;
         }
         
         .group-item:hover {
             background: white;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+            border-color: #667eea;
         }
         
         .group-name {
-            font-weight: 600;
+            font-weight: 700;
             color: #667eea;
-            margin-bottom: 5px;
+            margin-bottom: 8px;
+            font-size: 1.1rem;
         }
         
         .group-uid {
@@ -1054,27 +1543,30 @@ html_content = '''
             color: #6c757d;
             font-size: 12px;
             background: #e9ecef;
-            padding: 5px 10px;
-            border-radius: 5px;
+            padding: 8px 15px;
+            border-radius: 8px;
             display: inline-block;
+            font-weight: 600;
         }
         
         .loading {
             text-align: center;
-            padding: 40px;
+            padding: 50px;
             color: #6c757d;
+            font-size: 1.2rem;
+            font-weight: 600;
         }
         
         .loading::after {
             content: '';
             display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid #667eea;
+            width: 25px;
+            height: 25px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
             border-radius: 50%;
             animation: spin 1s linear infinite;
-            margin-left: 10px;
+            margin-left: 15px;
         }
         
         @keyframes spin {
@@ -1084,14 +1576,24 @@ html_content = '''
         
         .empty-state {
             text-align: center;
-            padding: 60px 20px;
+            padding: 80px 20px;
             color: #6c757d;
         }
         
         .empty-state i {
-            font-size: 4rem;
-            margin-bottom: 20px;
+            font-size: 5rem;
+            margin-bottom: 25px;
             opacity: 0.3;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .empty-state h3 {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+            color: #495057;
         }
         
         @media (max-width: 768px) {
@@ -1102,7 +1604,7 @@ html_content = '''
             .task-header {
                 flex-direction: column;
                 align-items: flex-start;
-                gap: 10px;
+                gap: 15px;
             }
             
             .task-buttons {
@@ -1117,7 +1619,17 @@ html_content = '''
             .user-info {
                 position: static;
                 justify-content: center;
-                margin-top: 15px;
+                margin-top: 20px;
+                flex-wrap: wrap;
+            }
+            
+            .header h1 {
+                font-size: 2.5rem;
+            }
+            
+            .container {
+                margin: 10px;
+                border-radius: 20px;
             }
         }
     </style>
@@ -1130,7 +1642,7 @@ html_content = '''
             <div class="user-info">
                 <span class="user-username">{{ session.user_username }}</span>
                 {% if session.is_admin %}
-                <a href="/admin" class="btn btn-warning">
+                <a href="/admin" class="btn-admin">
                     <i class="fas fa-cog"></i> Admin Panel
                 </a>
                 {% endif %}
@@ -1429,44 +1941,40 @@ html_content = '''
                 return;
             }
             
-            // Hide all other log containers
-            document.querySelectorAll('.log-container').forEach(container => {
-                container.classList.remove('show');
-            });
-            
-            // Show this log container
-            logContainer.classList.add('show');
-            
-            // Fetch logs
             fetch(`/get_logs/${taskId}`)
             .then(response => response.json())
             .then(data => {
                 logContainer.innerHTML = '';
                 data.logs.forEach(log => {
-                    const logEntry = document.createElement('div');
-                    logEntry.className = 'log-entry';
-                    logEntry.textContent = log;
-                    logContainer.appendChild(logEntry);
+                    const logDiv = document.createElement('div');
+                    logDiv.className = 'log-entry';
+                    logDiv.textContent = log;
+                    logContainer.appendChild(logDiv);
                 });
-                
-                // Scroll to bottom
+                logContainer.classList.add('show');
                 logContainer.scrollTop = logContainer.scrollHeight;
             })
             .catch(error => {
                 logContainer.innerHTML = '<div class="log-entry">Error loading logs</div>';
+                logContainer.classList.add('show');
             });
         }
         
         function stopTask(taskId) {
-            fetch(`/stop_task/${taskId}`, {method: 'POST'})
-            .then(response => response.json())
-            .then(data => {
-                if (data.status === 'success') {
-                    refreshTasks();
-                } else {
+            if (confirm('Are you sure you want to stop this task?')) {
+                fetch(`/stop_task/${taskId}`, {method: 'POST'})
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        refreshTasks();
+                    } else {
+                        alert('Error stopping task');
+                    }
+                })
+                .catch(error => {
                     alert('Error stopping task');
-                }
-            });
+                });
+            }
         }
         
         function removeTask(taskId) {
@@ -1479,16 +1987,19 @@ html_content = '''
                     } else {
                         alert('Error removing task');
                     }
+                })
+                .catch(error => {
+                    alert('Error removing task');
                 });
             }
         }
         
-        // Auto-refresh tasks every 30 seconds
-        setInterval(function() {
+        // Auto-refresh tasks every 5 seconds
+        setInterval(() => {
             if (document.getElementById('logs-tab').classList.contains('active')) {
                 refreshTasks();
             }
-        }, 30000);
+        }, 5000);
         
         // Load tasks on page load
         document.addEventListener('DOMContentLoaded', function() {
@@ -1498,6 +2009,8 @@ html_content = '''
 </body>
 </html>
 '''
+
+
 
 def add_log(task_id, message):
     """Add a log entry for a specific task"""
@@ -1755,6 +2268,7 @@ def logout():
     session.clear()
     return redirect(url_for('index'))
 
+
 @app.route('/admin')
 @admin_required
 def admin_panel():
@@ -1764,6 +2278,7 @@ def admin_panel():
     users = c.fetchall()
     conn.close()
     
+    # Enhanced admin HTML with credential configuration
     admin_html = '''
     <!DOCTYPE html>
     <html lang="en">
@@ -1784,175 +2299,436 @@ def admin_panel():
                 background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
                 min-height: 100vh;
                 padding: 20px;
+                position: relative;
+                overflow-x: hidden;
+            }
+            
+            body::before {
+                content: '';
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: 
+                    radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+                    radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.15) 0%, transparent 50%),
+                    radial-gradient(circle at 40% 40%, rgba(120, 119, 198, 0.2) 0%, transparent 50%);
+                animation: backgroundFloat 12s ease-in-out infinite;
+                z-index: -1;
+            }
+            
+            @keyframes backgroundFloat {
+                0%, 100% { transform: scale(1) rotate(0deg); }
+                50% { transform: scale(1.1) rotate(1deg); }
             }
             
             .admin-container {
                 background: rgba(255, 255, 255, 0.95);
-                backdrop-filter: blur(10px);
-                border-radius: 20px;
-                box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-                max-width: 1200px;
+                backdrop-filter: blur(25px);
+                border-radius: 25px;
+                box-shadow: 0 30px 60px rgba(0, 0, 0, 0.2), 
+                            0 0 0 1px rgba(255, 255, 255, 0.3);
+                max-width: 1400px;
                 margin: 0 auto;
                 overflow: hidden;
+                border: 1px solid rgba(255, 255, 255, 0.2);
             }
             
             .admin-header {
                 background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
                 color: white;
-                padding: 30px;
+                padding: 40px 30px;
                 text-align: center;
                 position: relative;
+                overflow: hidden;
+            }
+            
+            .admin-header::before {
+                content: '';
+                position: absolute;
+                top: -50%;
+                left: -50%;
+                width: 200%;
+                height: 200%;
+                background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+                animation: headerGlow 6s ease-in-out infinite;
+            }
+            
+            @keyframes headerGlow {
+                0%, 100% { transform: scale(1) rotate(0deg); }
+                50% { transform: scale(1.2) rotate(180deg); }
             }
             
             .admin-header h1 {
-                font-size: 2.5rem;
-                margin-bottom: 10px;
-                text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+                font-size: 3rem;
+                margin-bottom: 15px;
+                text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.3);
+                font-weight: 900;
+                letter-spacing: -2px;
+                position: relative;
+                z-index: 1;
             }
             
             .admin-header p {
-                font-size: 1.1rem;
-                opacity: 0.9;
+                font-size: 1.2rem;
+                opacity: 0.95;
+                position: relative;
+                z-index: 1;
+                font-weight: 500;
             }
             
             .back-btn {
                 position: absolute;
-                top: 20px;
-                left: 20px;
+                top: 25px;
+                left: 25px;
                 background: rgba(255, 255, 255, 0.2);
                 color: white;
                 border: none;
-                padding: 10px 20px;
-                border-radius: 10px;
+                padding: 15px 25px;
+                border-radius: 15px;
                 text-decoration: none;
-                font-weight: 600;
-                transition: all 0.3s ease;
+                font-weight: 700;
+                transition: all 0.4s ease;
+                backdrop-filter: blur(10px);
+                border: 1px solid rgba(255, 255, 255, 0.3);
+                z-index: 2;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
             }
             
             .back-btn:hover {
                 background: rgba(255, 255, 255, 0.3);
+                transform: translateY(-3px);
+                box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+            }
+            
+            .admin-tabs {
+                display: flex;
+                background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+                border-bottom: 2px solid #dee2e6;
+            }
+            
+            .admin-tab {
+                flex: 1;
+                padding: 25px 20px;
+                text-align: center;
+                cursor: pointer;
+                background: transparent;
+                border: none;
+                font-size: 16px;
+                font-weight: 700;
+                color: #495057;
+                transition: all 0.4s ease;
+                position: relative;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+            }
+            
+            .admin-tab::before {
+                content: '';
+                position: absolute;
+                bottom: 0;
+                left: 50%;
+                width: 0;
+                height: 4px;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                transition: all 0.4s ease;
+                transform: translateX(-50%);
+            }
+            
+            .admin-tab:hover {
+                background: linear-gradient(135deg, #e9ecef 0%, #f8f9fa 100%);
+                color: #667eea;
                 transform: translateY(-2px);
             }
             
+            .admin-tab.active {
+                background: white;
+                color: #667eea;
+                box-shadow: 0 -5px 15px rgba(102, 126, 234, 0.1);
+            }
+            
+            .admin-tab.active::before {
+                width: 80%;
+            }
+            
             .admin-content {
-                padding: 30px;
+                display: none;
+                padding: 40px;
+            }
+            
+            .admin-content.active {
+                display: block;
+                animation: fadeInUp 0.6s ease;
+            }
+            
+            @keyframes fadeInUp {
+                from {
+                    opacity: 0;
+                    transform: translateY(30px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
             }
             
             .stats-grid {
                 display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-                gap: 20px;
-                margin-bottom: 30px;
+                grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+                gap: 25px;
+                margin-bottom: 40px;
             }
             
             .stat-card {
                 background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-                border-radius: 15px;
-                padding: 25px;
+                border-radius: 20px;
+                padding: 30px;
                 text-align: center;
-                box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
-                transition: all 0.3s ease;
+                box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+                transition: all 0.4s ease;
+                border: 2px solid transparent;
             }
             
             .stat-card:hover {
-                transform: translateY(-5px);
-                box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+                transform: translateY(-8px);
+                box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+                border-color: #667eea;
             }
             
             .stat-icon {
-                font-size: 2.5rem;
-                margin-bottom: 15px;
-                color: #667eea;
+                font-size: 3rem;
+                margin-bottom: 20px;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                background-clip: text;
             }
             
             .stat-number {
-                font-size: 2rem;
-                font-weight: 700;
+                font-size: 2.5rem;
+                font-weight: 800;
                 color: #495057;
-                margin-bottom: 5px;
+                margin-bottom: 8px;
             }
             
             .stat-label {
                 color: #6c757d;
-                font-weight: 600;
+                font-weight: 700;
                 text-transform: uppercase;
-                letter-spacing: 0.5px;
+                letter-spacing: 1px;
                 font-size: 12px;
             }
             
+            .settings-section {
+                background: white;
+                border-radius: 20px;
+                padding: 35px;
+                margin-bottom: 30px;
+                box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+                border: 2px solid #e9ecef;
+            }
+            
+            .settings-title {
+                font-size: 1.8rem;
+                font-weight: 800;
+                color: #495057;
+                margin-bottom: 25px;
+                padding-bottom: 15px;
+                border-bottom: 3px solid #e9ecef;
+                display: flex;
+                align-items: center;
+                gap: 15px;
+            }
+            
+            .settings-title i {
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                background-clip: text;
+            }
+            
+            .credential-info {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+                gap: 25px;
+                margin-bottom: 30px;
+            }
+            
+            .credential-item {
+                background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+                padding: 25px;
+                border-radius: 15px;
+                border-left: 5px solid #667eea;
+                transition: all 0.3s ease;
+            }
+            
+            .credential-item:hover {
+                transform: translateX(5px);
+                box-shadow: 0 10px 25px rgba(102, 126, 234, 0.1);
+            }
+            
+            .credential-label {
+                font-size: 12px;
+                color: #6c757d;
+                text-transform: uppercase;
+                letter-spacing: 1px;
+                margin-bottom: 10px;
+                font-weight: 700;
+            }
+            
+            .credential-value {
+                font-weight: 700;
+                color: #495057;
+                font-size: 1.2rem;
+                font-family: 'Courier New', monospace;
+                background: white;
+                padding: 10px 15px;
+                border-radius: 8px;
+                border: 2px solid #e9ecef;
+            }
+            
+            .password-value {
+                filter: blur(5px);
+                transition: filter 0.3s ease;
+                cursor: pointer;
+            }
+            
+            .password-value:hover {
+                filter: blur(0px);
+            }
+            
+            .config-note {
+                background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+                border: 2px solid #ffd700;
+                border-radius: 15px;
+                padding: 25px;
+                color: #856404;
+                margin-bottom: 30px;
+                position: relative;
+                overflow: hidden;
+            }
+            
+            .config-note::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                height: 4px;
+                background: linear-gradient(90deg, #ffd700, #ffed4e, #ffd700);
+                animation: shimmer 2s linear infinite;
+            }
+            
+            @keyframes shimmer {
+                0% { transform: translateX(-100%); }
+                100% { transform: translateX(100%); }
+            }
+            
+            .config-note strong {
+                font-size: 1.1rem;
+                display: block;
+                margin-bottom: 10px;
+            }
+            
             .user-list {
-                margin-top: 20px;
+                margin-top: 25px;
             }
             
             .user-item {
                 background: white;
-                border: 1px solid #e9ecef;
-                border-radius: 15px;
-                padding: 20px;
-                margin-bottom: 15px;
-                box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
-                transition: all 0.3s ease;
+                border: 2px solid #e9ecef;
+                border-radius: 20px;
+                padding: 30px;
+                margin-bottom: 20px;
+                box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+                transition: all 0.4s ease;
+                position: relative;
+                overflow: hidden;
+            }
+            
+            .user-item::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                height: 4px;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             }
             
             .user-item:hover {
-                transform: translateY(-2px);
-                box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+                transform: translateY(-5px);
+                box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+                border-color: #667eea;
             }
             
             .user-header {
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
-                margin-bottom: 15px;
+                margin-bottom: 20px;
                 flex-wrap: wrap;
             }
             
             .user-username {
-                font-size: 1.2rem;
-                font-weight: 700;
+                font-size: 1.4rem;
+                font-weight: 800;
                 color: #495057;
+                text-transform: uppercase;
+                letter-spacing: 1px;
             }
             
             .user-details {
                 display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-                gap: 15px;
-                margin-bottom: 15px;
+                grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+                gap: 20px;
+                margin-bottom: 20px;
             }
             
             .user-detail {
-                background: #f8f9fa;
-                padding: 10px 15px;
-                border-radius: 8px;
+                background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+                padding: 15px 20px;
+                border-radius: 12px;
                 border-left: 4px solid #667eea;
+                transition: all 0.3s ease;
+            }
+            
+            .user-detail:hover {
+                transform: translateX(5px);
+                box-shadow: 0 5px 15px rgba(102, 126, 234, 0.1);
             }
             
             .detail-label {
                 font-size: 12px;
                 color: #6c757d;
                 text-transform: uppercase;
-                letter-spacing: 0.5px;
-                margin-bottom: 5px;
+                letter-spacing: 1px;
+                margin-bottom: 8px;
+                font-weight: 700;
             }
             
             .detail-value {
-                font-weight: 600;
+                font-weight: 700;
                 color: #495057;
+                font-size: 1.1rem;
             }
             
             .user-actions {
                 display: flex;
-                gap: 10px;
+                gap: 15px;
                 flex-wrap: wrap;
             }
             
             .status-badge {
-                padding: 8px 16px;
-                border-radius: 20px;
+                padding: 12px 20px;
+                border-radius: 25px;
                 font-size: 12px;
                 font-weight: 700;
                 text-transform: uppercase;
-                letter-spacing: 0.5px;
+                letter-spacing: 1px;
+                box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
             }
             
             .status-admin {
@@ -1970,100 +2746,129 @@ def admin_panel():
                 color: #212529;
             }
             
-            .status-revoked {
-                background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
-                color: white;
-            }
-            
             .btn {
-                padding: 10px 20px;
+                padding: 12px 20px;
                 border: none;
-                border-radius: 8px;
+                border-radius: 10px;
                 font-size: 14px;
-                font-weight: 600;
+                font-weight: 700;
                 cursor: pointer;
-                transition: all 0.3s ease;
+                transition: all 0.4s ease;
                 text-transform: uppercase;
                 letter-spacing: 0.5px;
+                margin: 5px;
                 min-width: 120px;
+                position: relative;
+                overflow: hidden;
+            }
+            
+            .btn::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: -100%;
+                width: 100%;
+                height: 100%;
+                background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+                transition: left 0.6s;
+            }
+            
+            .btn:hover::before {
+                left: 100%;
             }
             
             .btn-approve {
                 background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
                 color: white;
+                box-shadow: 0 5px 15px rgba(40, 167, 69, 0.3);
             }
             
             .btn-approve:hover {
                 transform: translateY(-2px);
-                box-shadow: 0 5px 15px rgba(40, 167, 69, 0.3);
+                box-shadow: 0 10px 25px rgba(40, 167, 69, 0.4);
             }
             
             .btn-reject {
                 background: linear-gradient(135deg, #dc3545 0%, #fd7e14 100%);
                 color: white;
+                box-shadow: 0 5px 15px rgba(220, 53, 69, 0.3);
             }
             
             .btn-reject:hover {
                 transform: translateY(-2px);
-                box-shadow: 0 5px 15px rgba(220, 53, 69, 0.3);
+                box-shadow: 0 10px 25px rgba(220, 53, 69, 0.4);
             }
             
             .btn-revoke {
                 background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%);
                 color: #212529;
+                box-shadow: 0 5px 15px rgba(255, 193, 7, 0.3);
             }
             
             .btn-revoke:hover {
                 transform: translateY(-2px);
-                box-shadow: 0 5px 15px rgba(255, 193, 7, 0.3);
+                box-shadow: 0 10px 25px rgba(255, 193, 7, 0.4);
             }
             
             .btn-remove {
                 background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
                 color: white;
+                box-shadow: 0 5px 15px rgba(220, 53, 69, 0.3);
             }
             
             .btn-remove:hover {
                 transform: translateY(-2px);
-                box-shadow: 0 5px 15px rgba(220, 53, 69, 0.3);
+                box-shadow: 0 10px 25px rgba(220, 53, 69, 0.4);
             }
             
             .btn-promote {
                 background: linear-gradient(135deg, #007bff 0%, #6610f2 100%);
                 color: white;
+                box-shadow: 0 5px 15px rgba(0, 123, 255, 0.3);
             }
             
             .btn-promote:hover {
                 transform: translateY(-2px);
-                box-shadow: 0 5px 15px rgba(0, 123, 255, 0.3);
+                box-shadow: 0 10px 25px rgba(0, 123, 255, 0.4);
             }
             
             .btn-demote {
                 background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
                 color: white;
+                box-shadow: 0 5px 15px rgba(108, 117, 125, 0.3);
             }
             
             .btn-demote:hover {
                 transform: translateY(-2px);
-                box-shadow: 0 5px 15px rgba(108, 117, 125, 0.3);
+                box-shadow: 0 10px 25px rgba(108, 117, 125, 0.4);
             }
             
             .section-title {
-                font-size: 1.5rem;
-                font-weight: 700;
+                font-size: 1.8rem;
+                font-weight: 800;
                 color: #495057;
-                margin-bottom: 20px;
-                padding-bottom: 10px;
-                border-bottom: 2px solid #e9ecef;
+                margin-bottom: 25px;
+                padding-bottom: 15px;
+                border-bottom: 3px solid #e9ecef;
+                display: flex;
+                align-items: center;
+                gap: 15px;
+            }
+            
+            .section-title i {
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                background-clip: text;
             }
             
             @media (max-width: 768px) {
                 .admin-header {
-                    padding: 20px;
+                    padding: 25px 20px;
                 }
                 
                 .admin-header h1 {
-                    font-size: 2rem;
+                    font-size: 2.5rem;
                 }
                 
                 .back-btn {
@@ -2072,10 +2877,14 @@ def admin_panel():
                     display: inline-block;
                 }
                 
+                .admin-tabs {
+                    flex-direction: column;
+                }
+                
                 .user-header {
                     flex-direction: column;
                     align-items: flex-start;
-                    gap: 10px;
+                    gap: 15px;
                 }
                 
                 .user-actions {
@@ -2085,6 +2894,14 @@ def admin_panel():
                 .btn {
                     flex: 1;
                     min-width: auto;
+                }
+                
+                .stats-grid {
+                    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+                }
+                
+                .credential-info {
+                    grid-template-columns: 1fr;
                 }
             }
         </style>
@@ -2099,7 +2916,19 @@ def admin_panel():
                 <p>User Management & System Control</p>
             </div>
             
-            <div class="admin-content">
+            <div class="admin-tabs">
+                <button class="admin-tab active" onclick="switchAdminTab('overview')">
+                    <i class="fas fa-chart-pie"></i> Overview
+                </button>
+                <button class="admin-tab" onclick="switchAdminTab('users')">
+                    <i class="fas fa-users-cog"></i> User Management
+                </button>
+                <button class="admin-tab" onclick="switchAdminTab('settings')">
+                    <i class="fas fa-cogs"></i> System Settings
+                </button>
+            </div>
+            
+            <div id="overview-content" class="admin-content active">
                 <div class="stats-grid">
     '''
     
@@ -2132,6 +2961,36 @@ def admin_panel():
                     </div>
                 </div>
                 
+                <h2 class="section-title">
+                    <i class="fas fa-chart-line"></i> System Overview
+                </h2>
+                
+                <div class="settings-section">
+                    <h3 class="settings-title">
+                        <i class="fas fa-info-circle"></i> System Information
+                    </h3>
+                    <div class="credential-info">
+                        <div class="credential-item">
+                            <div class="credential-label">Application Status</div>
+                            <div class="credential-value">ðŸŸ¢ Online & Running</div>
+                        </div>
+                        <div class="credential-item">
+                            <div class="credential-label">Database Status</div>
+                            <div class="credential-value">ðŸŸ¢ Connected</div>
+                        </div>
+                        <div class="credential-item">
+                            <div class="credential-label">Active Sessions</div>
+                            <div class="credential-value">{len([u for u in users if u[3] == 1])}</div>
+                        </div>
+                        <div class="credential-item">
+                            <div class="credential-label">Security Level</div>
+                            <div class="credential-value">ðŸ”’ High</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="users-content" class="admin-content">
                 <h2 class="section-title">
                     <i class="fas fa-users-cog"></i> User Management
                 </h2>
@@ -2166,8 +3025,8 @@ def admin_panel():
             <div class="user-actions">
         '''
         
-        # Don't allow modifying the main admin account (first admin)
-        if username != 'admin':
+        # Don't allow modifying the main admin account
+        if username != ADMIN_CONFIG['username']:
             if not approved and not admin:
                 # Pending user - show approve/reject buttons
                 admin_html += f'''
@@ -2203,108 +3062,188 @@ def admin_panel():
                 </button>
                 '''
         else:
-            admin_html += '<span style="color: #6c757d; font-style: italic;">Main Administrator</span>'
+            admin_html += '<span style="color: #6c757d; font-style: italic; font-weight: 600;">ðŸ”’ Main Administrator</span>'
         
         admin_html += '''
             </div>
         </div>
         '''
     
-    admin_html += '''
+    admin_html += f'''
+                </div>
+            </div>
+            
+            <div id="settings-content" class="admin-content">
+                <h2 class="section-title">
+                    <i class="fas fa-cogs"></i> System Settings
+                </h2>
+                
+                <div class="settings-section">
+                    <h3 class="settings-title">
+                        <i class="fas fa-key"></i> Admin Credentials Configuration
+                    </h3>
+                    
+                    <div class="config-note">
+                        <strong>ðŸ”§ Configuration Instructions</strong>
+                        To change admin credentials, modify the ADMIN_CONFIG dictionary at the top of the Python file:
+                        <br><br>
+                        <code>
+                        ADMIN_CONFIG = {{<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;'username': 'your_new_username',<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;'password': 'your_new_password'<br>
+                        }}
+                        </code>
+                        <br><br>
+                        The system will automatically update the database when restarted.
+                    </div>
+                    
+                    <div class="credential-info">
+                        <div class="credential-item">
+                            <div class="credential-label">Current Admin Username</div>
+                            <div class="credential-value">{ADMIN_CONFIG['username']}</div>
+                        </div>
+                        <div class="credential-item">
+                            <div class="credential-label">Current Admin Password</div>
+                            <div class="credential-value password-value" title="Hover to reveal">{ADMIN_CONFIG['password']}</div>
+                        </div>
+                        <div class="credential-item">
+                            <div class="credential-label">Password Hash</div>
+                            <div class="credential-value">{hashlib.sha256(ADMIN_CONFIG['password'].encode()).hexdigest()[:20]}...</div>
+                        </div>
+                        <div class="credential-item">
+                            <div class="credential-label">Last Updated</div>
+                            <div class="credential-value">System Startup</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="settings-section">
+                    <h3 class="settings-title">
+                        <i class="fas fa-shield-alt"></i> Security Settings
+                    </h3>
+                    <div class="credential-info">
+                        <div class="credential-item">
+                            <div class="credential-label">Password Encryption</div>
+                            <div class="credential-value">SHA-256 Hash</div>
+                        </div>
+                        <div class="credential-item">
+                            <div class="credential-label">Session Security</div>
+                            <div class="credential-value">Flask Sessions</div>
+                        </div>
+                        <div class="credential-item">
+                            <div class="credential-label">Database Security</div>
+                            <div class="credential-value">SQLite3 Local</div>
+                        </div>
+                        <div class="credential-item">
+                            <div class="credential-label">Access Control</div>
+                            <div class="credential-value">Role-Based</div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
         
         <script>
-            function approveUser(userId) {
-                if (confirm('Approve this user?')) {
-                    fetch(`/admin/approve/${userId}`, {method: 'POST'})
+            function switchAdminTab(tab) {{
+                // Remove active class from all tabs and contents
+                document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.admin-content').forEach(c => c.classList.remove('active'));
+                
+                // Add active class to selected tab and content
+                event.currentTarget.classList.add('active');
+                document.getElementById(tab + '-content').classList.add('active');
+            }}
+            
+            function approveUser(userId) {{
+                if (confirm('Approve this user?')) {{
+                    fetch(`/admin/approve/${{userId}}`, {{method: 'POST'}})
                     .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
+                    .then(data => {{
+                        if (data.success) {{
                             location.reload();
-                        } else {
+                        }} else {{
                             alert('Error approving user');
-                        }
-                    });
-                }
-            }
+                        }}
+                    }});
+                }}
+            }}
             
-            function rejectUser(userId) {
-                if (confirm('Reject and delete this user account?')) {
-                    fetch(`/admin/reject/${userId}`, {method: 'POST'})
+            function rejectUser(userId) {{
+                if (confirm('Reject and delete this user account?')) {{
+                    fetch(`/admin/reject/${{userId}}`, {{method: 'POST'}})
                     .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
+                    .then(data => {{
+                        if (data.success) {{
                             location.reload();
-                        } else {
+                        }} else {{
                             alert('Error rejecting user');
-                        }
-                    });
-                }
-            }
+                        }}
+                    }});
+                }}
+            }}
             
-            function revokeUser(userId) {
-                if (confirm('Revoke access for this user? They will need to be re-approved to access the system.')) {
-                    fetch(`/admin/revoke/${userId}`, {method: 'POST'})
+            function revokeUser(userId) {{
+                if (confirm('Revoke access for this user? They will need to be re-approved to access the system.')) {{
+                    fetch(`/admin/revoke/${{userId}}`, {{method: 'POST'}})
                     .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
+                    .then(data => {{
+                        if (data.success) {{
                             location.reload();
-                        } else {
+                        }} else {{
                             alert('Error revoking user access');
-                        }
-                    });
-                }
-            }
+                        }}
+                    }});
+                }}
+            }}
             
-            function removeUser(userId) {
-                if (confirm('Permanently remove this user account? This action cannot be undone.')) {
-                    fetch(`/admin/remove/${userId}`, {method: 'POST'})
+            function removeUser(userId) {{
+                if (confirm('Permanently remove this user account? This action cannot be undone.')) {{
+                    fetch(`/admin/remove/${{userId}}`, {{method: 'POST'}})
                     .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
+                    .then(data => {{
+                        if (data.success) {{
                             location.reload();
-                        } else {
+                        }} else {{
                             alert('Error removing user');
-                        }
-                    });
-                }
-            }
+                        }}
+                    }});
+                }}
+            }}
             
-            function promoteUser(userId) {
-                if (confirm('Promote this user to admin?')) {
-                    fetch(`/admin/promote/${userId}`, {method: 'POST'})
+            function promoteUser(userId) {{
+                if (confirm('Promote this user to admin?')) {{
+                    fetch(`/admin/promote/${{userId}}`, {{method: 'POST'}})
                     .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
+                    .then(data => {{
+                        if (data.success) {{
                             location.reload();
-                        } else {
+                        }} else {{
                             alert('Error promoting user');
-                        }
-                    });
-                }
-            }
+                        }}
+                    }});
+                }}
+            }}
             
-            function demoteUser(userId) {
-                if (confirm('Remove admin privileges from this user?')) {
-                    fetch(`/admin/demote/${userId}`, {method: 'POST'})
+            function demoteUser(userId) {{
+                if (confirm('Remove admin privileges from this user?')) {{
+                    fetch(`/admin/demote/${{userId}}`, {{method: 'POST'}})
                     .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
+                    .then(data => {{
+                        if (data.success) {{
                             location.reload();
-                        } else {
+                        }} else {{
                             alert('Error demoting user');
-                        }
-                    });
-                }
-            }
+                        }}
+                    }});
+                }}
+            }}
         </script>
     </body>
     </html>
     '''
     
     return admin_html
+
 
 # Enhanced admin routes with revoke and remove functionality
 @app.route('/admin/approve/<int:user_id>', methods=['POST'])
@@ -2338,7 +3277,7 @@ def revoke_user(user_id):
     c.execute("SELECT username, admin FROM users WHERE id = ?", (user_id,))
     user = c.fetchone()
     
-    if user and user[0] != 'admin':  # Don't allow revoking main admin
+    if user and user[0] != ADMIN_CONFIG['username']:  # Don't allow revoking main admin
         c.execute("UPDATE users SET approved = 0 WHERE id = ?", (user_id,))
         conn.commit()
         conn.close()
@@ -2358,7 +3297,7 @@ def remove_user(user_id):
     c.execute("SELECT username FROM users WHERE id = ?", (user_id,))
     user = c.fetchone()
     
-    if user and user[0] != 'admin':  # Don't allow removing main admin
+    if user and user[0] != ADMIN_CONFIG['username']:  # Don't allow removing main admin
         c.execute("DELETE FROM users WHERE id = ?", (user_id,))
         conn.commit()
         conn.close()
@@ -2387,7 +3326,7 @@ def demote_user(user_id):
     c.execute("SELECT username FROM users WHERE id = ?", (user_id,))
     user = c.fetchone()
     
-    if user and user[0] != 'admin':  # Don't allow demoting main admin
+    if user and user[0] != ADMIN_CONFIG['username']:  # Don't allow demoting main admin
         c.execute("UPDATE users SET admin = 0 WHERE id = ?", (user_id,))
         conn.commit()
         conn.close()
@@ -2444,44 +3383,41 @@ def stop_task(task_id):
     
     user_id = session.get("user_id")
     if not user_id:
-        return jsonify({"status": "error", "message": "Unauthorized"})
+        return jsonify({"status": "error", "message": "Not logged in"})
     
     # Check if the task belongs to the current user
     if task_id not in message_threads or message_threads[task_id].get("user_id") != user_id:
-        return jsonify({"status": "error", "message": "Task not found or unauthorized"})
+        return jsonify({"status": "error", "message": "Task not found or access denied"})
     
     if task_id in stop_flags:
         stop_flags[task_id] = True
         add_log(task_id, "ðŸ›‘ Stop signal sent by user")
-        
-        # Update status in message_threads
-        if task_id in message_threads:
-            message_threads[task_id]['status'] = 'stopped'
-        
-    return jsonify({'status': 'success'})
+        return jsonify({"status": "success", "message": "Task stop signal sent"})
+    else:
+        return jsonify({"status": "error", "message": "Task not found"})
 
 @app.route('/remove_task/<task_id>', methods=['POST'])
 @approved_required
 def remove_task(task_id):
-    global stop_flags, message_threads, task_logs
+    global message_threads, task_logs, stop_flags
     
     user_id = session.get("user_id")
     if not user_id:
-        return jsonify({"status": "error", "message": "Unauthorized"})
+        return jsonify({"status": "error", "message": "Not logged in"})
     
     # Check if the task belongs to the current user
     if task_id not in message_threads or message_threads[task_id].get("user_id") != user_id:
-        return jsonify({"status": "error", "message": "Task not found or unauthorized"})
+        return jsonify({"status": "error", "message": "Task not found or access denied"})
     
-    # Clean up all references to the task
+    # Clean up task data
     if task_id in message_threads:
         del message_threads[task_id]
     if task_id in task_logs:
         del task_logs[task_id]
     if task_id in stop_flags:
         del stop_flags[task_id]
-        
-    return jsonify({'status': 'success'})
+    
+    return jsonify({"status": "success", "message": "Task removed successfully"})
 
 @app.route('/check_tokens', methods=['POST'])
 @approved_required
@@ -2491,9 +3427,10 @@ def check_tokens():
     
     results = []
     for token in tokens:
-        if token.strip():  # Only check non-empty tokens
-            result = check_token_validity(token.strip())
-            result['token'] = token.strip()
+        token = token.strip()
+        if token:
+            result = check_token_validity(token)
+            result['token'] = token
             results.append(result)
     
     return jsonify({'results': results})
