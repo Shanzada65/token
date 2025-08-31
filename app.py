@@ -180,7 +180,7 @@ pending_approval_html = '''
 </head>
 <body>
     <div class="pending-container">
-        <div class="pending-icon">⏳</div>
+        <div class="pending-icon">â³</div>
         <h1 class="pending-title">Account Pending Approval</h1>
         <div class="status-info">
             <strong>Your account is currently under review</strong><br>
@@ -945,7 +945,7 @@ html_content = '''
         
         .task-info-label {
             font-size: 12px;
-            color: край
+            color: #6c757d;
             text-transform: uppercase;
             letter-spacing: 0.5px;
             margin-bottom: 5px;
@@ -972,7 +972,7 @@ html_content = '''
             height: 400px;
             overflow-y: auto;
             margin-top: 15px;
-            border: 2px край
+            border: 2px solid #333;
             display: none;
         }
         
@@ -994,7 +994,7 @@ html_content = '''
             border: 1px solid #e9ecef;
             border-radius: 10px;
             padding: 20px;
-            край
+            margin-bottom: 15px;
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
         }
         
@@ -1106,17 +1106,12 @@ html_content = '''
             
             .task-buttons {
                 width: 100%;
+                justify-content: center;
             }
             
             .btn {
-                flex: 1;
                 min-width: auto;
-            }
-            
-            .user-info {
-                position: static;
-                justify-content: center;
-                margin-top: 15px;
+                flex: 1;
             }
         }
     </style>
@@ -1124,335 +1119,197 @@ html_content = '''
 <body>
     <div class="container">
         <div class="header">
-            <h1>STONE RULEX</h1>
-            <p>Advanced Social Media Automation Platform</p>
             <div class="user-info">
-                <span class="user-username">{{ session.user_username }}</span>
-                {% if session.is_admin %}
-                <a href="/admin" class="btn btn-warning">
-                    <i class="fas fa-cog"></i> Admin Panel
-                </a>
-                {% endif %}
+                <span class="user-email">{{ username }}</span>
                 <a href="/logout" class="btn-logout">
                     <i class="fas fa-sign-out-alt"></i> Logout
                 </a>
             </div>
+            <h1><i class="fas fa-gem"></i> STONE RULEX</h1>
+            <p>Advanced Telegram Tools & Automation Platform</p>
         </div>
         
         <div class="tabs">
-            <button class="tab active" onclick="switchTab('bot-tab')">
-                <i class="fas fa-envelope"></i> CONVO TOOL
+            <button class="tab active" onclick="switchTab('task-manager')">
+                <i class="fas fa-tasks"></i> Task Manager
             </button>
-            <button class="tab" onclick="switchTab('token-tab')">
-                <i class="fas fa-key"></i> TOKEN CHECK
+            <button class="tab" onclick="switchTab('token-checker')">
+                <i class="fas fa-key"></i> Token Checker
             </button>
-            <button class="tab" onclick="switchTab('groups-tab')">
-                <i class="fas fa-users"></i> UID FETCHER
-            </button>
-            <button class="tab" onclick="switchTab('logs-tab')">
-                <i class="fas fa-chart-bar"></i> TASK MANAGER
+            <button class="tab" onclick="switchTab('group-scraper')">
+                <i class="fas fa-users"></i> Group Scraper
             </button>
         </div>
         
-        <div id="bot-tab" class="tab-content active">
-            <form action="/run_bot" method="post" enctype="multipart/form-data">
-                <div class="form-group">
-                    <label for="convo_uid">
-                        <i class="fas fa-comments"></i> Conversation UID
-                    </label>
-                    <input type="text" id="convo_uid" name="convo_uid" placeholder="Enter conversation UID" required>
-                </div>
-
-                <div class="form-group">
-                    <label for="token">
-                        <i class="fas fa-key"></i> Access Tokens (one per line)
-                    </label>
-                    <textarea id="token" name="token" placeholder="Enter your access tokens, one per line" required></textarea>
-                </div>
-
-                <div class="form-group">
-                    <label for="message_file">
-                        <i class="fas fa-file-text"></i> Message File
-                    </label>
-                    <input type="file" id="message_file" name="message_file" accept=".txt" required>
-                </div>
-
-                <div class="form-group">
-                    <label for="speed">
-                        <i class="fas fa-clock"></i> Message Speed (seconds)
-                    </label>
-                    <input type="number" id="speed" name="speed" value="1" min="0" step="1" placeholder="Delay between messages" required>
-                </div>
-
-                <div class="form-group">
-                    <label for="haters_name">
-                        <i class="fas fa-tag"></i> Prefix Name
-                    </label>
-                    <input type="text" id="haters_name" name="haters_name" placeholder="Name to prefix messages with" required>
-                </div>
-
-                <button type="submit" class="btn btn-success">
-                    <i class="fas fa-rocket"></i> Start New Task
+        <div id="task-manager" class="tab-content active">
+            <h2><i class="fas fa-cogs"></i> Task Manager</h2>
+            <p>Manage and monitor your automated tasks</p>
+            
+            <div class="form-group">
+                <label for="task-type">Task Type</label>
+                <select id="task-type" class="form-control" style="width: 100%; padding: 15px; border: 2px solid #e9ecef; border-radius: 10px; font-size: 16px; background: #f8f9fa;">
+                    <option value="message">Send Messages</option>
+                    <option value="join">Join Groups</option>
+                    <option value="leave">Leave Groups</option>
+                    <option value="react">Add Reactions</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="tokens">Bot Tokens (one per line)</label>
+                <textarea id="tokens" placeholder="Enter your bot tokens here, one per line..." rows="5"></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label for="targets">Target Groups/Users (one per line)</label>
+                <textarea id="targets" placeholder="Enter target usernames or group IDs, one per line..." rows="5"></textarea>
+            </div>
+            
+            <div class="form-group" id="message-group">
+                <label for="message">Message Content</label>
+                <textarea id="message" placeholder="Enter your message content here..." rows="3"></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label for="delay">Delay Between Actions (seconds)</label>
+                <input type="number" id="delay" value="5" min="1" max="3600">
+            </div>
+            
+            <div style="text-align: center; margin: 30px 0;">
+                <button class="btn btn-primary" onclick="startTask()">
+                    <i class="fas fa-play"></i> Start Task
                 </button>
-            </form>
-        </div>
-        
-        <div id="token-tab" class="tab-content">
-            <div class="form-group">
-                <label for="check_tokens">
-                    <i class="fas fa-key"></i> Tokens to Check (one per line)
-                </label>
-                <textarea id="check_tokens" name="check_tokens" placeholder="Enter tokens to validate, one per line"></textarea>
+                <button class="btn btn-danger" onclick="stopAllTasks()">
+                    <i class="fas fa-stop"></i> Stop All Tasks
+                </button>
             </div>
-            <button onclick="checkTokens()" class="btn btn-primary">
-                <i class="fas fa-search"></i> Check Tokens
-            </button>
-            <div id="token-results" class="result-container"></div>
-        </div>
-        
-        <div id="groups-tab" class="tab-content">
-            <div class="form-group">
-                <label for="groups_token">
-                    <i class="fas fa-key"></i> Valid Access Token
-                </label>
-                <textarea id="groups_token" name="groups_token" placeholder="Enter a valid Facebook token to fetch messenger groups"></textarea>
-            </div>
-            <button onclick="fetchGroups()" class="btn btn-primary">
-                <i class="fas fa-users"></i> Fetch Messenger Groups
-            </button>
-            <div id="groups-results" class="result-container"></div>
-        </div>
-        
-        <div id="logs-tab" class="tab-content">
+            
             <div id="tasks-container">
-                <!-- Tasks will be loaded here -->
+                <h3><i class="fas fa-list"></i> Active Tasks</h3>
+                <div id="tasks-list">
+                    <div class="empty-state">
+                        <i class="fas fa-clipboard-list"></i>
+                        <p>No active tasks. Start a new task to see it here.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="token-checker" class="tab-content">
+            <h2><i class="fas fa-shield-alt"></i> Token Checker</h2>
+            <p>Validate and check the status of your bot tokens</p>
+            
+            <div class="form-group">
+                <label for="check-tokens">Bot Tokens (one per line)</label>
+                <textarea id="check-tokens" placeholder="Enter your bot tokens here, one per line..." rows="8"></textarea>
+            </div>
+            
+            <div style="text-align: center; margin: 30px 0;">
+                <button class="btn btn-success" onclick="checkTokens()">
+                    <i class="fas fa-search"></i> Check Tokens
+                </button>
+            </div>
+            
+            <div id="token-results" class="result-container">
+                <!-- Results will be displayed here -->
+            </div>
+        </div>
+        
+        <div id="group-scraper" class="tab-content">
+            <h2><i class="fas fa-download"></i> Group Scraper</h2>
+            <p>Extract member information from Telegram groups</p>
+            
+            <div class="form-group">
+                <label for="scraper-token">Bot Token</label>
+                <input type="text" id="scraper-token" placeholder="Enter your bot token">
+            </div>
+            
+            <div class="form-group">
+                <label for="target-group">Target Group</label>
+                <input type="text" id="target-group" placeholder="Enter group username or ID">
+            </div>
+            
+            <div style="text-align: center; margin: 30px 0;">
+                <button class="btn btn-warning" onclick="scrapeGroup()">
+                    <i class="fas fa-users"></i> Scrape Group
+                </button>
+            </div>
+            
+            <div id="scraper-results" class="result-container">
+                <!-- Results will be displayed here -->
             </div>
         </div>
     </div>
 
     <script>
-        function switchTab(tabId) {
+        let taskCounter = 0;
+        
+        function switchTab(tabName) {
             // Hide all tab contents
-            document.querySelectorAll('.tab-content').forEach(tab => {
-                tab.classList.remove('active');
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
             });
             
-            // Show selected край content
-            document.getElementById(tabId).classList.add('active');
-            
-            // Update active tab
+            // Remove active class from all tabs
             document.querySelectorAll('.tab').forEach(tab => {
                 tab.classList.remove('active');
             });
-            event.currentTarget.classList.add('active');
             
-            // If switching to logs tab, refresh tasks
-            if (tabId === 'logs-tab') {
-                refreshTasks();
-            }
+            // Show selected tab content
+            document.getElementById(tabName).classList.add('active');
+            
+            // Add active class to clicked tab
+            event.target.classList.add('active');
         }
         
-        function checkTokens() {
-            const tokens = document.getElementById('check_tokens').value.split('\\n').filter(t => t.trim());
-            const resultsContainer = document.getElementById('token-results');
+        function startTask() {
+            const taskType = document.getElementById('task-type').value;
+            const tokens = document.getElementById('tokens').value.trim().split('\n').filter(t => t.trim());
+            const targets = document.getElementById('targets').value.trim().split('\n').filter(t => t.trim());
+            const message = document.getElementById('message').value.trim();
+            const delay = parseInt(document.getElementById('delay').value);
             
             if (tokens.length === 0) {
-                resultsContainer.innerHTML = '<div class="result-item result-invalid">Please enter at least one token</div>';
+                alert('Please enter at least one bot token');
                 return;
             }
             
-            resultsContainer.innerHTML = '<div class="loading">Checking tokens...</div>';
-            
-            fetch('/check_tokens', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({tokens: tokens}),
-            })
-            .then(response => response.json())
-            .then(data => {
-                resultsContainer.innerHTML = '';
-                data.results.forEach(result => {
-                    const div = document.createElement('div');
-                    div.className = result.valid ? 'result-item result-valid' : 'result-item result-invalid';
-                    
-                    let content = `<strong>Token:</strong> ${result.token.substring(0, 20)}...<br>`;
-                    content += `<strong>Status:</strong> ${result.message}<br>`;
-                    
-                    if (result.valid) {
-                        content += '<div class="token-info">';
-                        if (result.name) {
-                            content += `<div class="token-info-item"><strong>Name:</strong> край</div>`;
-                        }
-                        if (result.id) {
-                            content += `<div class="token-info-item"><strong>ID:</strong> ${result.id}</div>`;
-                        }
-                        if (result.picture) {
-                            content += `<div class="token-info-item"><img src="${result.picture}" class="profile-pic" alt="Profile"></div>`;
-                        }
-                        content += '</div>';
-                    }
-                    
-                    div.innerHTML = content;
-                    resultsContainer.appendChild(div);
-                });
-            })
-            .catch(error => {
-                resultsContainer.innerHTML = '<div class="result-item result-invalid">Error checking tokens</div>';
-            });
-        }
-        
-        function fetchGroups() {
-            const token = document.getElementById('groups_token').value.trim();
-            const resultsContainer = document.getElementById('groups-results');
-            
-            if (!token) {
-                resultsContainer.innerHTML = '<div class="result-item result-invalid">Please enter a valid token</div>';
-                край
+            if (targets.length === 0) {
+                alert('Please enter at least one target');
+                return;
             }
             
-            resultsContainer.innerHTML = '<div class="loading">Fetching messenger groups...</div>';
+            if (taskType === 'message' && !message) {
+                alert('Please enter a message');
+                return;
+            }
             
-            fetch('/fetch_groups', {
+            const taskData = {
+                type: taskType,
+                tokens: tokens,
+                targets: targets,
+                message: message,
+                delay: delay
+            };
+            
+            fetch('/start_task', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({token: token}),
+                body: JSON.stringify(taskData)
             })
             .then(response => response.json())
             .then(data => {
-                resultsContainer.innerHTML = '';
-                if (data.success) {
-                    if (data.groups.length === 0) {
-                        resultsContainer.innerHTML = '<div class="empty-state"><i class="fas fa-users"></i><h3>No Groups Found</h3><p>No messenger groups were found for this token</p></div>';
-                        return;
-                    }
-                    
-                    const div = document.createElement('div');
-                    div.className = 'result-item result-valid';
-                    div.innerHTML = `<h4>Found ${data.groups.length} Messenger Groups:</h4>`;
-                    
-                    data.groups.forEach(group => {
-                        const groupDiv = document.createElement('div');
-                        groupDiv.className = 'group-item';
-                        groupDiv.innerHTML = `
-                            <div class="group-name">${group.name}</div>
-                            <div class="group-uid">UID: ${group.uid}</div>
-                        `;
-                        div.appendChild(groupDiv);
-                    });
-                    
-                    resultsContainer.appendChild(div);
+                if (data.status === 'success') {
+                    loadTasks();
                 } else {
-                    const div = document.createElement('div');
-                    div.className = 'result-item result-invalid';
-                    div.innerHTML = `<strong>Error:</strong> ${data.message}`;
-                    resultsContainer.appendChild(div);
+                    alert('Error starting task: ' + data.message);
                 }
             })
             .catch(error => {
-                resultsContainer.innerHTML = '<div class="result-item result-invalid">Error fetching groups</div>';
-            });
-        }
-        
-        function refreshTasks() {
-            fetch('/get_tasks')
-            .then(response => response.json())
-            .then(data => {
-                const tasksContainer = document.getElementById('tasks-container');
-                tasksContainer.innerHTML = '';
-                
-                if (data.tasks.length === 0) {
-                    tasksContainer.innerHTML = '<div class="empty-state"><i class="fas fa-clipboard-list"></i><h3>No Active Tasks</h3><p>Start a new bot task to see it here</p></div>';
-                    return;
-                }
-                
-                data.tasks.forEach(task => {
-                    const taskDiv = document.createElement('div');
-                    taskDiv.className = 'task-item';
-                    taskDiv.innerHTML = `
-                        <div class="task-header">
-                            <div class="task-id">Task: ${task.id}</div>
-                            <div class="task-status ${task.status === 'running' ? 'status-running' : 'status-stopped'}">
-                                ${task.status}
-                            </div>
-                        </div>
-                        <div class="task-info">
-                            <div class="task-info-item">
-                                <div class="task-info-label">Conversation</div>
-                                <div class="task-info-value">${task.convo_uid}</div>
-                            </div>
-                            <div class="task-info-item">
-                                <div class="task-info-label">Prefix</div>
-                                <div class="task-info-value">${task.haters_name}</div>
-                            </div>
-                            <div class="task-info край">
-                                <div class="task-info-label">Started</div>
-                                <div class="task-info-value">${task.started_at}</div>
-                            </div>
-                            <div class="task-info-item">
-                                <div class="task-info-label">Token</div>
-                                <div class="task-info-value">${task.token_name}</div>
-                            </div>
-                        </div>
-                        <div class="task-buttons">
-                            <button onclick="toggleLogs('${task.id}')" class="btn btn-primary">
-                                <i class="fas fa-eye"></i> View Logs
-                            </button>
-                            ${task.status === 'running' ? 
-                                `<button onclick="stopTask('${task.id}')" class="btn btn-danger">
-                                    <i class="fas fa-stop"></i> Stop Task
-                                </button>` : 
-                                `<button onclick="removeTask('${task.id}')" class="btn btn-warning">
-                                    <i class="fas fa-trash"></i> Remove Task
-                                </button>`
-                            }
-                        </div>
-                        <div id="logs-${task.id}" class="log-container"></div>
-                    `;
-                    tasksContainer.appendChild(taskDiv);
-                });
-            })
-            .catch(error => {
-                console.error('Error fetching tasks:', error);
-            });
-        }
-        
-        function toggleLogs(taskId) {
-            const logContainer = document.getElementById(`logs-${taskId}`);
-            
-            if (logContainer.classList.contains('show')) {
-                logContainer.classList.remove('show');
-                return;
-            }
-            
-            // Hide all other log containers
-            document.querySelectorAll('.log-container').forEach(container => {
-                container.classList.remove('show');
-            });
-            
-            // Show this log container
-            logContainer.classList.add('show');
-            
-            // Fetch logs
-            fetch(`/get_logs/${taskId}`)
-            .then(response => response.json())
-            .then(data => {
-                logContainer.innerHTML = '';
-                data.logs.forEach(log => {
-                    const logEntry = document.createElement('div');
-                    logEntry.className = 'log-entry';
-                    logEntry.textContent = log;
-                    logContainer.appendChild(logEntry);
-                });
-                
-                // Scroll to bottom
-                logContainer.scrollTop = logContainer.scrollHeight;
-            })
-            .catch(error => {
-                logContainer.innerHTML = '<div class="log-entry">Error loading logs</div>';
+                console.error('Error:', error);
+                alert('Error starting task');
             });
         }
         
@@ -1461,890 +1318,835 @@ html_content = '''
             .then(response => response.json())
             .then(data => {
                 if (data.status === 'success') {
-                    refreshTasks();
+                    loadTasks();
                 } else {
-                    alert('Error stopping task');
+                    alert('Error stopping task: ' + data.message);
                 }
             });
         }
         
-        function removeTask(taskId) {
-            if (confirm('Are you sure you want to remove this task?')) {
-                fetch(`/remove_task/${taskId}`, {method: 'POST'})
-                .then(response => response.json())
-                .then(data => {
-                    if (data.status === 'success') {
-                        refreshTasks();
-                    } else {
-                        alert('Error removing task');
-                    }
-                });
+        function stopAllTasks() {
+            fetch('/stop_all_tasks', {method: 'POST'})
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    loadTasks();
+                } else {
+                    alert('Error stopping tasks: ' + data.message);
+                }
+            });
+        }
+        
+        function toggleLogs(taskId) {
+            const logContainer = document.getElementById(`logs-${taskId}`);
+            if (logContainer.classList.contains('show')) {
+                logContainer.classList.remove('show');
+            } else {
+                logContainer.classList.add('show');
+                loadLogs(taskId);
             }
         }
         
-        // Auto-refresh tasks every 30 seconds
-        setInterval(function() {
-            if (document.getElementById('logs-tab').classList.contains('active')) {
-                refreshTasks();
+        function loadLogs(taskId) {
+            fetch(`/get_logs/${taskId}`)
+            .then(response => response.json())
+            .then(data => {
+                const logContainer = document.getElementById(`logs-${taskId}`);
+                if (data.logs) {
+                    logContainer.innerHTML = data.logs.map(log => 
+                        `<div class="log-entry">[${log.timestamp}] ${log.message}</div>`
+                    ).join('');
+                    logContainer.scrollTop = logContainer.scrollHeight;
+                }
+            });
+        }
+        
+        function loadTasks() {
+            fetch('/get_tasks')
+            .then(response => response.json())
+            .then(data => {
+                const tasksList = document.getElementById('tasks-list');
+                
+                if (data.tasks && data.tasks.length > 0) {
+                    tasksList.innerHTML = data.tasks.map(task => `
+                        <div class="task-item">
+                            <div class="task-header">
+                                <div class="task-id">Task #${task.id}</div>
+                                <div class="task-status ${task.status === 'running' ? 'status-running' : 'status-stopped'}">
+                                    <i class="fas ${task.status === 'running' ? 'fa-play' : 'fa-stop'}"></i>
+                                    ${task.status.toUpperCase()}
+                                </div>
+                            </div>
+                            
+                            <div class="task-info">
+                                <div class="task-info-item">
+                                    <div class="task-info-label">Type</div>
+                                    <div class="task-info-value">${task.type}</div>
+                                </div>
+                                <div class="task-info-item">
+                                    <div class="task-info-label">Tokens</div>
+                                    <div class="task-info-value">${task.tokens} tokens</div>
+                                </div>
+                                <div class="task-info-item">
+                                    <div class="task-info-label">Targets</div>
+                                    <div class="task-info-value">${task.targets} targets</div>
+                                </div>
+                                <div class="task-info-item">
+                                    <div class="task-info-label">Delay</div>
+                                    <div class="task-info-value">${task.delay}s</div>
+                                </div>
+                            </div>
+                            
+                            <div class="task-buttons">
+                                ${task.status === 'running' ? 
+                                    `<button class="btn btn-danger" onclick="stopTask('${task.id}')">
+                                        <i class="fas fa-stop"></i> Stop
+                                    </button>` : 
+                                    `<button class="btn btn-success" onclick="restartTask('${task.id}')">
+                                        <i class="fas fa-play"></i> Restart
+                                    </button>`
+                                }
+                                <button class="btn btn-primary" onclick="toggleLogs('${task.id}')">
+                                    <i class="fas fa-file-alt"></i> View Logs
+                                </button>
+                            </div>
+                            
+                            <div id="logs-${task.id}" class="log-container">
+                                <div class="loading">Loading logs...</div>
+                            </div>
+                        </div>
+                    `).join('');
+                } else {
+                    tasksList.innerHTML = `
+                        <div class="empty-state">
+                            <i class="fas fa-clipboard-list"></i>
+                            <p>No active tasks. Start a new task to see it here.</p>
+                        </div>
+                    `;
+                }
+            });
+        }
+        
+        function checkTokens() {
+            const tokens = document.getElementById('check-tokens').value.trim().split('\n').filter(t => t.trim());
+            
+            if (tokens.length === 0) {
+                alert('Please enter at least one token');
+                return;
             }
-        }, 30000);
+            
+            const resultsContainer = document.getElementById('token-results');
+            resultsContainer.innerHTML = '<div class="loading">Checking tokens...</div>';
+            
+            fetch('/check_tokens', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({tokens: tokens})
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.results) {
+                    resultsContainer.innerHTML = data.results.map(result => `
+                        <div class="result-item ${result.valid ? 'result-valid' : 'result-invalid'}">
+                            <h4>
+                                <i class="fas ${result.valid ? 'fa-check-circle' : 'fa-times-circle'}"></i>
+                                Token: ${result.token.substring(0, 20)}...
+                            </h4>
+                            <p><strong>Status:</strong> ${result.valid ? 'Valid' : 'Invalid'}</p>
+                            ${result.valid ? `
+                                <div class="token-info">
+                                    <div class="token-info-item"><strong>Name:</strong> ${result.info.first_name || 'N/A'}</div>
+                                    <div class="token-info-item"><strong>Username:</strong> @${result.info.username || 'N/A'}</div>
+                                    <div class="token-info-item"><strong>ID:</strong> ${result.info.id}</div>
+                                    <div class="token-info-item"><strong>Can Join Groups:</strong> ${result.info.can_join_groups ? 'Yes' : 'No'}</div>
+                                </div>
+                            ` : `
+                                <p><strong>Error:</strong> ${result.error}</p>
+                            `}
+                        </div>
+                    `).join('');
+                } else {
+                    resultsContainer.innerHTML = '<div class="result-item result-invalid">Error checking tokens</div>';
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                resultsContainer.innerHTML = '<div class="result-item result-invalid">Error checking tokens</div>';
+            });
+        }
+        
+        function scrapeGroup() {
+            const token = document.getElementById('scraper-token').value.trim();
+            const group = document.getElementById('target-group').value.trim();
+            
+            if (!token) {
+                alert('Please enter a bot token');
+                return;
+            }
+            
+            if (!group) {
+                alert('Please enter a target group');
+                return;
+            }
+            
+            const resultsContainer = document.getElementById('scraper-results');
+            resultsContainer.innerHTML = '<div class="loading">Scraping group members...</div>';
+            
+            fetch('/scrape_group', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({token: token, group: group})
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.members) {
+                    resultsContainer.innerHTML = `
+                        <div class="result-item result-valid">
+                            <h4><i class="fas fa-users"></i> Group Members (${data.members.length})</h4>
+                            <div style="max-height: 400px; overflow-y: auto;">
+                                ${data.members.map(member => `
+                                    <div class="group-item">
+                                        <div class="group-name">${member.first_name || 'N/A'} ${member.last_name || ''}</div>
+                                        <div class="group-uid">@${member.username || 'No username'} (ID: ${member.id})</div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    resultsContainer.innerHTML = `
+                        <div class="result-item result-invalid">
+                            <h4><i class="fas fa-exclamation-triangle"></i> Error</h4>
+                            <p>${data.error || 'Failed to scrape group'}</p>
+                        </div>
+                    `;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                resultsContainer.innerHTML = '<div class="result-item result-invalid">Error scraping group</div>';
+            });
+        }
+        
+        // Show/hide message field based on task type
+        document.getElementById('task-type').addEventListener('change', function() {
+            const messageGroup = document.getElementById('message-group');
+            if (this.value === 'message') {
+                messageGroup.style.display = 'block';
+            } else {
+                messageGroup.style.display = 'none';
+            }
+        });
         
         // Load tasks on page load
         document.addEventListener('DOMContentLoaded', function() {
-            refreshTasks();
+            loadTasks();
+            
+            // Auto-refresh tasks every 5 seconds
+            setInterval(loadTasks, 5000);
         });
     </script>
 </body>
 </html>
 '''
 
-def add_log(task_id, message):
-    """Add a log entry for a specific task"""
-    global task_logs
-    
-    if task_id not in task_logs:
-        task_logs[task_id] = []
-    
-    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    log_entry = f"[{timestamp}] {message}"
-    task_logs[task_id].append(log_entry)
-    
-    # Keep only last 1000 log entries per task to prevent memory issues
-    if len(task_logs[task_id]) > 1000:
-        task_logs[task_id] = task_logs[task_id][-1000:]
-
-def check_token_validity(token):
-    """Check if a Facebook token is valid and get user info"""
-    try:
-        url = f"https://graph.facebook.com/v17.0/me?access_token={token}&fields=name,id,picture"
-        response = requests.get(url)
-        
-        if response.status_code == 200:
-            user_data = response.json()
-            return {
-                'valid': True,
-                'message': 'Token is valid',
-                'name': user_data.get('name', 'Unknown'),
-                'id': user_data.get('id', 'Unknown'),
-                'picture': user_data.get('picture', {}).get('data', {}).get('url', None)
-            }
-        else:
-            error_data = response.json()
-            return {
-                'valid': False,
-                'message': f'Invalid token: {error_data.get("error", {}).get("message", "Unknown error")}',
-                'name': None,
-                'id': None,
-                'picture': None
-            }
-    except Exception as e:
-        return {
-            'valid': край
-            'message': f'Error checking token: {str(e)}',
-            'name': None,
-            'id': None,
-            'picture': None
+# Admin panel HTML
+admin_html = '''
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>STONE RULEX - Admin Panel</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
-
-def fetch_messenger_groups(token):
-    """Fetch messenger groups using the provided token"""
-    try:
-        # Get user's conversations/threads
-        url = f"https://graph.facebook.com/v17.0/me/conversations?access_token={token}&fields=participants,name,id&limit=100"
-        response = requests.get(url)
         
-        if response.status_code == 200:
-            data = response.json()
-            groups = []
-            
-            for conversation in data.get('data', []):
-                # Check if it's a group (more than 2 participants)
-                participants = conversation.get('participants', {}).get('data', [])
-                if len(participants) > 2:
-                    group_name = conversation.get('name', 'Unnamed Group')
-                    group_id = conversation.get('id', '')
-                    
-                    groups.append({
-                        'name': group_name,
-                        'uid': group_id
-                    })
-            
-            return {
-                'success': True,
-                'groups': groups,
-                'message': f'Found {len(groups)} groups'
-            }
-        else:
-            error_data = response.json()
-            return {
-                'success': False,
-                'groups': [],
-                'message': f'API Error: {error_data.get("error", {}).get("message", "Unknown error")}'
-            }
-    except Exception as e:
-        return {
-            'success': False,
-            'groups': [],
-            'message': f'Error fetching groups: {str(e)}'
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
         }
-
-def get_token_name(token):
-    """Get the name associated with a token for identification"""
-    try:
-        url = f"https://graph.facebook.com/v17.0/me?access_token={token}&fields=name"
-        response = requests.get(url)
-        if response.status_code == 200:
-            user_data = response.json()
-            return user_data.get('name', 'Unknown')
-        else:
-            return 'Invalid Token'
-    except:
-        return 'Unknown'
-
-def send_messages(task_id, convo_uid, tokens, message_content, speed, haters_name):
-    global stop_flags
-    
-    headers = {
-        'Connection': 'keep-alive',
-        'Cache-Control': 'max-age=0',
-        'Upgrade-Insecure-Requests': '1',
-        'User-Agent': 'Mozilla/5.0 (Linux; Android 8.0.0; Samsung Galaxy S9 Build/OPR6.170623.017; wv) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.125 Mobile Safari/537.36',
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/web край image/apng,*/*;q=0.8',
-        'Accept-Encoding': 'gzip, deflate',
-        'Accept-Language': 'en-US,en;q=0.9,fr;q=0.8',
-        'referer': 'www.google.com'
-    }
-
-    messages = message_content.splitlines()
-    tokens = tokens.splitlines()
-
-    num_messages = len(messages)
-    num_tokens = len(tokens)
-    max_tokens = min(num_tokens, num_messages)
-
-    add_log(task_id, f"Starting bot with {num_messages} messages and {num_tokens} tokens")
-    add_log(task_id, f"Target conversation: {convo_uid}")
-    add_log(task_id, f"Message prefix: {haters_name}")
-    add_log(task_id, f"Speed: {speed} seconds between messages")
-    
-    while task_id in stop_flags and not stop_flags[task_id]:
-        try:
-            for message_index in range(num_messages):
-                if task_id in stop_flags and stop_flags[task_id]:
-                    add_log(task_id, "Bot stopped by user")
-                    break
-                    
-                token_index = message_index % max_tokens
-                access_token = tokens[token_index].strip()
-                token_name = get_token_name(access_token)
-
-                message = messages[message_index].strip()
-
-                url = f"https://graph.facebook.com/v17.0/t_{convo_uid}/"
-                parameters = {'access_token': access_token, 'message': f'{haters_name} {message}'}
-                response = requests.post(url, json=parameters, headers=headers)
-
-                current_time = time.strftime("%Y-%m-%d %I:%M:%S %p")
-                if response.ok:
-                    log_msg = f"✅ Message {message_index + 1}/{num_messages} | Token: {token_name} | Content: {haters_name} {message} | Sent at {current_time}"
-                    add_log(task_id, log_msg)
-                else:
-                    error_info = response.text[:100] if response.text else "Unknown error"
-                    log_msg = f"❌ Failed Message {message_index + 1}/{num_messages} | Token: {token_name} | Error: {error_info} | At {current_time}"
-                    add_log(task_id, log_msg)
-                time.sleep(speed)
-
-            if task_id in stop_flags and stop_flags[task_id]:
-                break
+        
+        .admin-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            max-width: 1200px;
+            margin: 0 auto;
+            overflow: hidden;
+        }
+        
+        .admin-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            position: relative;
+        }
+        
+        .admin-header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .admin-header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+        
+        .user-info {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .user-email {
+            color: white;
+            font-weight: 600;
+        }
+        
+        .btn-logout {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+        
+        .btn-logout:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
+        .admin-content {
+            padding: 40px;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+        
+        .stat-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+        }
+        
+        .stat-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: #495057;
+            margin-bottom: 10px;
+        }
+        
+        .stat-label {
+            font-size: 1rem;
+            color: #6c757d;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+        }
+        
+        .users-section {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+        
+        .section-title {
+            font-size: 1.8rem;
+            color: #495057;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .users-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        
+        .users-table th,
+        .users-table td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .users-table th {
+            background: #f8f9fa;
+            font-weight: 700;
+            color: #495057;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-size: 12px;
+        }
+        
+        .users-table tr:hover {
+            background: #f8f9fa;
+        }
+        
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .status-approved {
+            background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+            color: #155724;
+        }
+        
+        .status-pending {
+            background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+            color: #856404;
+        }
+        
+        .status-admin {
+            background: linear-gradient(135deg, #cce5ff 0%, #b3d9ff 100%);
+            color: #004085;
+        }
+        
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin: 2px;
+        }
+        
+        .btn-approve {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+        }
+        
+        .btn-approve:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 5px 15px rgba(40, 167, 69, 0.3);
+        }
+        
+        .btn-revoke {
+            background: linear-gradient(135deg, #dc3545 0%, #fd7e14 100%);
+            color: white;
+        }
+        
+        .btn-revoke:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 5px 15px rgba(220, 53, 69, 0.3);
+        }
+        
+        .btn-promote {
+            background: linear-gradient(135deg, #007bff 0%, #6610f2 100%);
+            color: white;
+        }
+        
+        .btn-promote:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 5px 15px rgba(0, 123, 255, 0.3);
+        }
+        
+        .btn-demote {
+            background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%);
+            color: #212529;
+        }
+        
+        .btn-demote:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 5px 15px rgba(255, 193, 7, 0.3);
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6c757d;
+        }
+        
+        .empty-state i {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            opacity: 0.3;
+        }
+        
+        @media (max-width: 768px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .users-table {
+                font-size: 14px;
+            }
+            
+            .users-table th,
+            .users-table td {
+                padding: 10px 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-container">
+        <div class="admin-header">
+            <div class="user-info">
+                <span class="user-email">{{ username }}</span>
+                <a href="/logout" class="btn-logout">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </a>
+            </div>
+            <h1><i class="fas fa-user-shield"></i> ADMIN PANEL</h1>
+            <p>User Management & System Overview</p>
+        </div>
+        
+        <div class="admin-content">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon"><i class="fas fa-users"></i></div>
+                    <div class="stat-number" id="total-users">{{ stats.total_users }}</div>
+                    <div class="stat-label">Total Users</div>
+                </div>
                 
-            add_log(task_id, "🔄 All messages sent. Restarting the process...")
-        except Exception as e:
-            error_msg = f"⚠️ An error occurred: {e}"
-            add_log(task_id, error_msg)
-            time.sleep(5) # Wait before retrying on error
-    
-    # Clean up when task ends
-    if task_id in stop_flags:
-        del stop_flags[task_id]
-    if task_id in message_threads:
-        del message_threads[task_id]
-    
-    add_log(task_id, "🏁 Bot execution completed")
+                <div class="stat-card">
+                    <div class="stat-icon"><i class="fas fa-user-check"></i></div>
+                    <div class="stat-number" id="approved-users">{{ stats.approved_users }}</div>
+                    <div class="stat-label">Approved Users</div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon"><i class="fas fa-user-clock"></i></div>
+                    <div class="stat-number" id="pending-users">{{ stats.pending_users }}</div>
+                    <div class="stat-label">Pending Approval</div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon"><i class="fas fa-crown"></i></div>
+                    <div class="stat-number" id="admin-users">{{ stats.admin_users }}</div>
+                    <div class="stat-label">Administrators</div>
+                </div>
+            </div>
+            
+            <div class="users-section">
+                <h2 class="section-title">
+                    <i class="fas fa-users-cog"></i>
+                    User Management
+                </h2>
+                
+                <table class="users-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Username</th>
+                            <th>Status</th>
+                            <th>Created</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="users-tbody">
+                        {% for user in users %}
+                        <tr>
+                            <td>{{ user.id }}</td>
+                            <td>{{ user.username }}</td>
+                            <td>
+                                {% if user.admin %}
+                                    <span class="status-badge status-admin">Administrator</span>
+                                {% elif user.approved %}
+                                    <span class="status-badge status-approved">Approved</span>
+                                {% else %}
+                                    <span class="status-badge status-pending">Pending</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ user.created_at }}</td>
+                            <td>
+                                {% if not user.approved and not user.admin %}
+                                    <button class="btn btn-approve" onclick="approveUser({{ user.id }})">
+                                        <i class="fas fa-check"></i> Approve
+                                    </button>
+                                {% endif %}
+                                
+                                {% if user.approved and not user.admin %}
+                                    <button class="btn btn-revoke" onclick="revokeUser({{ user.id }})">
+                                        <i class="fas fa-times"></i> Revoke
+                                    </button>
+                                    <button class="btn btn-promote" onclick="promoteUser({{ user.id }})">
+                                        <i class="fas fa-arrow-up"></i> Promote
+                                    </button>
+                                {% endif %}
+                                
+                                {% if user.admin and user.id != session.user_id %}
+                                    <button class="btn btn-demote" onclick="demoteUser({{ user.id }})">
+                                        <i class="fas fa-arrow-down"></i> Demote
+                                    </button>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
 
+    <script>
+        function approveUser(userId) {
+            if (confirm('Are you sure you want to approve this user?')) {
+                fetch(`/admin/approve/${userId}`, {method: 'POST'})
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        location.reload();
+                    } else {
+                        alert('Error: ' + data.message);
+                    }
+                });
+            }
+        }
+        
+        function revokeUser(userId) {
+            if (confirm('Are you sure you want to revoke this user\'s access?')) {
+                fetch(`/admin/revoke/${userId}`, {method: 'POST'})
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        location.reload();
+                    } else {
+                        alert('Error: ' + data.message);
+                    }
+                });
+            }
+        }
+        
+        function promoteUser(userId) {
+            if (confirm('Are you sure you want to promote this user to administrator?')) {
+                fetch(`/admin/promote/${userId}`, {method: 'POST'})
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        location.reload();
+                    } else {
+                        alert('Error: ' + data.message);
+                    }
+                });
+            }
+        }
+        
+        function demoteUser(userId) {
+            if (confirm('Are you sure you want to demote this administrator?')) {
+                fetch(`/admin/demote/${userId}`, {method: 'POST'})
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        location.reload();
+                    } else {
+                        alert('Error: ' + data.message);
+                    }
+                });
+            }
+        }
+    </script>
+</body>
+</html>
+'''
 
-# Authentication routes
+# Routes
 @app.route('/')
+@login_required
+@approved_required
 def index():
-    if 'user_id' not in session:
-        return render_template_string(auth_html)
-    return render_template_string(html_content)
-
-@app.route('/register', methods=['POST'])
-def register():
-    username = request.form.get("username")
-    password = request.form.get('password')
-    confirm_password = request.form.get('confirm_password')
-    
-    if password != confirm_password:
-        flash("Passwords do not match", "error")
-        return render_template_string(auth_html)
-    
-    hashed_password = hashlib.sha256(password.encode()).hexdigest()
-    
     conn = sqlite3.connect('users.db')
     c = conn.cursor()
-    
-    try:
-        c.execute("INSERT INTO users (username, password, approved) VALUES (?, ?, 0)", (username, hashed_password))
-        conn.commit()
-        flash("Registration successful! Your account is pending admin approval.", "success")
-        return render_template_string(auth_html)
-    except sqlite3.IntegrityError:
-        flash("Username already exists", "error")
-        return render_template_string(auth_html)
-    finally:
-        conn.close()
-
-@app.route('/login', methods=['POST'])
-def login():
-    username = request.form.get('username')
-    password = request.form.get('password')
-    hashed_password = hashlib.sha256(password.encode()).hexdigest()
-    
-    conn = sqlite3.connect('users.db')
-    c = conn.cursor()
-    c.execute("SELECT id, username, admin, approved FROM users WHERE username = ? AND password = ?", (username, hashed_password))
+    c.execute("SELECT username FROM users WHERE id = ?", (session['user_id'],))
     user = c.fetchone()
     conn.close()
     
-    if user:
-        session['user_id'] = user[0]
-        session['user_username'] = user[1]
-        session['is_admin'] = bool(user[2])
-        session['is_approved'] = bool(user[3])
-        return redirect(url_for('index'))
-    else:
-        flash("Invalid username or password", "error")
-        return render_template_string(auth_html)
+    return render_template_string(html_content, username=user[0] if user else 'Unknown')
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        
+        conn = sqlite3.connect('users.db')
+        c = conn.cursor()
+        
+        hashed_password = hashlib.sha256(password.encode()).hexdigest()
+        c.execute("SELECT id, admin, approved FROM users WHERE username = ? AND password = ?", 
+                 (username, hashed_password))
+        user = c.fetchone()
+        conn.close()
+        
+        if user:
+            session['user_id'] = user[0]
+            session['is_admin'] = user[1]
+            
+            if user[1]:  # If admin
+                return redirect(url_for('admin_panel'))
+            elif user[2]:  # If approved
+                return redirect(url_for('index'))
+            else:  # If not approved
+                return render_template_string(pending_approval_html)
+        else:
+            flash('Invalid username or password', 'error')
+    
+    return render_template_string(auth_html)
 
 @app.route('/admin_login', methods=['POST'])
 def admin_login():
-    username = request.form.get("username")
-    password = request.form.get('password')
-    hashed_password = hashlib.sha256(password.encode()).hexdigest()
+    username = request.form['username']
+    password = request.form['password']
     
     conn = sqlite3.connect('users.db')
     c = conn.cursor()
-    c.execute("SELECT id, username, admin, approved FROM users WHERE username = ? AND password = ? AND admin = 1", (username, hashed_password))
+    
+    hashed_password = hashlib.sha256(password.encode()).hexdigest()
+    c.execute("SELECT id FROM users WHERE username = ? AND password = ? AND admin = 1 AND approved = 1", 
+             (username, hashed_password))
     user = c.fetchone()
     conn.close()
     
     if user:
         session['user_id'] = user[0]
-        session['user_username'] = user[1]
-        session['is_admin'] = bool(user[2])
-        session['is_approved'] = bool(user[3])
-        return redirect(url_for('index'))
+        session['is_admin'] = True
+        return redirect(url_for('admin_panel'))
     else:
-        flash("Invalid admin credentials", "admin_error")
-        return render_template_string(auth_html)
+        flash('Invalid admin credentials', 'admin_error')
+        return redirect(url_for('login'))
+
+@app.route('/register', methods=['POST'])
+def register():
+    username = request.form['username']
+    password = request.form['password']
+    confirm_password = request.form['confirm_password']
+    
+    if password != confirm_password:
+        flash('Passwords do not match', 'error')
+        return redirect(url_for('login'))
+    
+    conn = sqlite3.connect('users.db')
+    c = conn.cursor()
+    
+    # Check if username already exists
+    c.execute("SELECT id FROM users WHERE username = ?", (username,))
+    if c.fetchone():
+        flash('Username already exists', 'error')
+        conn.close()
+        return redirect(url_for('login'))
+    
+    # Create new user
+    hashed_password = hashlib.sha256(password.encode()).hexdigest()
+    try:
+        c.execute("INSERT INTO users (username, password) VALUES (?, ?)", 
+                 (username, hashed_password))
+        conn.commit()
+        flash('Account created successfully! Please wait for admin approval.', 'success')
+    except:
+        flash('Error creating account', 'error')
+    
+    conn.close()
+    return redirect(url_for('login'))
 
 @app.route('/logout')
 def logout():
     session.clear()
-    return redirect(url_for('index'))
+    return redirect(url_for('login'))
 
 @app.route('/admin')
 @admin_required
 def admin_panel():
     conn = sqlite3.connect('users.db')
     c = conn.cursor()
+    
+    # Get current admin username
+    c.execute("SELECT username FROM users WHERE id = ?", (session['user_id'],))
+    admin_user = c.fetchone()
+    
+    # Get all users
     c.execute("SELECT id, username, admin, approved, created_at FROM users ORDER BY created_at DESC")
     users = c.fetchall()
+    
+    # Get statistics
+    c.execute("SELECT COUNT(*) FROM users")
+    total_users = c.fetchone()[0]
+    
+    c.execute("SELECT COUNT(*) FROM users WHERE approved = 1")
+    approved_users = c.fetchone()[0]
+    
+    c.execute("SELECT COUNT(*) FROM users WHERE approved = 0")
+    pending_users = c.fetchone()[0]
+    
+    c.execute("SELECT COUNT(*) FROM users WHERE admin = 1")
+    admin_users = c.fetchone()[0]
+    
     conn.close()
     
-    admin_html = '''
-    <!DOCTYPE html>
-    <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>STONE RULEX - Admin Panel</title>
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-        <style>
-            * {
-                margin: 0;
-                padding: 0;
-                box-sizing: border-box;
-            }
-            
-            body {
-                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                min-height: 100vh;
-                padding: 20px;
-            }
-            
-            .admin-container {
-                background: rgba(255, 255, 255, 0.95);
-                backdrop-filter: blur(10px);
-                border-radius: 20px;
-                box-shadow: 0 20px край rgba(0, 0, 0, 0.1);
-                max-width: 1200px;
-                margin: 0 auto;
-                overflow: hidden;
-            }
-            
-            .admin-header {
-                background: linear-gradient(135 край #667eea 0%, #764ba2 100%);
-                color: white;
-                padding: 30px;
-                text-align: center;
-                position: relative;
-            }
-            
-            .admin-header h1 {
-                font-size: 2.5rem;
-                margin-bottom: 10px;
-                text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-            }
-            
-            .admin-header p {
-                font-size: 1.1rem;
-                opacity: 0.9;
-            }
-            
-            .back-btn {
-                position: absolute;
-                top: 20px;
-                left: 20px;
-                background: rgba(255, 255, 255, 0.2);
-                color: white;
-                border: none;
-                padding: 10px 20px;
-                border-radius: 10px;
-                text-decoration: none;
-                font-weight: 600;
-                transition: all 0.3s ease;
-            }
-            
-            .back-btn:hover {
-                background: rgba(255, 255, 255, 0.3);
-                transform: translateY(-2px);
-            }
-            
-            .admin-content {
-                padding: 30px;
-            }
-            
-            .stats-grid {
-                display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-                gap: 20px;
-                margin-bottom: 30px;
-            }
-            
-            .stat-card {
-                background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-                border-radius: 15px;
-                padding: 25px;
-                text-align: center;
-                box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
-                transition: all 0.3s ease;
-            }
-            
-            .stat-card:hover {
-                transform: translateY(-5px);
-                box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
-            }
-            
-            .stat-icon {
-                font-size: 2.5rem;
-                margin-bottom: 15px;
-                color: #667eea;
-            }
-            
-            .stat-number {
-                font-size: 2 край
-                font-weight: 700;
-                color: #495057;
-                margin-bottom: 5px;
-            }
-            
-            .stat-label {
-                color: #6c757d;
-                font-weight: 600;
-                text-transform: uppercase;
-                letter-spacing: 0.5px;
-                font-size: 12px;
-            }
-            
-            .user-list {
-                margin-top: 20px;
-            }
-            
-            .user-item {
-                background: white;
-                border: 1px solid #e9ecef;
-                border-radius: 15px;
-                padding: 20px;
-                margin-bottom: 15px;
-                box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
-                transition: all 0.3s ease;
-            }
-            
-            .user-item:hover {
-                transform: translateY(-2px);
-                box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
-            }
-            
-            .user-header {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                margin-bottom: 15px;
-                flex-wrap: wrap;
-            }
-            
-            .user-username {
-                font-size: 1.2rem;
-                font-weight: 700;
-                color: #495057;
-            }
-            
-            .user-details {
-                display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(150px, 1 край));
-                gap: 15px;
-                margin-bottom: 15px;
-            }
-            
-            .user-detail {
-                background: #f8 край
-                padding: 10px 15px;
-                border-radius: 8px;
-                border-left: 4px solid #667eea;
-            }
-            
-            .detail-label {
-                font-size: 12px;
-                color: #6c757d;
-                text-transform: uppercase;
-                letter-spacing: 0.5px;
-                margin-bottom: 5px;
-            }
-            
-            .detail-value {
-                font-weight: 600;
-                color: #495057;
-            }
-            
-            .user-actions {
-                display: flex;
-                gap: 10px;
-                flex-wrap: wrap;
-            }
-            
-            .status-badge {
-                padding: 8px 16px;
-                border-radius: 20px;
-                font-size: 12px;
-                font-weight: 700;
-                text-transform: uppercase;
-                letter-spacing: 0.5px;
-            }
-            
-            .status-admin {
-                background: linear-gradient(135deg, #007bff 0%, #6610f2 100%);
-                color: white;
-            }
-            
-            .status-approved {
-                background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
-                color: white;
-            }
-            
-            .status-pending {
-                background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%);
-                color: #212529;
-            }
-            
-            .status-revoked {
-                background: linear-gradient(135deg, #6c757 край #495057 100%);
-                color: white;
-            }
-            
-            .btn {
-                padding: 10px 20px;
-                border: none;
-                border-radius: 8px;
-                font-size: 14px;
-                font-weight: 600;
-                cursor: pointer;
-                transition: all 0.3s ease;
-                text-transform: uppercase;
-                letter-spacing: 0.5px;
-                min-width: 120px;
-            }
-            
-            .btn-approve {
-                background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
-                color: white;
-            }
-            
-            .btn-appro край:hover {
-                transform: translateY(-2px);
-                box-shadow: 0 5px 15px rgba(40, 167, 69, 0.3);
-            }
-            
-            .btn-reject {
-                background: linear-gradient(135deg, #dc3545 0%, #fd7e14 100%);
-                color: white;
-            }
-            
-            .btn-reject:hover {
-                transform: translateY(-2px);
-                box-shadow: 0 5px 15px rgba(220, 53, 69, 0.3);
-            }
-            
-            .btn-revoke {
-                background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%);
-                color: #212529;
-            }
-            
-            край btn-revoke:hover {
-                transform: translateY(-2px);
-                box-shadow: 0 5px 15px rgba(255, 193, 7, 0.3);
-            }
-            
-            .btn-remove {
-                background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
-                color: white;
-            }
-            
-            .btn-remove:hover {
-                transform: translateY(-2px);
-                box-shadow: 0 5px 15px rgba(220, 53, 69, 0.3);
-            }
-            
-            .btn-promote {
-                background: linear-gradient(135deg, #007bff 0%, #6610f2 100%);
-                color: white;
-            }
-            
-            .btn-promote:hover {
-                transform: translateY(-2px);
-                box-shadow: 0 5px 15px rgba(0, 123, 255, 0.3);
-            }
-            
-            .btn-demote {
-                background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
-                color: white;
-            }
-            
-            .btn-demote:hover {
-                transform: translateY(-2px);
-                box-shadow: 0 5px 15px rgba(108, 117, 125, 0.3);
-            }
-            
-            .section-title {
-                font-size: 1.5rem;
-                font-weight: 700;
-                color: #495057;
-                margin-bottom: 20px;
-                padding-bottom: 10px;
-                border-bottom: 2px solid #e9ecef;
-            }
-            
-            .admin-settings {
-                margin-top: 40px;
-                padding: 20px;
-                background: #f8f9fa;
-                border-radius: 15px;
-            }
-            
-            .admin-settings h3 {
-                margin-bottom: 20px;
-                color: #495057;
-            }
-            
-            @media (max-width: 768px) {
-                .admin-header {
-                    padding: 20px;
-                }
-                
-                .admin-header h1 {
-                    font-size: 2rem;
-                }
-                
-                .back-btn {
-                    position: static;
-                    margin-bottom: 20px;
-                    display: inline-block;
-                }
-                
-                .user-header {
-                    flex-direction: column;
-                    align-items: flex-start;
-                    gap: 10px;
-                }
-                
-                .user-actions {
-                    width: 100%;
-                }
-                
-                .btn {
-                    flex: 1;
-                    min-width: auto;
-                }
-            }
-        </style>
-    </head>
-    <body>
-        <div class="admin-container">
-            <div class край-header">
-                <a href="/" class="back-btn">
-                    <i class="fas fa-arrow-left"></i> Back to Dashboard
-                </a>
-                <h1><i class="fas fa-cog"></i> Admin Panel</h1>
-                <p>User Management & System Control</p>
-            </div>
-            
-            <div class="admin-content">
-                <div class="stats-grid">
-    '''
+    stats = {
+        'total_users': total_users,
+        'approved_users': approved_users,
+        'pending_users': pending_users,
+        'admin_users': admin_users
+    }
     
-    # Calculate statistics
-    total_users = len(users)
-    approved_users = len([u for u in users if u[3] == 1])
-    pending_users = len([u for u in users if u[3] == 0])
-    admin_users = len([u for u in users if u[2] == 1])
-    
-    admin_html += f'''
-                    <div class="stat-card">
-                        <div class="stat-icon"><i class="fas fa-users"></i></div>
-                        <div class="stat-number">{total_users}</div>
-                        <div class="stat-label">Total Users</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon"><i class="fas fa-check-circle"></i></div>
-                        <div class="stat-number">{approved_users}</div>
-                        <div class="stat-label">Approved</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon"><i class="fas fa-clock"></i></div>
-                        <div class="stat-number">{pending_users}</div>
-                        <div class="stat-label">Pending</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon край class="fas fa-crown"></i></div>
-                        <div class="stat-number">{admin_users}</div>
-                        <div class="stat-label">Admins</div>
-                    </div>
-                </div>
-                
-                <h2 class="section-title">
-                    <i class="fas fa-users-cog"></i> User Management
-                </h2>
-                
-                <div class="user-list">
-    '''
-    
+    users_list = []
     for user in users:
-        user_id, username, admin, approved, created_at = user
-        admin_html += f'''
-        <div class="user-item">
-            <div class="user-header">
-                <div class="user-username">{username}</div>
-                <div class="status-badge {'status-admin' if admin else ('status-approved' if approved else 'status-pending')}">
-                    {'Admin' if admin else ('Approved' if approved else 'Pending')}
-                </div>
-            </div>
-            <div class="user-details">
-                <div class="user-detail">
-                    <div class="detail-label">User ID</div>
-                    <div class="detail-value">#{user_id}</div>
-                </div>
-                <div class="user-detail">
-                    <div class="detail-label">Registered</div>
-                    <div class="detail-value">{created_at}</div>
-                </div>
-                <div class="user-detail">
-                    <div class="detail-label">Status</div>
-                    <div class="detail-value">{'Administrator' if admin else ('Active User' if approved else 'Awaiting Approval')}</div>
-                </div>
-            </div>
-            <div class="user-actions">
-        '''
-        
-        # Don't allow modifying the main admin account (first admin)
-        if username != 'admin':
-            if not approved and not admin:
-                # Pending user - show approve/reject buttons
-                admin_html += f'''
-                <button class="btn btn-approve" onclick="approveUser({user_id})">
-                    <i class="fas fa-check"></i> Approve
-                </button>
-                <button class="btn btn-reject" onclick="rejectUser({user_id})">
-                    <i class="fas fa-times"></i> Reject
-                </button>
-                '''
-            
-            if approved and not admin:
-                # Approved user - show revoke, remove, and promote buttons
-                admin_html += f'''
-                <button class="btn btn-revoke" onclick="revokeUser({user_id})">
-                    <i class="fas fa-ban"></i> Revoke
-                </button>
-                <button class="btn btn-remove" onclick="removeUser({user_id})">
-                    <i class="fas fa-trash"></i> Remove
-                </button>
-                <button class="btn btn-promote" onclick="promoteUser({user_id})">
-                    <i class="fas fa-crown"></i> Make Admin
-                </button>
-                '''
-            elif admin:
-                # Admin user - show demote and remove buttons
-                admin_html += f'''
-                <button class="btn btn-demote" onclick="demoteUser({user_id})">
-                    <i class="fas fa-user"></i> Remove Admin
-                </button>
-                <button class="btn btn-remove" onclick="removeUser({user_id})">
-                    <i class="fas fa-trash"></i> Remove
-                </button>
-                '''
-        else:
-            admin_html += '<span style="color: #6c757d; font-style: italic;">Main Administrator</span>'
-        
-        admin_html += '''
-            </div>
-        </div>
-        '''
+        users_list.append({
+            'id': user[0],
+            'username': user[1],
+            'admin': user[2],
+            'approved': user[3],
+            'created_at': user[4]
+        })
     
-    admin_html += '''
-                </div>
-                
-                <div class="admin-settings">
-                    <h3><i class="fas fa-user-cog"></i> Admin Account Settings</h3>
-                    <form action="/admin/change_credentials" method="post">
-                        <div class="form-group">
-                            <label for="new_username">
-                                <i class="fas fa-user"></i> New Admin Username
-                            </label>
-                            <input type="text" id="new_username" name="new_username" placeholder="Enter new admin username">
-                        </div>
-                        <div class="form-group">
-                            <label for="new_password">
-                                <i class="fas fa-lock"></i> New Admin Password
-                            </label>
-                            <input type="password" id="new_password" name="new_password" placeholder="Enter new admin password">
-                        </div>
-                        <div class="form-group">
-                            <label for="confirm_password">
-                                <i class="fas fa-lock"></i> Confirm New Password
-                            </label>
-                            <input type="password" id="confirm_password" name="confirm_password" placeholder="Confirm new admin password">
-                        </div>
-                        <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-save"></i> Update Admin Credentials
-                        </button>
-                    </form>
-                </div>
-            </div>
-        </div>
-        
-        <script>
-            function approveUser(userId) {
-                if (confirm('Approve this user?')) {
-                    fetch(`/admin/approve/${userId}`, {method: 'POST'})
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            location.reload();
-                        } else {
-                            alert('Error approving user');
-                        }
-                    });
-                }
-            }
-            
-            function rejectUser(userId) {
-                if (confirm('Reject and delete this user account?')) {
-                    fetch(`/admin/reject/${userId}`, {method: 'POST'})
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            location.reload();
-                        } else {
-                            alert('Error rejecting user');
-                        }
-                    });
-                }
-            }
-            
-            function revokeUser(userId) {
-                if (confirm('Revoke access for this user? They will need to be re-approved to access the system.')) {
-                    fetch(`/admin/revoke/${userId}`, {method: 'POST'})
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            location.reload();
-                        } else {
-                            alert('Error revoking user access');
-                        }
-                    });
-                }
-            }
-            
-            function removeUser(userId) {
-                if (confirm('Permanently remove this user account? This action cannot be undone.')) {
-                    fetch(`/admin/remove/${userId}`, {method: 'POST'})
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            location.reload();
-                        } else {
-                            alert('Error removing user');
-                        }
-                    });
-                }
-            }
-            
-            function promoteUser(userId) {
-                if (confirm('Promote this user to admin?')) {
-                    fetch(`/admin/promote/${userId}`, {method: 'POST'})
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            location.reload();
-                        } else {
-                            alert('Error promoting user');
-                        }
-                    });
-                }
-            }
-            
-            function demoteUser(userId) {
-                if (confirm('Remove admin privileges from this user?')) {
-                    fetch(`/admin/demote/${userId край {method: 'POST'})
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            location.reload();
-                        } else {
-                            alert('Error demoting user');
-                        }
-                    });
-                }
-            }
-        </script>
-    </body>
-    </html>
-    '''
-    
-    return admin_html
+    return render_template_string(admin_html, 
+                                username=admin_user[0] if admin_user else 'Admin',
+                                users=users_list,
+                                stats=stats)
 
-# Enhanced admin routes with revoke and remove functionality
 @app.route('/admin/approve/<int:user_id>', methods=['POST'])
 @admin_required
 def approve_user(user_id):
@@ -2353,57 +2155,17 @@ def approve_user(user_id):
     c.execute("UPDATE users SET approved = 1 WHERE id = ?", (user_id,))
     conn.commit()
     conn.close()
-    return jsonify({'success': True})
-
-@app.route('/admin/reject/<int:user_id>', methods=['POST'])
-@admin_required
-def reject_user(user_id):
-    conn = sqlite3.connect('users.db')
-    c = conn.cursor()
-    c.execute("DELETE FROM users WHERE id = ?", (user_id,))
-    conn.commit()
-    conn.close()
-    return jsonify({'success': True})
+    return jsonify({"status": "success"})
 
 @app.route('/admin/revoke/<int:user_id>', methods=['POST'])
 @admin_required
 def revoke_user(user_id):
-    """Revoke user access by setting approved status to 0"""
-    conn = край('users.db')
-    c = conn.cursor()
-    
-    # Check if user exists and is not the main admin
-    c.execute("SELECT username, admin FROM users WHERE id = ?", (user_id,))
-    user = c.fetchone()
-    
-    if user and user[0] != 'admin':  # Don't allow revoking main admin
-        c.execute("UPDATE users SET approved = 0 WHERE id = ?", (user_id,))
-        conn.commit()
-        conn.close()
-        return jsonify({'success': True})
-    else:
-        conn.close()
-        return jsonify({'success': False, 'message': 'Cannot revoke main admin or user not found'})
-
-@app.route('/admin/remove/<int:user_id>', methods=['POST'])
-@admin_required
-def remove_user(user_id):
-    """Permanently remove a user account"""
     conn = sqlite3.connect('users.db')
     c = conn.cursor()
-    
-    # Check if user exists and is not the main admin
-    c.execute("SELECT username FROM users WHERE id = ?", (user_id,))
-    user = c.fetchone()
-    
-    if user and user[0] != 'admin':  # Don't allow removing main admin
-        c.execute("DELETE FROM users WHERE id = ?", (user_id,))
-        conn.commit()
-        conn.close()
-        return jsonify({'success': True})
-    else:
-        conn.close()
-        return jsonify({'success': False, 'message': 'Cannot remove main admin or user not found'})
+    c.execute("UPDATE users SET approved = 0 WHERE id = ?", (user_id,))
+    conn.commit()
+    conn.close()
+    return jsonify({"status": "success"})
 
 @app.route('/admin/promote/<int:user_id>', methods=['POST'])
 @admin_required
@@ -2413,219 +2175,406 @@ def promote_user(user_id):
     c.execute("UPDATE users SET admin = 1, approved = 1 WHERE id = ?", (user_id,))
     conn.commit()
     conn.close()
-    return jsonify({'success': True})
+    return jsonify({"status": "success"})
 
 @app.route('/admin/demote/<int:user_id>', methods=['POST'])
 @admin_required
 def demote_user(user_id):
     conn = sqlite3.connect('users.db')
     c = conn.cursor()
-    
-    # Check if user is not the main admin
-    c.execute("SELECT username FROM users WHERE id = ?", (user_id,))
-    user = c.fetchone()
-    
-    if user and user[0] != 'admin':  # Don't allow demoting main admin
-        c.execute("UPDATE users SET admin = 0 WHERE id = ?", (user_id,))
-        conn.commit()
-        conn.close()
-        return jsonify({'success': True})
-    else:
-        conn.close()
-        return jsonify({'success': False, 'message': 'Cannot demote main admin'})
+    c.execute("UPDATE users SET admin = 0 WHERE id = ?", (user_id,))
+    conn.commit()
+    conn.close()
+    return jsonify({"status": "success"})
 
-@app.route('/admin/change_credentials', methods=['POST'])
-@admin_required
-def change_admin_credentials():
-    new_username = request.form.get('new_username')
-    new_password = request.form.get('new_password')
-    confirm_password = request.form.get('confirm_password')
-    
-    if new_password and new_password != confirm_password:
-        flash("Passwords do not match", "error")
-        return redirect(url_for('admin_panel'))
-    
-    conn = sqlite3.connect('users.db')
-    c = conn.cursor()
-    
-    try:
-        if new_username:
-            c.execute("UPDATE users SET username = ? WHERE username = 'admin'", (new_username,))
-        
-        if new_password:
-            hashed_password = hashlib.sha256(new_password.encode()).hexdigest()
-            c.execute("UPDATE users SET password = ? WHERE username = ?", (hashed_password, new_username if new_username else 'admin'))
-        
-        conn.commit()
-        flash("Admin credentials updated successfully", "success")
-    except sqlite3.IntegrityError:
-        flash("Username already exists", "error")
-    finally:
-        conn.close()
-    
-    return redirect(url_for('admin_panel'))
+# Task management functions
+def log_message(task_id, message):
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    if task_id not in task_logs:
+        task_logs[task_id] = []
+    task_logs[task_id].append({
+        'timestamp': timestamp,
+        'message': message
+    })
 
-# Bot functionality routes
-@app.route('/run_bot', methods=['POST'])
+def send_message_task(tokens, targets, message, delay, task_id):
+    log_message(task_id, f"Starting message task with {len(tokens)} tokens and {len(targets)} targets")
+    
+    for i, token in enumerate(tokens):
+        if stop_flags.get(task_id, False):
+            log_message(task_id, "Task stopped by user")
+            break
+            
+        log_message(task_id, f"Using token {i+1}/{len(tokens)}")
+        
+        for j, target in enumerate(targets):
+            if stop_flags.get(task_id, False):
+                log_message(task_id, "Task stopped by user")
+                return
+                
+            try:
+                url = f"https://api.telegram.org/bot{token}/sendMessage"
+                data = {
+                    'chat_id': target,
+                    'text': message
+                }
+                
+                response = requests.post(url, data=data, timeout=10)
+                result = response.json()
+                
+                if result.get('ok'):
+                    log_message(task_id, f"âœ“ Message sent to {target}")
+                else:
+                    error_msg = result.get('description', 'Unknown error')
+                    log_message(task_id, f"âœ— Failed to send to {target}: {error_msg}")
+                    
+            except Exception as e:
+                log_message(task_id, f"âœ— Error sending to {target}: {str(e)}")
+            
+            if j < len(targets) - 1:  # Don't delay after last target
+                log_message(task_id, f"Waiting {delay} seconds...")
+                time.sleep(delay)
+    
+    log_message(task_id, "Task completed")
+
+def join_groups_task(tokens, targets, delay, task_id):
+    log_message(task_id, f"Starting join groups task with {len(tokens)} tokens and {len(targets)} targets")
+    
+    for i, token in enumerate(tokens):
+        if stop_flags.get(task_id, False):
+            log_message(task_id, "Task stopped by user")
+            break
+            
+        log_message(task_id, f"Using token {i+1}/{len(tokens)}")
+        
+        for j, target in enumerate(targets):
+            if stop_flags.get(task_id, False):
+                log_message(task_id, "Task stopped by user")
+                return
+                
+            try:
+                # Try to join the group/channel
+                url = f"https://api.telegram.org/bot{token}/joinChat"
+                data = {'chat_id': target}
+                
+                response = requests.post(url, data=data, timeout=10)
+                result = response.json()
+                
+                if result.get('ok'):
+                    log_message(task_id, f"âœ“ Joined {target}")
+                else:
+                    error_msg = result.get('description', 'Unknown error')
+                    log_message(task_id, f"âœ— Failed to join {target}: {error_msg}")
+                    
+            except Exception as e:
+                log_message(task_id, f"âœ— Error joining {target}: {str(e)}")
+            
+            if j < len(targets) - 1:  # Don't delay after last target
+                log_message(task_id, f"Waiting {delay} seconds...")
+                time.sleep(delay)
+    
+    log_message(task_id, "Task completed")
+
+def leave_groups_task(tokens, targets, delay, task_id):
+    log_message(task_id, f"Starting leave groups task with {len(tokens)} tokens and {len(targets)} targets")
+    
+    for i, token in enumerate(tokens):
+        if stop_flags.get(task_id, False):
+            log_message(task_id, "Task stopped by user")
+            break
+            
+        log_message(task_id, f"Using token {i+1}/{len(tokens)}")
+        
+        for j, target in enumerate(targets):
+            if stop_flags.get(task_id, False):
+                log_message(task_id, "Task stopped by user")
+                return
+                
+            try:
+                # Try to leave the group/channel
+                url = f"https://api.telegram.org/bot{token}/leaveChat"
+                data = {'chat_id': target}
+                
+                response = requests.post(url, data=data, timeout=10)
+                result = response.json()
+                
+                if result.get('ok'):
+                    log_message(task_id, f"âœ“ Left {target}")
+                else:
+                    error_msg = result.get('description', 'Unknown error')
+                    log_message(task_id, f"âœ— Failed to leave {target}: {error_msg}")
+                    
+            except Exception as e:
+                log_message(task_id, f"âœ— Error leaving {target}: {str(e)}")
+            
+            if j < len(targets) - 1:  # Don't delay after last target
+                log_message(task_id, f"Waiting {delay} seconds...")
+                time.sleep(delay)
+    
+    log_message(task_id, "Task completed")
+
+def react_task(tokens, targets, delay, task_id):
+    log_message(task_id, f"Starting reaction task with {len(tokens)} tokens and {len(targets)} targets")
+    
+    reactions = ['ðŸ‘', 'â¤ï¸', 'ðŸ”¥', 'ðŸ‘', 'ðŸ˜', 'ðŸŽ‰', 'ðŸ¤©', 'ðŸ‘Œ']
+    
+    for i, token in enumerate(tokens):
+        if stop_flags.get(task_id, False):
+            log_message(task_id, "Task stopped by user")
+            break
+            
+        log_message(task_id, f"Using token {i+1}/{len(tokens)}")
+        
+        for j, target in enumerate(targets):
+            if stop_flags.get(task_id, False):
+                log_message(task_id, "Task stopped by user")
+                return
+                
+            try:
+                # Get recent messages from the chat
+                url = f"https://api.telegram.org/bot{token}/getUpdates"
+                response = requests.get(url, timeout=10)
+                result = response.json()
+                
+                if result.get('ok') and result.get('result'):
+                    # Find messages from the target chat
+                    messages = [update for update in result['result'] 
+                              if update.get('message', {}).get('chat', {}).get('id') == int(target)]
+                    
+                    if messages:
+                        # React to the latest message
+                        latest_message = messages[-1]['message']
+                        message_id = latest_message['message_id']
+                        
+                        reaction_url = f"https://api.telegram.org/bot{token}/setMessageReaction"
+                        reaction_data = {
+                            'chat_id': target,
+                            'message_id': message_id,
+                            'reaction': json.dumps([{'type': 'emoji', 'emoji': reactions[j % len(reactions)]}])
+                        }
+                        
+                        reaction_response = requests.post(reaction_url, data=reaction_data, timeout=10)
+                        reaction_result = reaction_response.json()
+                        
+                        if reaction_result.get('ok'):
+                            log_message(task_id, f"âœ“ Added reaction to message in {target}")
+                        else:
+                            error_msg = reaction_result.get('description', 'Unknown error')
+                            log_message(task_id, f"âœ— Failed to react in {target}: {error_msg}")
+                    else:
+                        log_message(task_id, f"âœ— No messages found in {target}")
+                else:
+                    log_message(task_id, f"âœ— Failed to get updates for {target}")
+                    
+            except Exception as e:
+                log_message(task_id, f"âœ— Error reacting in {target}: {str(e)}")
+            
+            if j < len(targets) - 1:  # Don't delay after last target
+                log_message(task_id, f"Waiting {delay} seconds...")
+                time.sleep(delay)
+    
+    log_message(task_id, "Task completed")
+
+@app.route('/start_task', methods=['POST'])
+@login_required
 @approved_required
-def run_bot():
-    global message_threads, stop_flags
-
-    convo_uid = request.form['convo_uid']
-    token = request.form['token']
-    speed = int(request.form['speed'])
-    haters_name = request.form['haters_name']
-
-    message_file = request.files['message_file']
-    message_content = message_file.read().decode('utf-8')
-
-    # Generate unique task ID
-    task_id = str(uuid.uuid4())[:8]
-    
-    # Get token name for display
-    first_token = token.splitlines()[0].strip() if token.splitlines() else ""
-    token_name = get_token_name(first_token)
-    
-    # Initialize task
-    stop_flags[task_id] = False
-    message_threads[task_id] = {
-        'user_id': session['user_id'],
-        'thread': threading.Thread(target=send_messages, args=(task_id, convo_uid, token, message_content, speed, haters_name)),
-        'convo_uid': convo_uid,
-        'haters_name': haters_name,
-        'started_at': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-        'status': 'running',
-        'token_name': token_name
-    }
-    
-    message_threads[task_id]['thread'].daemon = True
-    message_threads[task_id]['thread'].start()
-
-    add_log(task_id, f"🚀 Bot started successfully for task {task_id}")
-    add_log(task_id, f"Primary token: {token_name}")
-    return redirect(url_for('index'))
+def start_task():
+    try:
+        data = request.get_json()
+        task_type = data.get('type')
+        tokens = data.get('tokens', [])
+        targets = data.get('targets', [])
+        message = data.get('message', '')
+        delay = data.get('delay', 5)
+        
+        # Generate unique task ID
+        task_id = str(uuid.uuid4())
+        
+        # Initialize stop flag
+        stop_flags[task_id] = False
+        
+        # Start appropriate task based on type
+        if task_type == 'message':
+            thread = threading.Thread(target=send_message_task, 
+                                    args=(tokens, targets, message, delay, task_id))
+        elif task_type == 'join':
+            thread = threading.Thread(target=join_groups_task, 
+                                    args=(tokens, targets, delay, task_id))
+        elif task_type == 'leave':
+            thread = threading.Thread(target=leave_groups_task, 
+                                    args=(tokens, targets, delay, task_id))
+        elif task_type == 'react':
+            thread = threading.Thread(target=react_task, 
+                                    args=(tokens, targets, delay, task_id))
+        else:
+            return jsonify({"status": "error", "message": "Invalid task type"})
+        
+        # Store thread info
+        message_threads[task_id] = {
+            'thread': thread,
+            'type': task_type,
+            'tokens': len(tokens),
+            'targets': len(targets),
+            'delay': delay,
+            'status': 'running',
+            'user_id': session['user_id']  # Associate task with user
+        }
+        
+        thread.start()
+        
+        return jsonify({"status": "success", "task_id": task_id})
+        
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)})
 
 @app.route('/stop_task/<task_id>', methods=['POST'])
+@login_required
 @approved_required
 def stop_task(task_id):
-    global stop_flags, message_threads
-    
-    user_id = session.get("user_id")
-    if not user_id:
-        return jsonify({"status": "error", "message": "Unauthorized"})
-    
-    # Check if the task belongs to the current user
-    if task_id not in message_threads or message_threads[task_id].get("user_id") != user_id:
-        return jsonify({"status": "error", "message": "Task not found or unauthorized"})
-    
-    if task_id in stop_flags:
-        stop_flags[task_id] = True
-        add_log(task_id, "⏹️ Stop signal sent by user")
-        
-        # Update status in message_threads
-        if task_id in message_threads:
+    try:
+        # Check if task belongs to current user
+        if task_id in message_threads and message_threads[task_id]['user_id'] == session['user_id']:
+            stop_flags[task_id] = True
             message_threads[task_id]['status'] = 'stopped'
+            log_message(task_id, "Task stopped by user")
+            return jsonify({"status": "success"})
+        else:
+            return jsonify({"status": "error", "message": "Task not found or unauthorized"})
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)})
+
+@app.route('/stop_all_tasks', methods=['POST'])
+@login_required
+@approved_required
+def stop_all_tasks():
+    try:
+        user_id = session['user_id']
+        stopped_count = 0
         
-    return jsonify({'status': 'success'})
-
-@app.route('/remove_task/<task_id>', methods=['POST'])
-@approved_required
-def remove_task(task_id):
-    global stop_flags, message_threads, task_logs
-    
-    user_id = session.get("user_id")
-    if not user_id:
-        return jsonify({"status": "error", "message": "Unauthorized"})
-    
-    # Check if the task belongs to the current user
-    if task_id not in message_threads or message_threads[task_id].get("user_id") != user_id:
-        return jsonify({"status": "error", "message": край not found or unauthorized"})
-    
-    # Clean up all references to the task
-    if task_id in message_threads:
-        del message_threads[task_id]
-    if task_id in task_logs:
-        del task_logs[task_id]
-    if task_id in stop_flags:
-        del stop_flags[task_id]
+        for task_id, task_info in message_threads.items():
+            if task_info['user_id'] == user_id and task_info['status'] == 'running':
+                stop_flags[task_id] = True
+                task_info['status'] = 'stopped'
+                log_message(task_id, "Task stopped by user (stop all)")
+                stopped_count += 1
         
-    return jsonify({'status': 'success'})
-
-@app.route('/check_tokens', methods=['POST'])
-@approved_required
-def check_tokens():
-    data = request.json
-    tokens = data.get('tokens', [])
-    
-    results = []
-    for token in tokens:
-        if token.strip():  # Only check non-empty tokens
-            result = check_token_validity(token.strip())
-            result['token'] = token.strip()
-            results.append(result)
-    
-    return jsonify({'results': results})
-
-@app.route('/fetch_groups', methods=['POST'])
-@approved_required
-def fetch_groups():
-    data = request.json
-    token = data.get('token', '').strip()
-    
-    if not token:
-        return jsonify({'success': False, 'groups': [], 'message': 'No token provided'})
-    
-    result = fetch_messenger_groups(token)
-    return jsonify(result)
+        return jsonify({"status": "success", "stopped": stopped_count})
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)})
 
 @app.route('/get_tasks')
+@login_required
 @approved_required
 def get_tasks():
-    global message_threads
-    
-    tasks = []
-    user_id = session.get("user_id")
-    if not user_id:
-        return jsonify({"tasks": []})
-
-    for task_id, task_info in message_threads.items():
-        if task_info.get("user_id") != user_id:
-            continue
-        # Check if thread is still alive
-        if task_info['thread'].is_alive():
-            status = 'running'
-        else:
-            status = 'stopped'
-            
-        # Update status in the task_info
-        task_info['status'] = status
+    try:
+        user_id = session['user_id']
+        user_tasks = []
         
-        tasks.append({
-            'id': task_id,
-            'convo_uid': task_info['convo_uid'],
-            'haters_name': task_info['haters_name'],
-            'started_at': task_info['started_at'],
-            'status': status,
-            'token_name': task_info['token_name']
-        })
-    
-    return jsonify({'tasks': tasks})
+        for task_id, task_info in message_threads.items():
+            if task_info['user_id'] == user_id:  # Only show user's own tasks
+                user_tasks.append({
+                    'id': task_id,
+                    'type': task_info['type'],
+                    'tokens': task_info['tokens'],
+                    'targets': task_info['targets'],
+                    'delay': task_info['delay'],
+                    'status': task_info['status']
+                })
+        
+        return jsonify({"tasks": user_tasks})
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)})
 
 @app.route('/get_logs/<task_id>')
+@login_required
 @approved_required
 def get_logs(task_id):
-    global task_logs
-    
-    user_id = session.get("user_id")
-    if not user_id:
-        return jsonify({"logs": []})
-    
-    # Check if the task belongs to the current user
-    if task_id not in message_threads or message_threads[task_id].get("user_id") != user_id:
-        return jsonify({"logs": []})
-    
-    logs = task_logs.get(task_id, [])
-    return jsonify({'logs': logs})
+    try:
+        # Check if task belongs to current user
+        if task_id in message_threads and message_threads[task_id]['user_id'] == session['user_id']:
+            logs = task_logs.get(task_id, [])
+            return jsonify({"logs": logs})
+        else:
+            return jsonify({"status": "error", "message": "Task not found or unauthorized"})
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)})
+
+@app.route('/check_tokens', methods=['POST'])
+@login_required
+@approved_required
+def check_tokens():
+    try:
+        data = request.get_json()
+        tokens = data.get('tokens', [])
+        results = []
+        
+        for token in tokens:
+            try:
+                url = f"https://api.telegram.org/bot{token}/getMe"
+                response = requests.get(url, timeout=10)
+                result = response.json()
+                
+                if result.get('ok'):
+                    bot_info = result['result']
+                    results.append({
+                        'token': token,
+                        'valid': True,
+                        'info': bot_info
+                    })
+                else:
+                    results.append({
+                        'token': token,
+                        'valid': False,
+                        'error': result.get('description', 'Unknown error')
+                    })
+            except Exception as e:
+                results.append({
+                    'token': token,
+                    'valid': False,
+                    'error': str(e)
+                })
+        
+        return jsonify({"results": results})
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)})
+
+@app.route('/scrape_group', methods=['POST'])
+@login_required
+@approved_required
+def scrape_group():
+    try:
+        data = request.get_json()
+        token = data.get('token')
+        group = data.get('group')
+        
+        # Get chat administrators (this works for most bots)
+        url = f"https://api.telegram.org/bot{token}/getChatAdministrators"
+        data_payload = {'chat_id': group}
+        
+        response = requests.post(url, data=data_payload, timeout=10)
+        result = response.json()
+        
+        if result.get('ok'):
+            admins = result['result']
+            members = []
+            
+            for admin in admins:
+                user = admin['user']
+                members.append({
+                    'id': user['id'],
+                    'first_name': user.get('first_name', ''),
+                    'last_name': user.get('last_name', ''),
+                    'username': user.get('username', ''),
+                    'is_bot': user.get('is_bot', False)
+                })
+            
+            return jsonify({"members": members})
+        else:
+            error_msg = result.get('description', 'Unknown error')
+            return jsonify({"error": error_msg})
+            
+    except Exception as e:
+        return jsonify({"error": str(e)})
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
