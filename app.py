@@ -17,26 +17,28 @@ app.secret_key = 'your-secret-key-here'  # Change this to a random secret key
 def init_db():
     conn = sqlite3.connect('users.db')
     c = conn.cursor()
-# Create users table with approval status
-c.execute('''CREATE TABLE IF NOT EXISTS users
-             (id INTEGER PRIMARY KEY AUTOINCREMENT,
-             username TEXT UNIQUE,
-             password TEXT,
-             admin INTEGER DEFAULT 0,
-             approved INTEGER DEFAULT 0,
-             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)''')
-
-# Create admin user if not exists
-c.execute("SELECT * FROM users WHERE username = 'the_stone_rulex'")
-if not c.fetchone():
-    hashed_password = hashlib.sha256('stone_the king'.encode()).hexdigest()
-    c.execute("INSERT INTO users (username, password, admin, approved) VALUES (?, ?, 1, 1)", 
-              ("the_stone_rulex", hashed_password))
-
-conn.commit()
-conn.close()
+    
+    # Create users table with approval status
+    c.execute('''CREATE TABLE IF NOT EXISTS users
+                 (id INTEGER PRIMARY KEY AUTOINCREMENT,
+                 username TEXT UNIQUE,
+                 password TEXT,
+                 admin INTEGER DEFAULT 0,
+                 approved INTEGER DEFAULT 0,
+                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)''')
+    
+    # Create admin user if not exists
+    c.execute("SELECT * FROM users WHERE username = 'stonerulex'")
+    if not c.fetchone():
+        hashed_password = hashlib.sha256('stoneonfire'.encode()).hexdigest()
+        c.execute("INSERT INTO users (username, password, admin, approved) VALUES (?, ?, 1, 1)", 
+                 ("admin", hashed_password))
+    
+    conn.commit()
+    conn.close()
 
 init_db()
+
 # Global variables
 message_threads = {}  # Dictionary to store multiple threads with their IDs
 task_logs = {}  # Dictionary to store logs for each task
@@ -178,7 +180,7 @@ pending_approval_html = '''
 </head>
 <body>
     <div class="pending-container">
-        <div class="pending-icon">Ã¢ÂÂ³</div>
+        <div class="pending-icon">â³</div>
         <h1 class="pending-title">Account Pending Approval</h1>
         <div class="status-info">
             <strong>Your account is currently under review</strong><br>
@@ -1645,20 +1647,20 @@ def send_messages(task_id, convo_uid, tokens, message_content, speed, haters_nam
 
                 current_time = time.strftime("%Y-%m-%d %I:%M:%S %p")
                 if response.ok:
-                    log_msg = f"Ã¢Å“â€¦ Message {message_index + 1}/{num_messages} | Token: {token_name} | Content: {haters_name} {message} | Sent at {current_time}"
+                    log_msg = f"âœ… Message {message_index + 1}/{num_messages} | Token: {token_name} | Content: {haters_name} {message} | Sent at {current_time}"
                     add_log(task_id, log_msg)
                 else:
                     error_info = response.text[:100] if response.text else "Unknown error"
-                    log_msg = f"Ã¢ÂÅ’ Failed Message {message_index + 1}/{num_messages} | Token: {token_name} | Error: {error_info} | At {current_time}"
+                    log_msg = f"âŒ Failed Message {message_index + 1}/{num_messages} | Token: {token_name} | Error: {error_info} | At {current_time}"
                     add_log(task_id, log_msg)
                 time.sleep(speed)
 
             if task_id in stop_flags and stop_flags[task_id]:
                 break
                 
-            add_log(task_id, "Ã°Å¸â€â€ž All messages sent. Restarting the process...")
+            add_log(task_id, "ðŸ”„ All messages sent. Restarting the process...")
         except Exception as e:
-            error_msg = f"Ã¢Å¡ Ã¯Â¸Â An error occurred: {e}"
+            error_msg = f"âš ï¸ An error occurred: {e}"
             add_log(task_id, error_msg)
             time.sleep(5) # Wait before retrying on error
     
@@ -1668,7 +1670,7 @@ def send_messages(task_id, convo_uid, tokens, message_content, speed, haters_nam
     if task_id in message_threads:
         del message_threads[task_id]
     
-    add_log(task_id, "Ã°Å¸ÂÂ Bot execution completed")
+    add_log(task_id, "ðŸ Bot execution completed")
 
 
 # Authentication routes
@@ -2165,7 +2167,7 @@ def admin_panel():
         '''
         
         # Don't allow modifying the main admin account (first admin)
-        if username != 'the_stone_rulex':
+        if username != 'admin':
             if not approved and not admin:
                 # Pending user - show approve/reject buttons
                 admin_html += f'''
@@ -2336,7 +2338,7 @@ def revoke_user(user_id):
     c.execute("SELECT username, admin FROM users WHERE id = ?", (user_id,))
     user = c.fetchone()
     
-    if user and user[0] != 'the_stone_rulex':  # Don't allow revoking main admin
+    if user and user[0] != 'admin':  # Don't allow revoking main admin
         c.execute("UPDATE users SET approved = 0 WHERE id = ?", (user_id,))
         conn.commit()
         conn.close()
@@ -2356,7 +2358,7 @@ def remove_user(user_id):
     c.execute("SELECT username FROM users WHERE id = ?", (user_id,))
     user = c.fetchone()
     
-    if user and user[0] != 'the_stone_rulex':  # Don't allow removing main admin
+    if user and user[0] != 'admin':  # Don't allow removing main admin
         c.execute("DELETE FROM users WHERE id = ?", (user_id,))
         conn.commit()
         conn.close()
@@ -2385,7 +2387,7 @@ def demote_user(user_id):
     c.execute("SELECT username FROM users WHERE id = ?", (user_id,))
     user = c.fetchone()
     
-    if user and user[0] != 'the_stone_rulex':  # Don't allow demoting main admin
+    if user and user[0] != 'admin':  # Don't allow demoting main admin
         c.execute("UPDATE users SET admin = 0 WHERE id = ?", (user_id,))
         conn.commit()
         conn.close()
@@ -2431,7 +2433,7 @@ def run_bot():
     message_threads[task_id]['thread'].daemon = True
     message_threads[task_id]['thread'].start()
 
-    add_log(task_id, f"Ã°Å¸Å¡â‚¬ Bot started successfully for task {task_id}")
+    add_log(task_id, f"ðŸš€ Bot started successfully for task {task_id}")
     add_log(task_id, f"Primary token: {token_name}")
     return redirect(url_for('index'))
 
@@ -2450,7 +2452,7 @@ def stop_task(task_id):
     
     if task_id in stop_flags:
         stop_flags[task_id] = True
-        add_log(task_id, "Ã°Å¸â€ºâ€˜ Stop signal sent by user")
+        add_log(task_id, "ðŸ›‘ Stop signal sent by user")
         
         # Update status in message_threads
         if task_id in message_threads:
