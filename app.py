@@ -28,9 +28,9 @@ def init_db():
                  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)''')
     
     # Create admin user if not exists
-    c.execute("SELECT * FROM users WHERE username = 'the_stone_rulex_onfire'")
+    c.execute("SELECT * FROM users WHERE username = 'stonerulex'")
     if not c.fetchone():
-        hashed_password = hashlib.sha256('the_stone420'.encode()).hexdigest()
+        hashed_password = hashlib.sha256('stoneonfire'.encode()).hexdigest()
         c.execute("INSERT INTO users (username, password, admin, approved) VALUES (?, ?, 1, 1)", 
                  ("admin", hashed_password))
     
@@ -1126,7 +1126,7 @@ html_content = '''
     <div class="container">
         <div class="header">
             <h1>STONE RULEX</h1>
-            <p>WELCOME TO STONE RULEX</p>
+            <p>Advanced Social Media Automation Platform</p>
             <div class="user-info">
                 <span class="user-username">{{ session.user_username }}</span>
                 {% if session.is_admin %}
