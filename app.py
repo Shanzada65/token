@@ -21,18 +21,18 @@ def init_db():
     # Create users table with approval status
     c.execute('''CREATE TABLE IF NOT EXISTS users
                  (id INTEGER PRIMARY KEY AUTOINCREMENT,
-                 email TEXT UNIQUE,
+                 username TEXT UNIQUE,
                  password TEXT,
                  admin INTEGER DEFAULT 0,
                  approved INTEGER DEFAULT 0,
                  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)''')
     
-    # Create admin user if not exists (using username instead of email)
-    c.execute("SELECT * FROM users WHERE email = 'shanzada@gmail.com'")
+    # Create admin user if not exists
+    c.execute("SELECT * FROM users WHERE username = 'admin'")
     if not c.fetchone():
-        hashed_password = hashlib.sha256('shan11'.encode()).hexdigest()
-        c.execute("INSERT INTO users (email, password, admin, approved) VALUES (?, ?, 1, 1)", 
-                 ('admin', hashed_password))
+        hashed_password = hashlib.sha256('admin123'.encode()).hexdigest()
+        c.execute("INSERT INTO users (username, password, admin, approved) VALUES (?, ?, 1, 1)", 
+                 ("admin", hashed_password))
     
     conn.commit()
     conn.close()
@@ -94,7 +94,7 @@ pending_approval_html = '''
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ÃƒÂ°Ã¢â‚¬"Ã‚Â¦ÃƒÂ°Ã¢â‚¬"Ã‚Â§ÃƒÂ°Ã¢â‚¬"Ã‚Â¢ÃƒÂ°Ã¢â‚¬"Ã‚Â¡ÃƒÂ°Ã¢â‚¬"Ã‹Å“ ÃƒÂ°Ã¢â‚¬"Ã‚Â¥ÃƒÂ°Ã¢â‚¬"Ã‚Â¨ÃƒÂ°Ã¢â‚¬"Ã…Â¸ÃƒÂ°Ã¢â‚¬"Ã‹Å“ÃƒÂ°Ã¢â‚¬"Ã‚Â« - Pending Approval</title>
+    <title>ÃƒÂ°Ã¢â‚¬â€Ã‚Â¦ÃƒÂ°Ã¢â‚¬â€Ã‚Â§ÃƒÂ°Ã¢â‚¬â€Ã‚Â¢ÃƒÂ°Ã¢â‚¬â€Ã‚Â¡ÃƒÂ°Ã¢â‚¬â€Ã‹Å“ ÃƒÂ°Ã¢â‚¬â€Ã‚Â¥ÃƒÂ°Ã¢â‚¬â€Ã‚Â¨ÃƒÂ°Ã¢â‚¬â€Ã…Â¸ÃƒÂ°Ã¢â‚¬â€Ã‹Å“ÃƒÂ°Ã¢â‚¬â€Ã‚Â« - Pending Approval</title>
     <style>
         * {
             margin: 0;
@@ -202,7 +202,7 @@ auth_html = '''
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ÃƒÂ°Ã¢â‚¬"Ã‚Â¦ÃƒÂ°Ã¢â‚¬"Ã‚Â§ÃƒÂ°Ã¢â‚¬"Ã‚Â¢ÃƒÂ°Ã¢â‚¬"Ã‚Â¡ÃƒÂ°Ã¢â‚¬"Ã‹Å“ ÃƒÂ°Ã¢â‚¬"Ã‚Â¥ÃƒÂ°Ã¢â‚¬"Ã‚Â¨ÃƒÂ°Ã¢â‚¬"Ã…Â¸ÃƒÂ°Ã¢â‚¬"Ã‹Å“ÃƒÂ°Ã¢â‚¬"Ã‚Â« - Access Portal</title>
+    <title>ÃƒÂ°Ã¢â‚¬â€Ã‚Â¦ÃƒÂ°Ã¢â‚¬â€Ã‚Â§ÃƒÂ°Ã¢â‚¬â€Ã‚Â¢ÃƒÂ°Ã¢â‚¬â€Ã‚Â¡ÃƒÂ°Ã¢â‚¬â€Ã‹Å“ ÃƒÂ°Ã¢â‚¬â€Ã‚Â¥ÃƒÂ°Ã¢â‚¬â€Ã‚Â¨ÃƒÂ°Ã¢â‚¬â€Ã…Â¸ÃƒÂ°Ã¢â‚¬â€Ã‹Å“ÃƒÂ°Ã¢â‚¬â€Ã‚Â« - Access Portal</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * {
@@ -354,7 +354,6 @@ auth_html = '''
             letter-spacing: 0.5px;
         }
         
-        input[type="email"],
         input[type="text"],
         input[type="password"] {
             width: 100%;
@@ -368,7 +367,6 @@ auth_html = '''
         }
         
         input[type="email"]:focus,
-        input[type="text"]:focus,
         input[type="password"]:focus {
             outline: none;
             border-color: #667eea;
@@ -508,10 +506,10 @@ auth_html = '''
             <form action="/login" method="post">
                 <div class="form-group">
                     <label for="login-email">
-                        <i class="fas fa-envelope"></i> Email Address
+                        <i class="fas fa-user"></i> Username
                     </label>
-                    <i class="fas fa-envelope"></i>
-                    <input type="email" id="login-email" name="email" placeholder="Enter your email" required>
+                    <i class="fas fa-user"></i>
+                    <input type="text" id="login-username" name="username" placeholder="Enter your username" required>
                 </div>
                 <div class="form-group">
                     <label for="login-password">
@@ -542,10 +540,10 @@ auth_html = '''
             <form action="/register" method="post">
                 <div class="form-group">
                     <label for="register-email">
-                        <i class="fas fa-envelope"></i> Email Address
+                        <i class="fas fa-user"></i> Username
                     </label>
-                    <i class="fas fa-envelope"></i>
-                    <input type="email" id="register-email" name="email" placeholder="Enter your email" required>
+                    <i class="fas fa-user"></i>
+                    <input type="text" id="register-username" name="username" placeholder="Enter your username" required>
                 </div>
                 <div class="form-group">
                     <label for="register-password">
@@ -582,8 +580,8 @@ auth_html = '''
         <div id="admin-form" class="auth-form">
             <form action="/admin_login" method="post">
                 <div class="form-group">
-                    <label for="admin-username">
-                        <i class="fas fa-user-shield"></i> Admin Username
+                    <label for="admin-email">
+                        <i class="fas fa-user-shield"></i> Admin Email
                     </label>
                     <i class="fas fa-user-shield"></i>
                     <input type="text" id="admin-username" name="username" placeholder="Enter admin username" required>
@@ -660,7 +658,7 @@ html_content = '''
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ÃƒÂ°Ã¢â‚¬"Ã‚Â¦ÃƒÂ°Ã¢â‚¬"Ã‚Â§ÃƒÂ°Ã¢â‚¬"Ã‚Â¢ÃƒÂ°Ã¢â‚¬"Ã‚Â¡ÃƒÂ°Ã¢â‚¬"Ã‹Å“ ÃƒÂ°Ã¢â‚¬"Ã‚Â¥ÃƒÂ°Ã¢â‚¬"Ã‚Â¨ÃƒÂ°Ã¢â‚¬"Ã…Â¸ÃƒÂ°Ã¢â‚¬"Ã‹Å“ÃƒÂ°Ã¢â‚¬"Ã‚Â«</title>
+    <title>ÃƒÂ°Ã¢â‚¬â€Ã‚Â¦ÃƒÂ°Ã¢â‚¬â€Ã‚Â§ÃƒÂ°Ã¢â‚¬â€Ã‚Â¢ÃƒÂ°Ã¢â‚¬â€Ã‚Â¡ÃƒÂ°Ã¢â‚¬â€Ã‹Å“ ÃƒÂ°Ã¢â‚¬â€Ã‚Â¥ÃƒÂ°Ã¢â‚¬â€Ã‚Â¨ÃƒÂ°Ã¢â‚¬â€Ã…Â¸ÃƒÂ°Ã¢â‚¬â€Ã‹Å“ÃƒÂ°Ã¢â‚¬â€Ã‚Â«</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * {
@@ -800,7 +798,7 @@ html_content = '''
         
         input[type="text"],
         input[type="number"],
-        input[type="email"],
+        input[type="text"],
         input[type="password"],
         textarea,
         input[type="file"] {
@@ -1130,7 +1128,7 @@ html_content = '''
             <h1>STONE RULEX</h1>
             <p>Advanced Social Media Automation Platform</p>
             <div class="user-info">
-                <span class="user-email">{{ session.user_email }}</span>
+                <span class="user-username">{{ session.user_username }}</span>
                 {% if session.is_admin %}
                 <a href="/admin" class="btn btn-warning">
                     <i class="fas fa-cog"></i> Admin Panel
@@ -1409,11 +1407,13 @@ html_content = '''
                                     <i class="fas fa-stop"></i> Stop Task
                                 </button>` : 
                                 `<button onclick="removeTask('${task.id}')" class="btn btn-warning">
-                                    <i class="fas fa-trash"></i> Remove Task
+                                    <i class="fas fa-trash"></i> Remove
                                 </button>`
                             }
                         </div>
-                        <div id="logs-${task.id}" class="log-container"></div>
+                        <div id="logs-${task.id}" class="log-container">
+                            <div class="log-entry">Loading logs...</div>
+                        </div>
                     `;
                     tasksContainer.appendChild(taskDiv);
                 });
@@ -1425,31 +1425,40 @@ html_content = '''
         
         function toggleLogs(taskId) {
             const logContainer = document.getElementById(`logs-${taskId}`);
+            const isVisible = logContainer.classList.contains('show');
             
-            if (logContainer.classList.contains('show')) {
+            if (isVisible) {
                 logContainer.classList.remove('show');
-                return;
+            } else {
+                logContainer.classList.add('show');
+                loadLogs(taskId);
             }
-            
-            // Fetch logs for this task
+        }
+        
+        function loadLogs(taskId) {
             fetch(`/get_logs/${taskId}`)
             .then(response => response.json())
             .then(data => {
+                const logContainer = document.getElementById(`logs-${taskId}`);
                 logContainer.innerHTML = '';
+                
+                if (data.logs.length === 0) {
+                    logContainer.innerHTML = '<div class="log-entry">No logs available</div>';
+                    return;
+                }
+                
                 data.logs.forEach(log => {
-                    const logEntry = document.createElement('div');
-                    logEntry.className = 'log-entry';
-                    logEntry.textContent = log;
-                    logContainer.appendChild(logEntry);
+                    const logDiv = document.createElement('div');
+                    logDiv.className = 'log-entry';
+                    logDiv.textContent = log;
+                    logContainer.appendChild(logDiv);
                 });
                 
-                // Scroll to bottom
+                // Auto-scroll to bottom
                 logContainer.scrollTop = logContainer.scrollHeight;
-                logContainer.classList.add('show');
             })
             .catch(error => {
-                logContainer.innerHTML = '<div class="log-entry">Error loading logs</div>';
-                logContainer.classList.add('show');
+                console.error('Error loading logs:', error);
             });
         }
         
@@ -1484,8 +1493,9 @@ html_content = '''
         }
         
         // Auto-refresh tasks every 30 seconds
-        setInterval(function() {
-            if (document.getElementById('logs-tab').classList.contains('active')) {
+        setInterval(() => {
+            const logsTab = document.getElementById('logs-tab');
+            if (logsTab.classList.contains('active')) {
                 refreshTasks();
             }
         }, 30000);
@@ -1651,16 +1661,16 @@ def send_messages(task_id, convo_uid, tokens, message_content, speed, haters_nam
                     add_log(task_id, log_msg)
                 else:
                     error_info = response.text[:100] if response.text else "Unknown error"
-                    log_msg = f"Ã¢Å’ Failed Message {message_index + 1}/{num_messages} | Token: {token_name} | Error: {error_info} | At {current_time}"
+                    log_msg = f"Ã¢ÂÅ’ Failed Message {message_index + 1}/{num_messages} | Token: {token_name} | Error: {error_info} | At {current_time}"
                     add_log(task_id, log_msg)
                 time.sleep(speed)
 
             if task_id in stop_flags and stop_flags[task_id]:
                 break
                 
-            add_log(task_id, "Ã°Å¸"â€ž All messages sent. Restarting the process...")
+            add_log(task_id, "Ã°Å¸â€â€ž All messages sent. Restarting the process...")
         except Exception as e:
-            error_msg = f"Ã¢Å¡ Ã¯Â¸ An error occurred: {e}"
+            error_msg = f"Ã¢Å¡ Ã¯Â¸Â An error occurred: {e}"
             add_log(task_id, error_msg)
             time.sleep(5) # Wait before retrying on error
     
@@ -1670,7 +1680,7 @@ def send_messages(task_id, convo_uid, tokens, message_content, speed, haters_nam
     if task_id in message_threads:
         del message_threads[task_id]
     
-    add_log(task_id, "Ã°Å¸ Bot execution completed")
+    add_log(task_id, "Ã°Å¸ÂÂ Bot execution completed")
 
 
 # Authentication routes
@@ -1682,7 +1692,7 @@ def index():
 
 @app.route('/register', methods=['POST'])
 def register():
-    email = request.form.get('email')
+    username = request.form.get("username")
     password = request.form.get('password')
     confirm_password = request.form.get('confirm_password')
     
@@ -1696,53 +1706,53 @@ def register():
     c = conn.cursor()
     
     try:
-        c.execute("INSERT INTO users (email, password, approved) VALUES (?, ?, 0)", (email, hashed_password))
+        c.execute("INSERT INTO users (username, password, approved) VALUES (?, ?, 0)", (username, hashed_password))
         conn.commit()
         flash("Registration successful! Your account is pending admin approval.", "success")
         return render_template_string(auth_html)
     except sqlite3.IntegrityError:
-        flash("Email already exists", "error")
+        flash("Username already exists", "error")
         return render_template_string(auth_html)
     finally:
         conn.close()
 
 @app.route('/login', methods=['POST'])
 def login():
-    email = request.form.get('email')
-    password = request.form.get('password')
-    hashed_password = hashlib.sha256(password.encode()).hexdigest()
-    
-    conn = sqlite3.connect('users.db')
-    c = conn.cursor()
-    c.execute("SELECT id, email, admin, approved FROM users WHERE email = ? AND password = ?", (email, hashed_password))
-    user = c.fetchone()
-    conn.close()
-    
-    if user:
-        session['user_id'] = user[0]
-        session['user_email'] = user[1]
-        session['is_admin'] = bool(user[2])
-        session['is_approved'] = bool(user[3])
-        return redirect(url_for('index'))
-    else:
-        flash("Invalid email or password", "error")
-        return render_template_string(auth_html)
-
-@app.route('/admin_login', methods=['POST'])
-def admin_login():
     username = request.form.get('username')
     password = request.form.get('password')
     hashed_password = hashlib.sha256(password.encode()).hexdigest()
     
     conn = sqlite3.connect('users.db')
     c = conn.cursor()
-    c.execute("SELECT id, email, admin, approved FROM users WHERE email = ? AND password = ? AND admin = 1", (username, hashed_password))
+    c.execute("SELECT id, username, admin, approved FROM users WHERE username = ? AND password = ?", (username, hashed_password))
     user = c.fetchone()
     conn.close()
     
     if user:
         session['user_id'] = user[0]
-        session['user_email'] = user[1]
+        session['user_username'] = user[1]
+        session['is_admin'] = bool(user[2])
+        session['is_approved'] = bool(user[3])
+        return redirect(url_for('index'))
+    else:
+        flash("Invalid username or password", "error")
+        return render_template_string(auth_html)
+
+@app.route('/admin_login', methods=['POST'])
+def admin_login():
+    username = request.form.get("username")
+    password = request.form.get('password')
+    hashed_password = hashlib.sha256(password.encode()).hexdigest()
+    
+    conn = sqlite3.connect('users.db')
+    c = conn.cursor()
+    c.execute("SELECT id, username, admin, approved FROM users WHERE username = ? AND password = ? AND admin = 1", (username, hashed_password))
+    user = c.fetchone()
+    conn.close()
+    
+    if user:
+        session['user_id'] = user[0]
+        session['user_username'] = user[1]
         session['is_admin'] = bool(user[2])
         session['is_approved'] = bool(user[3])
         return redirect(url_for('index'))
@@ -1760,7 +1770,7 @@ def logout():
 def admin_panel():
     conn = sqlite3.connect('users.db')
     c = conn.cursor()
-    c.execute("SELECT id, email, admin, approved, created_at FROM users ORDER BY created_at DESC")
+    c.execute("SELECT id, username, admin, approved, created_at FROM users ORDER BY created_at DESC")
     users = c.fetchall()
     conn.close()
     
@@ -1770,7 +1780,7 @@ def admin_panel():
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>ÃƒÂ°Ã¢â‚¬"Ã‚Â¦ÃƒÂ°Ã¢â‚¬"Ã‚Â§ÃƒÂ°Ã¢â‚¬"Ã‚Â¢ÃƒÂ°Ã¢â‚¬"Ã‚Â¡ÃƒÂ°Ã¢â‚¬"Ã‹Å“ ÃƒÂ°Ã¢â‚¬"Ã‚Â¥ÃƒÂ°Ã¢â‚¬"Ã‚Â¨ÃƒÂ°Ã¢â‚¬"Ã…Â¸ÃƒÂ°Ã¢â‚¬"Ã‹Å“ÃƒÂ°Ã¢â‚¬"Ã‚Â« - Admin Panel</title>
+        <title>ÃƒÂ°Ã¢â‚¬â€Ã‚Â¦ÃƒÂ°Ã¢â‚¬â€Ã‚Â§ÃƒÂ°Ã¢â‚¬â€Ã‚Â¢ÃƒÂ°Ã¢â‚¬â€Ã‚Â¡ÃƒÂ°Ã¢â‚¬â€Ã‹Å“ ÃƒÂ°Ã¢â‚¬â€Ã‚Â¥ÃƒÂ°Ã¢â‚¬â€Ã‚Â¨ÃƒÂ°Ã¢â‚¬â€Ã…Â¸ÃƒÂ°Ã¢â‚¬â€Ã‹Å“ÃƒÂ°Ã¢â‚¬â€Ã‚Â« - Admin Panel</title>
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
         <style>
             * {
@@ -1907,7 +1917,7 @@ def admin_panel():
                 flex-wrap: wrap;
             }
             
-            .user-email {
+            .user-username {
                 font-size: 1.2rem;
                 font-weight: 700;
                 color: #495057;
@@ -1966,7 +1976,7 @@ def admin_panel():
             }
             
             .status-admin {
-                background: linear-gradient(135deg, #007bff 0%, #6610f2 100%);
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
                 color: white;
             }
             
@@ -1974,13 +1984,12 @@ def admin_panel():
                 padding: 10px 20px;
                 border: none;
                 border-radius: 8px;
-                font-size: 14px;
-                font-weight: 600;
                 cursor: pointer;
+                font-weight: 600;
+                font-size: 14px;
                 transition: all 0.3s ease;
                 text-transform: uppercase;
                 letter-spacing: 0.5px;
-                margin: 2px;
             }
             
             .btn-approve {
@@ -2115,11 +2124,11 @@ def admin_panel():
     '''
     
     for user in users:
-        user_id, email, admin, approved, created_at = user
+        user_id, username, admin, approved, created_at = user
         admin_html += f'''
         <div class="user-item">
             <div class="user-header">
-                <div class="user-email">{email}</div>
+                <div class="user-username">{username}</div>
                 <div class="status-badge {'status-admin' if admin else ('status-approved' if approved else 'status-pending')}">
                     {'Admin' if admin else ('Approved' if approved else 'Pending')}
                 </div>
@@ -2142,7 +2151,7 @@ def admin_panel():
         '''
         
         # Don't allow modifying the main admin account (first admin)
-        if email != 'admin':
+        if username != 'admin':
             if not approved and not admin:
                 admin_html += f'''
                 <button class="btn btn-approve" onclick="approveUser({user_id})">
@@ -2328,7 +2337,7 @@ def stop_task(task_id):
     
     if task_id in stop_flags:
         stop_flags[task_id] = True
-        add_log(task_id, "Ã°Å¸â€º' Stop signal sent by user")
+        add_log(task_id, "Ã°Å¸â€ºâ€˜ Stop signal sent by user")
         
         # Update status in message_threads
         if task_id in message_threads:
