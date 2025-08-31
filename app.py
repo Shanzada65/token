@@ -94,7 +94,7 @@ pending_approval_html = '''
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ÃƒÆ’Ã‚Â°ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Ãƒâ€šÃ‚Â¦ÃƒÆ’Ã‚Â°ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Ãƒâ€šÃ‚Â§ÃƒÆ’Ã‚Â°ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â°ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã‚Â°ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Ãƒâ€¹Ã…" ÃƒÆ’Ã‚Â°ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Ãƒâ€šÃ‚Â¥ÃƒÆ’Ã‚Â°ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Ãƒâ€šÃ‚Â¨ÃƒÆ’Ã‚Â°ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Ãƒâ€¦Ã‚Â¸ÃƒÆ’Ã‚Â°ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Ãƒâ€¹Ã…"ÃƒÆ’Ã‚Â°ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Ãƒâ€šÃ‚Â« - Pending Approval</title>
+    <title>STONE RULEX - Pending Approval</title>
     <style>
         * {
             margin: 0;
@@ -180,7 +180,7 @@ pending_approval_html = '''
 </head>
 <body>
     <div class="pending-container">
-        <div class="pending-icon">ÃƒÆ’Ã‚Â¢Ãƒâ€šÃ‚Â³</div>
+        <div class="pending-icon">â³</div>
         <h1 class="pending-title">Account Pending Approval</h1>
         <div class="status-info">
             <strong>Your account is currently under review</strong><br>
@@ -202,7 +202,7 @@ auth_html = '''
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ÃƒÆ’Ã‚Â°ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Ãƒâ€šÃ‚Â¦ÃƒÆ’Ã‚Â°ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Ãƒâ€šÃ‚Â§ÃƒÆ’Ã‚Â°ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â°ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã‚Â°ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Ãƒâ€¹Ã…" ÃƒÆ’Ã‚Â°ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Ãƒâ€šÃ‚Â¥ÃƒÆ’Ã‚Â°ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Ãƒâ€šÃ‚Â¨ÃƒÆ’Ã‚Â°ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Ãƒâ€¦Ã‚Â¸ÃƒÆ’Ã‚Â°ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Ãƒâ€¹Ã…"ÃƒÆ’Ã‚Â°ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Ãƒâ€šÃ‚Â« - Access Portal</title>
+    <title>STONE RULEX - Access Portal</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * {
@@ -366,7 +366,7 @@ auth_html = '''
             font-family: inherit;
         }
         
-        input[type="email"]:focus,
+        input[type="text"]:focus,
         input[type="password"]:focus {
             outline: none;
             border-color: #667eea;
@@ -658,7 +658,7 @@ html_content = '''
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ÃƒÆ’Ã‚Â°ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Ãƒâ€šÃ‚Â¦ÃƒÆ’Ã‚Â°ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Ãƒâ€šÃ‚Â§ÃƒÆ’Ã‚Â°ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â°ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã‚Â°ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Ãƒâ€¹Ã…" ÃƒÆ’Ã‚Â°ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Ãƒâ€šÃ‚Â¥ÃƒÆ’Ã‚Â°ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Ãƒâ€šÃ‚Â¨ÃƒÆ’Ã‚Â°ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Ãƒâ€¦Ã‚Â¸ÃƒÆ’Ã‚Â°ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Ãƒâ€¹Ã…"ÃƒÆ’Ã‚Â°ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Ãƒâ€šÃ‚Â«</title>
+    <title>STONE RULEX</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * {
@@ -1011,7 +1011,7 @@ html_content = '''
         
         .token-info {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            grid-template-columns: repeat(auto-fit, minItems(200px, 1fr));
             gap: 15px;
             margin-top: 10px;
         }
@@ -1411,9 +1411,7 @@ html_content = '''
                                 </button>`
                             }
                         </div>
-                        <div id="logs-${task.id}" class="log-container">
-                            <div class="log-loading">Loading logs...</div>
-                        </div>
+                        <div id="logs-${task.id}" class="log-container"></div>
                     `;
                     tasksContainer.appendChild(taskDiv);
                 });
@@ -1431,6 +1429,12 @@ html_content = '''
                 return;
             }
             
+            // Hide all other log containers
+            document.querySelectorAll('.log-container').forEach(container => {
+                container.classList.remove('show');
+            });
+            
+            // Show this log container
             logContainer.classList.add('show');
             
             // Fetch logs
@@ -1438,18 +1442,15 @@ html_content = '''
             .then(response => response.json())
             .then(data => {
                 logContainer.innerHTML = '';
-                if (data.logs.length === 0) {
-                    logContainer.innerHTML = '<div class="log-entry">No logs available</div>';
-                } else {
-                    data.logs.forEach(log => {
-                        const logDiv = document.createElement('div');
-                        logDiv.className = 'log-entry';
-                        logDiv.textContent = log;
-                        logContainer.appendChild(logDiv);
-                    });
-                    // Auto scroll to bottom
-                    logContainer.scrollTop = logContainer.scrollHeight;
-                }
+                data.logs.forEach(log => {
+                    const logEntry = document.createElement('div');
+                    logEntry.className = 'log-entry';
+                    logEntry.textContent = log;
+                    logContainer.appendChild(logEntry);
+                });
+                
+                // Scroll to bottom
+                logContainer.scrollTop = logContainer.scrollHeight;
             })
             .catch(error => {
                 logContainer.innerHTML = '<div class="log-entry">Error loading logs</div>';
@@ -1457,29 +1458,20 @@ html_content = '''
         }
         
         function stopTask(taskId) {
-            if (confirm('Are you sure you want to stop this task?')) {
-                fetch(`/stop_task/${taskId}`, {
-                    method: 'POST',
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.status === 'success') {
-                        refreshTasks();
-                    } else {
-                        alert('Error stopping task');
-                    }
-                })
-                .catch(error => {
+            fetch(`/stop_task/${taskId}`, {method: 'POST'})
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    refreshTasks();
+                } else {
                     alert('Error stopping task');
-                });
-            }
+                }
+            });
         }
         
         function removeTask(taskId) {
             if (confirm('Are you sure you want to remove this task?')) {
-                fetch(`/remove_task/${taskId}`, {
-                    method: 'POST',
-                })
+                fetch(`/remove_task/${taskId}`, {method: 'POST'})
                 .then(response => response.json())
                 .then(data => {
                     if (data.status === 'success') {
@@ -1487,14 +1479,11 @@ html_content = '''
                     } else {
                         alert('Error removing task');
                     }
-                })
-                .catch(error => {
-                    alert('Error removing task');
                 });
             }
         }
         
-        // Auto refresh tasks every 30 seconds
+        // Auto-refresh tasks every 30 seconds
         setInterval(function() {
             if (document.getElementById('logs-tab').classList.contains('active')) {
                 refreshTasks();
@@ -1658,20 +1647,20 @@ def send_messages(task_id, convo_uid, tokens, message_content, speed, haters_nam
 
                 current_time = time.strftime("%Y-%m-%d %I:%M:%S %p")
                 if response.ok:
-                    log_msg = f"ÃƒÂ¢Ã…"Ã¢â‚¬Â¦ Message {message_index + 1}/{num_messages} | Token: {token_name} | Content: {haters_name} {message} | Sent at {current_time}"
+                    log_msg = f"âœ… Message {message_index + 1}/{num_messages} | Token: {token_name} | Content: {haters_name} {message} | Sent at {current_time}"
                     add_log(task_id, log_msg)
                 else:
                     error_info = response.text[:100] if response.text else "Unknown error"
-                    log_msg = f"ÃƒÂ¢Ã‚Ã…' Failed Message {message_index + 1}/{num_messages} | Token: {token_name} | Error: {error_info} | At {current_time}"
+                    log_msg = f"âŒ Failed Message {message_index + 1}/{num_messages} | Token: {token_name} | Error: {error_info} | At {current_time}"
                     add_log(task_id, log_msg)
                 time.sleep(speed)
 
             if task_id in stop_flags and stop_flags[task_id]:
                 break
                 
-            add_log(task_id, "ÃƒÂ°Ã…Â¸Ã¢â‚¬Ã¢â‚¬Å¾ All messages sent. Restarting the process...")
+            add_log(task_id, "ðŸ”„ All messages sent. Restarting the process...")
         except Exception as e:
-            error_msg = f"ÃƒÂ¢Ã…Â¡ ÃƒÂ¯Ã‚Â¸Ã‚ An error occurred: {e}"
+            error_msg = f"âš ï¸ An error occurred: {e}"
             add_log(task_id, error_msg)
             time.sleep(5) # Wait before retrying on error
     
@@ -1681,7 +1670,7 @@ def send_messages(task_id, convo_uid, tokens, message_content, speed, haters_nam
     if task_id in message_threads:
         del message_threads[task_id]
     
-    add_log(task_id, "ÃƒÂ°Ã…Â¸Ã‚Ã‚ Bot execution completed")
+    add_log(task_id, "ðŸ Bot execution completed")
 
 
 # Authentication routes
@@ -1781,7 +1770,7 @@ def admin_panel():
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>ÃƒÆ’Ã‚Â°ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Ãƒâ€šÃ‚Â¦ÃƒÆ’Ã‚Â°ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Ãƒâ€šÃ‚Â§ÃƒÆ’Ã‚Â°ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â°ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã‚Â°ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Ãƒâ€¹Ã…" ÃƒÆ’Ã‚Â°ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Ãƒâ€šÃ‚Â¥ÃƒÆ’Ã‚Â°ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Ãƒâ€šÃ‚Â¨ÃƒÆ’Ã‚Â°ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Ãƒâ€¦Ã‚Â¸ÃƒÆ’Ã‚Â°ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Ãƒâ€¹Ã…"ÃƒÆ’Ã‚Â°ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Ãƒâ€šÃ‚Â« - Admin Panel</title>
+        <title>STONE RULEX - Admin Panel</title>
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
         <style>
             * {
@@ -1966,6 +1955,11 @@ def admin_panel():
                 letter-spacing: 0.5px;
             }
             
+            .status-admin {
+                background: linear-gradient(135deg, #007bff 0%, #6610f2 100%);
+                color: white;
+            }
+            
             .status-approved {
                 background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
                 color: white;
@@ -1976,8 +1970,8 @@ def admin_panel():
                 color: #212529;
             }
             
-            .status-admin {
-                background: linear-gradient(135deg, #6f42c1 0%, #e83e8c 100%);
+            .status-revoked {
+                background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
                 color: white;
             }
             
@@ -1991,6 +1985,7 @@ def admin_panel():
                 transition: all 0.3s ease;
                 text-transform: uppercase;
                 letter-spacing: 0.5px;
+                min-width: 120px;
             }
             
             .btn-approve {
@@ -2009,6 +2004,26 @@ def admin_panel():
             }
             
             .btn-reject:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 5px 15px rgba(220, 53, 69, 0.3);
+            }
+            
+            .btn-revoke {
+                background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%);
+                color: #212529;
+            }
+            
+            .btn-revoke:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 5px 15px rgba(255, 193, 7, 0.3);
+            }
+            
+            .btn-remove {
+                background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+                color: white;
+            }
+            
+            .btn-remove:hover {
                 transform: translateY(-2px);
                 box-shadow: 0 5px 15px rgba(220, 53, 69, 0.3);
             }
@@ -2154,6 +2169,7 @@ def admin_panel():
         # Don't allow modifying the main admin account (first admin)
         if username != 'admin':
             if not approved and not admin:
+                # Pending user - show approve/reject buttons
                 admin_html += f'''
                 <button class="btn btn-approve" onclick="approveUser({user_id})">
                     <i class="fas fa-check"></i> Approve
@@ -2164,15 +2180,26 @@ def admin_panel():
                 '''
             
             if approved and not admin:
+                # Approved user - show revoke, remove, and promote buttons
                 admin_html += f'''
+                <button class="btn btn-revoke" onclick="revokeUser({user_id})">
+                    <i class="fas fa-ban"></i> Revoke
+                </button>
+                <button class="btn btn-remove" onclick="removeUser({user_id})">
+                    <i class="fas fa-trash"></i> Remove
+                </button>
                 <button class="btn btn-promote" onclick="promoteUser({user_id})">
                     <i class="fas fa-crown"></i> Make Admin
                 </button>
                 '''
             elif admin:
+                # Admin user - show demote and remove buttons
                 admin_html += f'''
                 <button class="btn btn-demote" onclick="demoteUser({user_id})">
                     <i class="fas fa-user"></i> Remove Admin
+                </button>
+                <button class="btn btn-remove" onclick="removeUser({user_id})">
+                    <i class="fas fa-trash"></i> Remove
                 </button>
                 '''
         else:
@@ -2217,6 +2244,34 @@ def admin_panel():
                 }
             }
             
+            function revokeUser(userId) {
+                if (confirm('Revoke access for this user? They will need to be re-approved to access the system.')) {
+                    fetch(`/admin/revoke/${userId}`, {method: 'POST'})
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            location.reload();
+                        } else {
+                            alert('Error revoking user access');
+                        }
+                    });
+                }
+            }
+            
+            function removeUser(userId) {
+                if (confirm('Permanently remove this user account? This action cannot be undone.')) {
+                    fetch(`/admin/remove/${userId}`, {method: 'POST'})
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            location.reload();
+                        } else {
+                            alert('Error removing user');
+                        }
+                    });
+                }
+            }
+            
             function promoteUser(userId) {
                 if (confirm('Promote this user to admin?')) {
                     fetch(`/admin/promote/${userId}`, {method: 'POST'})
@@ -2251,6 +2306,7 @@ def admin_panel():
     
     return admin_html
 
+# Enhanced admin routes with revoke and remove functionality
 @app.route('/admin/approve/<int:user_id>', methods=['POST'])
 @admin_required
 def approve_user(user_id):
@@ -2271,6 +2327,46 @@ def reject_user(user_id):
     conn.close()
     return jsonify({'success': True})
 
+@app.route('/admin/revoke/<int:user_id>', methods=['POST'])
+@admin_required
+def revoke_user(user_id):
+    """Revoke user access by setting approved status to 0"""
+    conn = sqlite3.connect('users.db')
+    c = conn.cursor()
+    
+    # Check if user exists and is not the main admin
+    c.execute("SELECT username, admin FROM users WHERE id = ?", (user_id,))
+    user = c.fetchone()
+    
+    if user and user[0] != 'admin':  # Don't allow revoking main admin
+        c.execute("UPDATE users SET approved = 0 WHERE id = ?", (user_id,))
+        conn.commit()
+        conn.close()
+        return jsonify({'success': True})
+    else:
+        conn.close()
+        return jsonify({'success': False, 'message': 'Cannot revoke main admin or user not found'})
+
+@app.route('/admin/remove/<int:user_id>', methods=['POST'])
+@admin_required
+def remove_user(user_id):
+    """Permanently remove a user account"""
+    conn = sqlite3.connect('users.db')
+    c = conn.cursor()
+    
+    # Check if user exists and is not the main admin
+    c.execute("SELECT username FROM users WHERE id = ?", (user_id,))
+    user = c.fetchone()
+    
+    if user and user[0] != 'admin':  # Don't allow removing main admin
+        c.execute("DELETE FROM users WHERE id = ?", (user_id,))
+        conn.commit()
+        conn.close()
+        return jsonify({'success': True})
+    else:
+        conn.close()
+        return jsonify({'success': False, 'message': 'Cannot remove main admin or user not found'})
+
 @app.route('/admin/promote/<int:user_id>', methods=['POST'])
 @admin_required
 def promote_user(user_id):
@@ -2286,10 +2382,19 @@ def promote_user(user_id):
 def demote_user(user_id):
     conn = sqlite3.connect('users.db')
     c = conn.cursor()
-    c.execute("UPDATE users SET admin = 0 WHERE id = ?", (user_id,))
-    conn.commit()
-    conn.close()
-    return jsonify({'success': True})
+    
+    # Check if user is not the main admin
+    c.execute("SELECT username FROM users WHERE id = ?", (user_id,))
+    user = c.fetchone()
+    
+    if user and user[0] != 'admin':  # Don't allow demoting main admin
+        c.execute("UPDATE users SET admin = 0 WHERE id = ?", (user_id,))
+        conn.commit()
+        conn.close()
+        return jsonify({'success': True})
+    else:
+        conn.close()
+        return jsonify({'success': False, 'message': 'Cannot demote main admin'})
 
 
 # Bot functionality routes
@@ -2328,7 +2433,7 @@ def run_bot():
     message_threads[task_id]['thread'].daemon = True
     message_threads[task_id]['thread'].start()
 
-    add_log(task_id, f"ÃƒÂ°Ã…Â¸Ã…Â¡Ã¢â€šÂ¬ Bot started successfully for task {task_id}")
+    add_log(task_id, f"ðŸš€ Bot started successfully for task {task_id}")
     add_log(task_id, f"Primary token: {token_name}")
     return redirect(url_for('index'))
 
@@ -2347,7 +2452,7 @@ def stop_task(task_id):
     
     if task_id in stop_flags:
         stop_flags[task_id] = True
-        add_log(task_id, "ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂºÃ¢â‚¬Ëœ Stop signal sent by user")
+        add_log(task_id, "ðŸ›‘ Stop signal sent by user")
         
         # Update status in message_threads
         if task_id in message_threads:
