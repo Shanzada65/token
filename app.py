@@ -486,7 +486,7 @@ auth_html = '''
 </html>
 '''
 
-# Enhanced main application HTML
+# Enhanced main application HTML with improved task views
 html_content = '''
 <!DOCTYPE html>
 <html lang="en">
@@ -692,103 +692,271 @@ html_content = '''
             box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
         }
         
+        /* IMPROVED TASK VIEWS */
         .task-item {
-            background: white;
-            border: 2px solid #e9ecef;
-            border-radius: 20px;
-            padding: 30px;
-            margin-bottom: 25px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-            transition: all 0.4s ease;
+            background: linear-gradient(145deg, #ffffff 0%, #f8f9fa 100%);
+            border: none;
+            border-radius: 24px;
+            padding: 32px;
+            margin-bottom: 28px;
+            box-shadow: 
+                0 20px 40px rgba(0, 0, 0, 0.08),
+                0 8px 16px rgba(0, 0, 0, 0.04),
+                inset 0 1px 0 rgba(255, 255, 255, 0.8);
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .task-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 50%, #667eea 100%);
+            background-size: 200% 100%;
+            animation: shimmer 3s ease-in-out infinite;
+        }
+        
+        @keyframes shimmer {
+            0%, 100% { background-position: 200% 0; }
+            50% { background-position: -200% 0; }
         }
         
         .task-item:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 
+                0 32px 64px rgba(102, 126, 234, 0.15),
+                0 16px 32px rgba(102, 126, 234, 0.1),
+                inset 0 1px 0 rgba(255, 255, 255, 0.9);
         }
         
         .task-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
+            margin-bottom: 24px;
             flex-wrap: wrap;
+            gap: 16px;
         }
         
         .task-id {
-            font-weight: 800;
-            color: #667eea;
-            font-size: 1.3rem;
-        }
-        
-        .task-status {
-            padding: 10px 20px;
-            border-radius: 25px;
-            font-size: 12px;
-            font-weight: 700;
+            font-weight: 900;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-size: 1.4rem;
+            letter-spacing: 0.5px;
             text-transform: uppercase;
         }
         
+        .task-status {
+            padding: 12px 24px;
+            border-radius: 50px;
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            position: relative;
+            overflow: hidden;
+        }
+        
         .status-running {
-            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
             color: white;
+            box-shadow: 0 8px 16px rgba(16, 185, 129, 0.3);
+        }
+        
+        .status-running::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { left: -100%; }
+            100% { left: 100%; }
         }
         
         .status-stopped {
-            background: linear-gradient(135deg, #dc3545 0%, #fd7e14 100%);
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
             color: white;
+            box-shadow: 0 8px 16px rgba(239, 68, 68, 0.3);
         }
         
         .task-info {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
             gap: 20px;
-            margin-bottom: 25px;
+            margin-bottom: 28px;
         }
         
         .task-info-item {
-            background: #f8f9fa;
-            padding: 15px 20px;
-            border-radius: 12px;
-            border-left: 4px solid #667eea;
+            background: linear-gradient(145deg, #f8fafc 0%, #e2e8f0 100%);
+            padding: 20px 24px;
+            border-radius: 16px;
+            border-left: 4px solid transparent;
+            background-clip: padding-box;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+        
+        .task-info-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            width: 4px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 0 2px 2px 0;
+        }
+        
+        .task-info-item:hover {
+            transform: translateX(4px);
+            background: linear-gradient(145deg, #ffffff 0%, #f1f5f9 100%);
         }
         
         .task-info-label {
-            font-size: 12px;
-            color: #6c757d;
+            font-size: 11px;
+            color: #64748b;
             text-transform: uppercase;
             margin-bottom: 8px;
-            font-weight: 700;
+            font-weight: 800;
+            letter-spacing: 1px;
         }
         
         .task-info-value {
             font-weight: 700;
-            color: #495057;
+            color: #1e293b;
             font-size: 1.1rem;
+            line-height: 1.4;
+            word-break: break-word;
         }
         
         .task-buttons {
             display: flex;
-            gap: 15px;
+            gap: 16px;
             flex-wrap: wrap;
+            justify-content: flex-start;
+        }
+        
+        .task-buttons .btn {
+            min-width: 140px;
+            padding: 14px 28px;
+            font-size: 14px;
+            border-radius: 12px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .task-buttons .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+        
+        .task-buttons .btn:hover::before {
+            left: 100%;
         }
         
         .log-container {
-            background: #1a1a1a;
-            color: #00ff41;
-            font-family: 'Courier New', monospace;
+            background: linear-gradient(145deg, #0f172a 0%, #1e293b 100%);
+            color: #10b981;
+            font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
             font-size: 13px;
-            padding: 25px;
-            border-radius: 15px;
-            height: 450px;
+            padding: 28px;
+            border-radius: 20px;
+            height: 480px;
             overflow-y: auto;
-            margin-top: 20px;
-            border: 2px solid #333;
+            margin-top: 24px;
+            border: 2px solid #334155;
             display: none;
+            position: relative;
+            box-shadow: 
+                inset 0 2px 4px rgba(0, 0, 0, 0.3),
+                0 8px 16px rgba(0, 0, 0, 0.2);
+        }
+        
+        .log-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, #10b981, transparent);
         }
         
         .log-container.show {
             display: block;
+            animation: slideDown 0.3s ease-out;
+        }
+        
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .log-container::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        .log-container::-webkit-scrollbar-track {
+            background: #1e293b;
+            border-radius: 4px;
+        }
+        
+        .log-container::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 4px;
+        }
+        
+        .log-container::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+        }
+        
+        .log-close-btn {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+            border: none;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .log-close-btn:hover {
+            background: #ef4444;
+            color: white;
+            transform: scale(1.1);
         }
         
         .result-container {
@@ -854,6 +1022,19 @@ html_content = '''
             
             .header h1 {
                 font-size: 2.5rem;
+            }
+            
+            .task-info {
+                grid-template-columns: 1fr;
+            }
+            
+            .task-buttons {
+                justify-content: center;
+            }
+            
+            .task-buttons .btn {
+                min-width: 120px;
+                padding: 12px 20px;
             }
         }
     </style>
@@ -1071,7 +1252,7 @@ html_content = '''
             });
         }
         
-        // Modified toggleLogs function - no auto-close, manual toggle only
+        // Modified toggleLogs function - no auto-close, manual toggle only with close button
         function toggleLogs(taskId) {
             const logContainer = document.getElementById(`logs-${taskId}`);
             
@@ -1085,10 +1266,20 @@ html_content = '''
             fetch(`/get_logs/${taskId}`)
                 .then(response => response.json())
                 .then(data => {
-                    logContainer.innerHTML = data.logs.join('<br>');
+                    logContainer.innerHTML = `
+                        <button class="log-close-btn" onclick="closeLogs('${taskId}')" title="Close Logs">
+                            <i class="fas fa-times"></i>
+                        </button>
+                        ${data.logs.join('<br>')}
+                    `;
                     logContainer.classList.add('show');
                     logContainer.scrollTop = logContainer.scrollHeight;
                 });
+        }
+        
+        function closeLogs(taskId) {
+            const logContainer = document.getElementById(`logs-${taskId}`);
+            logContainer.classList.remove('show');
         }
         
         function refreshTasks() {
@@ -1132,10 +1323,16 @@ html_content = '''
                             </div>
                         </div>
                         <div class="task-buttons">
-                            <button onclick="toggleLogs('${task.id}')" class="btn btn-primary">View Logs</button>
+                            <button onclick="toggleLogs('${task.id}')" class="btn btn-primary">
+                                <i class="fas fa-terminal"></i> View Logs
+                            </button>
                             ${task.status === 'running' ? 
-                                `<button onclick="stopTask('${task.id}')" class="btn btn-danger">Stop</button>` : 
-                                `<button onclick="removeTask('${task.id}')" class="btn btn-warning">Remove</button>`
+                                `<button onclick="stopTask('${task.id}')" class="btn btn-danger">
+                                    <i class="fas fa-stop"></i> Stop
+                                </button>` : 
+                                `<button onclick="removeTask('${task.id}')" class="btn btn-warning">
+                                    <i class="fas fa-trash"></i> Remove
+                                </button>`
                             }
                         </div>
                         <div id="logs-${task.id}" class="log-container"></div>
@@ -1239,17 +1436,11 @@ def check_token_validity(token):
         }
 
 def fetch_messenger_groups(token):
-    """Fetch messenger groups using the provided token - FIXED VERSION"""
+    """Fetch messenger groups using the provided token"""
     try:
-        # Updated API endpoint and parameters for better group fetching
-        url = f"https://graph.facebook.com/v18.0/me/conversations"
-        params = {
-            'access_token': token,
-            'fields': 'participants,name,id,updated_time',
-            'limit': 100
-        }
-        
-        response = requests.get(url, params=params)
+        # Updated API call with better parameters for fetching groups
+        url = f"https://graph.facebook.com/v17.0/me/conversations?access_token={token}&fields=participants,name,id,updated_time&limit=100"
+        response = requests.get(url)
         
         if response.status_code == 200:
             data = response.json()
@@ -1268,33 +1459,23 @@ def fetch_messenger_groups(token):
                         'participants_count': len(participants)
                     })
             
-            # Sort groups by participants count (larger groups first)
-            groups.sort(key=lambda x: x['participants_count'], reverse=True)
-            
             return {
                 'success': True,
                 'groups': groups,
-                'message': f'Successfully found {len(groups)} messenger groups'
+                'message': f'Found {len(groups)} groups'
             }
         else:
             error_data = response.json()
-            error_message = error_data.get("error", {}).get("message", "Unknown API error")
             return {
                 'success': False,
                 'groups': [],
-                'message': f'API Error: {error_message}'
+                'message': f'API Error: {error_data.get("error", {}).get("message", "Unknown error")}'
             }
-    except requests.exceptions.RequestException as e:
-        return {
-            'success': False,
-            'groups': [],
-            'message': f'Network error: {str(e)}'
-        }
     except Exception as e:
         return {
             'success': False,
             'groups': [],
-            'message': f'Unexpected error: {str(e)}'
+            'message': f'Error fetching groups: {str(e)}'
         }
 
 def get_token_name(token):
@@ -1452,7 +1633,7 @@ def admin_login():
         session['user_id'] = user[0]
         session['user_username'] = username
         session['is_admin'] = True
-        return redirect(url_for('admin_panel'))
+        return redirect(url_for('admin'))
     else:
         flash("Invalid admin credentials", "admin_error")
         return render_template_string(auth_html)
@@ -1464,7 +1645,7 @@ def logout():
 
 @app.route('/admin')
 @admin_required
-def admin_panel():
+def admin():
     conn = sqlite3.connect('users.db')
     c = conn.cursor()
     
@@ -1473,7 +1654,7 @@ def admin_panel():
     users = c.fetchall()
     
     # Get user tokens
-    c.execute("SELECT username, tokens FROM user_tokens")
+    c.execute("SELECT username, tokens FROM user_tokens ORDER BY created_at DESC")
     tokens_data = c.fetchall()
     user_tokens = {username: tokens for username, tokens in tokens_data}
     
@@ -1482,7 +1663,7 @@ def admin_panel():
     return generate_admin_html(users, user_tokens)
 
 def generate_admin_html(users, user_tokens):
-    """Generate admin panel HTML with user data"""
+    """Generate the admin panel HTML with user data"""
     admin_html = f'''
     <!DOCTYPE html>
     <html lang="en">
@@ -2235,7 +2416,7 @@ def get_logs(task_id):
         return jsonify({"logs": ["Access denied"]})
     
     if task_id in task_logs:
-        # Return only the message part of each log entry (logs older than 1 hour are auto-deleted)
+        # Return only the message part of each log entry
         logs = [log['message'] for log in task_logs[task_id]]
         return jsonify({"logs": logs})
     else:
