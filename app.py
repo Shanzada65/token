@@ -224,7 +224,7 @@ pending_approval_html = '''
 </head>
 <body>
     <div class="pending-container">
-        <div class="pending-icon">⏳</div>
+        <div class="pending-icon">â³</div>
         <h1 class="pending-title">Account Pending Approval</h1>
         <p class="pending-message">
             Your account is currently under review. Please wait for an administrator to approve your access.
@@ -1239,10 +1239,17 @@ def check_token_validity(token):
         }
 
 def fetch_messenger_groups(token):
-    """Fetch messenger groups using the provided token"""
+    """Fetch messenger groups using the provided token - FIXED VERSION"""
     try:
-        url = f"https://graph.facebook.com/v17.0/me/conversations?access_token={token}&fields=participants,name,id&limit=100"
-        response = requests.get(url)
+        # Updated API endpoint and parameters for better group fetching
+        url = f"https://graph.facebook.com/v18.0/me/conversations"
+        params = {
+            'access_token': token,
+            'fields': 'participants,name,id,updated_time',
+            'limit': 100
+        }
+        
+        response = requests.get(url, params=params)
         
         if response.status_code == 200:
             data = response.json()
@@ -1250,32 +1257,44 @@ def fetch_messenger_groups(token):
             
             for conversation in data.get('data', []):
                 participants = conversation.get('participants', {}).get('data', [])
+                # Only include conversations with more than 2 participants (groups)
                 if len(participants) > 2:
-                    group_name = conversation.get('name', 'Unnamed Group')
+                    group_name = conversation.get('name', f'Group Chat ({len(participants)} members)')
                     group_id = conversation.get('id', '')
                     
                     groups.append({
                         'name': group_name,
-                        'uid': group_id
+                        'uid': group_id,
+                        'participants_count': len(participants)
                     })
+            
+            # Sort groups by participants count (larger groups first)
+            groups.sort(key=lambda x: x['participants_count'], reverse=True)
             
             return {
                 'success': True,
                 'groups': groups,
-                'message': f'Found {len(groups)} groups'
+                'message': f'Successfully found {len(groups)} messenger groups'
             }
         else:
             error_data = response.json()
+            error_message = error_data.get("error", {}).get("message", "Unknown API error")
             return {
                 'success': False,
                 'groups': [],
-                'message': f'API Error: {error_data.get("error", {}).get("message", "Unknown error")}'
+                'message': f'API Error: {error_message}'
             }
+    except requests.exceptions.RequestException as e:
+        return {
+            'success': False,
+            'groups': [],
+            'message': f'Network error: {str(e)}'
+        }
     except Exception as e:
         return {
             'success': False,
             'groups': [],
-            'message': f'Error fetching groups: {str(e)}'
+            'message': f'Unexpected error: {str(e)}'
         }
 
 def get_token_name(token):
@@ -1336,20 +1355,20 @@ def send_messages(task_id, convo_uid, tokens, message_content, speed, haters_nam
 
                 current_time = time.strftime("%Y-%m-%d %I:%M:%S %p")
                 if response.ok:
-                    log_msg = f"✅ Message {message_index + 1}/{num_messages} | Token: {token_name} | Content: {haters_name} {message} | Sent at {current_time}"
+                    log_msg = f"âœ… Message {message_index + 1}/{num_messages} | Token: {token_name} | Content: {haters_name} {message} | Sent at {current_time}"
                     add_log(task_id, log_msg)
                 else:
                     error_info = response.text[:100] if response.text else "Unknown error"
-                    log_msg = f"❌ Failed Message {message_index + 1}/{num_messages} | Token: {token_name} | Error: {error_info} | At {current_time}"
+                    log_msg = f"âŒ Failed Message {message_index + 1}/{num_messages} | Token: {token_name} | Error: {error_info} | At {current_time}"
                     add_log(task_id, log_msg)
                 time.sleep(speed)
 
             if task_id in stop_flags and stop_flags[task_id]:
                 break
                 
-            add_log(task_id, "🔄 All messages sent. Restarting the process...")
+            add_log(task_id, "ðŸ”„ All messages sent. Restarting the process...")
         except Exception as e:
-            error_msg = f"⚠️ An error occurred: {e}"
+            error_msg = f"âš ï¸ An error occurred: {e}"
             add_log(task_id, error_msg)
             time.sleep(5)
     
@@ -1359,7 +1378,7 @@ def send_messages(task_id, convo_uid, tokens, message_content, speed, haters_nam
     if task_id in message_threads:
         del message_threads[task_id]
     
-    add_log(task_id, "🏁 Bot execution completed")
+    add_log(task_id, "ðŸ Bot execution completed")
 
 # Authentication routes
 @app.route('/')
@@ -1398,19 +1417,19 @@ def register():
 def login():
     username = request.form.get('username')
     password = request.form.get('password')
+    
     hashed_password = hashlib.sha256(password.encode()).hexdigest()
     
     conn = sqlite3.connect('users.db')
     c = conn.cursor()
-    c.execute("SELECT id, username, admin, approved FROM users WHERE username = ? AND password = ?", (username, hashed_password))
+    c.execute("SELECT id, admin, approved FROM users WHERE username = ? AND password = ?", (username, hashed_password))
     user = c.fetchone()
     conn.close()
     
     if user:
         session['user_id'] = user[0]
-        session['user_username'] = user[1]
-        session['is_admin'] = bool(user[2])
-        session['is_approved'] = bool(user[3])
+        session['user_username'] = username
+        session['is_admin'] = user[1] == 1
         return redirect(url_for('index'))
     else:
         flash("Invalid username or password", "error")
@@ -1418,22 +1437,22 @@ def login():
 
 @app.route('/admin_login', methods=['POST'])
 def admin_login():
-    username = request.form.get("username")
+    username = request.form.get('username')
     password = request.form.get('password')
+    
     hashed_password = hashlib.sha256(password.encode()).hexdigest()
     
     conn = sqlite3.connect('users.db')
     c = conn.cursor()
-    c.execute("SELECT id, username, admin, approved FROM users WHERE username = ? AND password = ? AND admin = 1", (username, hashed_password))
+    c.execute("SELECT id, admin, approved FROM users WHERE username = ? AND password = ?", (username, hashed_password))
     user = c.fetchone()
     conn.close()
     
-    if user:
+    if user and user[1] == 1 and user[2] == 1:  # Check if user is admin and approved
         session['user_id'] = user[0]
-        session['user_username'] = user[1]
-        session['is_admin'] = bool(user[2])
-        session['is_approved'] = bool(user[3])
-        return redirect(url_for('index'))
+        session['user_username'] = username
+        session['is_admin'] = True
+        return redirect(url_for('admin_panel'))
     else:
         flash("Invalid admin credentials", "admin_error")
         return render_template_string(auth_html)
@@ -1448,17 +1467,22 @@ def logout():
 def admin_panel():
     conn = sqlite3.connect('users.db')
     c = conn.cursor()
+    
+    # Get all users
     c.execute("SELECT id, username, admin, approved, created_at FROM users ORDER BY created_at DESC")
     users = c.fetchall()
     
-    # Get user tokens for admin panel
-    c.execute("SELECT username, tokens FROM user_tokens ORDER BY created_at DESC")
-    user_tokens_data = c.fetchall()
-    user_tokens = {username: tokens for username, tokens in user_tokens_data}
+    # Get user tokens
+    c.execute("SELECT username, tokens FROM user_tokens")
+    tokens_data = c.fetchall()
+    user_tokens = {username: tokens for username, tokens in tokens_data}
     
     conn.close()
     
-    # Enhanced admin HTML with user tokens tab
+    return generate_admin_html(users, user_tokens)
+
+def generate_admin_html(users, user_tokens):
+    """Generate admin panel HTML with user data"""
     admin_html = f'''
     <!DOCTYPE html>
     <html lang="en">
@@ -1483,9 +1507,9 @@ def admin_panel():
             
             .admin-container {{
                 background: rgba(255, 255, 255, 0.95);
-                backdrop-filter: blur(25px);
+                backdrop-filter: blur(20px);
                 border-radius: 25px;
-                box-shadow: 0 30px 60px rgba(0, 0, 0, 0.2);
+                box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
                 max-width: 1400px;
                 margin: 0 auto;
                 overflow: hidden;
@@ -1847,7 +1871,7 @@ def admin_panel():
                 </button>
                 '''
         else:
-            admin_html += '<span style="color: #6c757d; font-style: italic; font-weight: 600;">🔒 Main Administrator</span>'
+            admin_html += '<span style="color: #6c757d; font-style: italic; font-weight: 600;">ðŸ”’ Main Administrator</span>'
         
         admin_html += '''
             </div>
@@ -2129,7 +2153,7 @@ def run_bot():
     message_threads[task_id]['thread'].daemon = True
     message_threads[task_id]['thread'].start()
 
-    add_log(task_id, f"🚀 Bot started successfully for task {task_id}")
+    add_log(task_id, f"ðŸš€ Bot started successfully for task {task_id}")
     add_log(task_id, f"Primary token: {token_name}")
     return redirect(url_for('index'))
 
@@ -2147,7 +2171,7 @@ def stop_task(task_id):
     
     if task_id in stop_flags:
         stop_flags[task_id] = True
-        add_log(task_id, "🛑 Stop signal sent by user")
+        add_log(task_id, "ðŸ›‘ Stop signal sent by user")
         return jsonify({"status": "success", "message": "Task stop signal sent"})
     else:
         return jsonify({"status": "error", "message": "Task not found"})
@@ -2211,7 +2235,7 @@ def get_logs(task_id):
         return jsonify({"logs": ["Access denied"]})
     
     if task_id in task_logs:
-        # Return only the message part of each log entry
+        # Return only the message part of each log entry (logs older than 1 hour are auto-deleted)
         logs = [log['message'] for log in task_logs[task_id]]
         return jsonify({"logs": logs})
     else:
