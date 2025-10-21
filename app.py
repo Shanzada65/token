@@ -1,16 +1,80 @@
 from flask import Flask, render_template_string, request, jsonify, session, redirect, url_for
 import requests
 import json
-from datetime import datetime
+from flask_sqlalchemy import SQLAlchemy
+from werkzeug.security import generate_password_hash, check_password_hash
+from datetime import datetime, timedelta
 import os
 import secrets
+import threading
+import time
+import uuid
+from functools import wraps
 
 app = Flask(__name__)
+app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///site.db"
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+db = SQLAlchemy(app)
 app.secret_key = secrets.token_hex(16)
 
+# Global dictionary to store running tasks and their threads
+running_tasks = {}
+
+
+# Database Models
+class User(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(80), unique=True, nullable=False)
+    password_hash = db.Column(db.String(128), nullable=False)
+    is_approved = db.Column(db.Boolean, default=False, nullable=False)
+    is_admin = db.Column(db.Boolean, default=False, nullable=False)
+    tasks = db.relationship('Task', backref='author', lazy=True)
+
+    def set_password(self, password):
+        self.password_hash = generate_password_hash(password)
+
+    def check_password(self, password):
+        return check_password_hash(self.password_hash, password)
+
+    def __repr__(self):
+        return f"User(\'{self.username}\', Approved: {self.is_approved}, Admin: {self.is_admin})"
+
+class Task(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    task_type = db.Column(db.String(50), nullable=False)
+    status = db.Column(db.String(50), nullable=False)
+    created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    logs = db.relationship('TaskLog', backref='task', lazy=True, cascade="all, delete-orphan")
+
+    def __repr__(self):
+        return f"Task(\'{self.task_type}\', \'{self.status}\', User: {self.user_id})"
+
+class TaskLog(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    task_id = db.Column(db.Integer, db.ForeignKey('task.id'), nullable=False)
+    timestamp = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    message = db.Column(db.Text, nullable=False)
+
+    def __repr__(self):
+        return f"TaskLog(\'{self.message}\', Task: {self.task_id})"
+
+# Create database tables if they don\'t exist
+with app.app_context():
+    db.create_all()
+
+    # Create a default admin user if one doesn't exist
+    if not User.query.filter_by(username='admin').first():
+        admin_user = User(username='admin', is_admin=True, is_approved=True)
+        admin_user.set_password('adminpassword')  # Change this to a strong password in production
+        db.session.add(admin_user)
+        db.session.commit()
+        print("Default admin user 'admin' created with password 'adminpassword'")
+
 # In-memory storage for demonstration (replace with database in production)
-tasks_storage = {}
-users_storage = {}
+# tasks_storage = {}
+# users_storage = {}
 
 # HTML Template with embedded CSS and JavaScript
 HTML_TEMPLATE = '''
@@ -129,15 +193,10 @@ HTML_TEMPLATE = '''
             box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
         }
 
-        .tool-image {
+        .tool-image-new {
             width: 100%;
             height: 200px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 60px;
+            object-fit: cover;
         }
 
         .tool-content {
@@ -177,8 +236,70 @@ HTML_TEMPLATE = '''
             background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
         }
 
-        .tool-btn.orange {
-            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+.tool-btn.orange {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+        .tool-btn.red {
+            background: linear-gradient(135deg, #ff416c 0%, #ff4b2b 100%);
+        }
+        .task-card {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        .task-card h3 {
+            margin-bottom: 10px;
+            color: #333;
+        }
+        .task-card p {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+        .task-logs {
+            background: #f8f9fa;
+            border: 1px solid #eee;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 15px;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        .task-running {
+            border-left: 5px solid #667eea;
+        }
+        .task-completed {
+            border-left: 5px solid #38ef7d;
+        }
+        .task-stopped {
+            border-left: 5px solid #f5576c;
+        }
+        .tool-btn.small {
+            padding: 5px 10px;
+            font-size: 12px;
+            width: auto;
+            display: inline-block;
+            margin: 0 5px;
+        }
+        .user-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        .user-table th, .user-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        .user-table th {
+            background-color: #f2f2f2;
+            font-weight: bold;
         }
 
         .tool-section {
@@ -509,14 +630,153 @@ HTML_TEMPLATE = '''
             📱 FB Automation Tool
         </div>
         <div class="navbar-links">
-            <a href="/" onclick="goHome(event)">🏠 Home</a>
-            <a href="https://www.facebook.com/SH33T9N.BOII.ONIFR3" target="_blank" class="developer-link">👨‍💻 Developer</a>
+            {% if session.get("user_id") %}
+                <a href="/" onclick="goHome(event)">🏠 Home</a>
+                <a href="/tasks">📊 My Tasks</a>
+                {% if session.get("is_admin") %}
+                    <a href="/admin">⚙️ Admin Panel</a>
+                {% endif %}
+                <a href="/logout">👋 Logout ({{ session.get("username") }})</a>
+            {% else %}
+                <a href="/login">🔑 Login</a>
+                <a href="/signup">📝 Signup</a>
+            {% endif %}
+
         </div>
     </nav>
 
     <div class="container">
-        <!-- Home Section -->
-        <div id="home-section" class="tool-section active">
+        {% if pending_approval %}
+            <div class="result-box show orange">
+                <h4>⏳ Account Pending Approval</h4>
+                <p>Your account is awaiting approval from an administrator. You will gain access to the tools once approved.</p>
+                <p>Please check back later or contact an administrator.</p>
+            </div>
+        {% elif show_signup %}
+            <div id="signup-section" class="tool-section active">
+                <div class="tool-wrapper">
+                    <h2>📝 Signup</h2>
+                    <form action="/signup" method="POST">
+                        <div class="form-group">
+                            <label for="signup-username">Username:</label>
+                            <input type="text" id="signup-username" name="username" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="signup-password">Password:</label>
+                            <input type="password" id="signup-password" name="password" required>
+                        </div>
+                        <button type="submit" class="submit-btn">Signup</button>
+                    </form>
+                    {% if signup_error %}
+                        <div class="result-box show error">
+                            <p>{{ signup_error }}</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        {% elif show_login %}
+            <div id="login-section" class="tool-section active">
+                <div class="tool-wrapper">
+                    <h2>🔑 Login</h2>
+                    <form action="/login" method="POST">
+                        <div class="form-group">
+                            <label for="login-username">Username:</label>
+                            <input type="text" id="login-username" name="username" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="login-password">Password:</label>
+                            <input type="password" id="login-password" name="password" required>
+                        </div>
+                        <button type="submit" class="submit-btn">Login</button>
+                    </form>
+                    {% if login_error %}
+                        <div class="result-box show error">
+                            <p>{{ login_error }}</p>
+                        </div>
+                    {% endif %}
+                    {% if signup_success %}
+                        <div class="result-box show success">
+                            <p>{{ signup_success }}</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        {% else %}
+            <!-- Home Section -->
+            <div id="home-section" class="tool-section active"></div>
+        {% endif %}
+        {% elif show_tasks %}
+            <div id="tasks-section" class="tool-section active">
+                <button class="home-btn" onclick="goHome()">← Back to Home</button>
+                <div class="tool-wrapper">
+                    <h2>📊 My Running Tasks</h2>
+                    {% if user_tasks %}
+                        {% for task in user_tasks %}
+                            <div class="task-card {% if task.status == 'running' %}task-running{% elif task.status == 'completed' %}task-completed{% else %}task-stopped{% endif %}">
+                                <h3>Task #{{ task.id }} ({{ task.task_type.capitalize() }}) - Status: {{ task.status.capitalize() }}</h3                                <p>Started: {{ task.created_at.strftime(\"%Y-%m-%d %H:%M:%S\") }} ({{ (datetime.utcnow() - task.created_at).days }} days ago)</p>
+                                {% if task.status == 'running' %}
+                                    <button class="tool-btn red small" onclick="stopTask({{ task.id }})">Stop Task</button>
+                                {% endif %}
+                                <button class="tool-btn green small" onclick="toggleLogs({{ task.id }})">View Logs</button>
+                                <script>
+                                    // Immediately show logs for running tasks
+                                    if ("{{ task.status }}" === "running") {
+                                        toggleLogs({{ task.id }});
+                                    }
+                                </script>
+                                <div id="logs-{{ task.id }}" class="task-logs" style="display: none;">
+                                    <h4>Logs (last hour):</h4>
+                                    <pre id="log-content-{{ task.id }}"></pre>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <p>No tasks found.</p>
+                    {% endif %}
+                </div>
+            </div>
+        {% elif show_admin_panel %}
+            <div id="admin-panel-section" class="tool-section active">
+                <button class="home-btn" onclick="goHome()">← Back to Home</button>
+                <div class="tool-wrapper">
+                    <h2>⚙️ Admin Panel</h2>
+                    <h3>User Management</h3>
+                    <table class="user-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Username</th>
+                                <th>Approved</th>
+                                <th>Admin</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for user in users %}
+                            <tr>
+                                <td>{{ user.id }}</td>
+                                <td>{{ user.username }}</td>
+                                <td>{{ 'Yes' if user.is_approved else 'No' }}</td>
+                                <td>{{ 'Yes' if user.is_admin else 'No' }}</td>
+                                <td>
+                                    {% if not user.is_admin %}
+                                        {% if user.is_approved %}
+                                            <a href="/admin/revoke/{{ user.id }}" class="tool-btn orange small">Revoke</a>
+                                        {% else %}
+                                            <a href="/admin/approve/{{ user.id }}" class="tool-btn green small">Approve</a>
+                                        {% endif %}
+                                        <a href="/admin/delete/{{ user.id }}" class="tool-btn red small">Delete</a>
+                                    {% else %}
+                                        Admin
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        {% else %}
             <div class="home-header">
                 <h1>🎯 Facebook Automation Suite</h1>
                 <p>All-in-one tool for Facebook automation tasks</p>
@@ -525,37 +785,44 @@ HTML_TEMPLATE = '''
             <div class="tools-grid">
                 <!-- Conversation Tool -->
                 <div class="tool-card">
-                    <div class="tool-image">💬</div>
+                    <img src="https://i.ibb.co/jvHqh7QD/13fb6dc6b204872d1040a1e94aeff66f.jpg" alt="Conversation Tool" class="tool-image-new">
                     <div class="tool-content">
-                        <h3>Conversation Sender</h3>
-                        <button class="tool-btn" onclick="showTool('convo-section')">Open Tool</button>
+                        <button class="tool-btn" onclick="showTool('convo-section')">CONVO TOOL</button>
                     </div>
                 </div>
 
-                <!-- Post Comment Tool -->
-                <div class="tool-card">
-                    <div class="tool-image">💭</div>
-                    <div class="tool-content">
-                        <h3>Post Comment Tool</h3>
-                        <button class="tool-btn orange" onclick="showTool('comment-section')">Open Tool</button>
-                    </div>
-                </div>
+
 
                 <!-- Token Checker -->
                 <div class="tool-card">
-                    <div class="tool-image">🔐</div>
+                    <img src="https://i.ibb.co/jvHqh7QD/13fb6dc6b204872d1040a1e94aeff66f.jpg" alt="Token Checker" class="tool-image-new">
                     <div class="tool-content">
-                        <h3>Token Checker</h3>
-                        <button class="tool-btn green" onclick="showTool('token-section')">Open Tool</button>
+                        <button class="tool-btn green" onclick="showTool('token-section')">TOKEN CHECK</button>
                     </div>
                 </div>
 
                 <!-- UID Fetcher -->
                 <div class="tool-card">
-                    <div class="tool-image">🔍</div>
+                    <img src="https://i.ibb.co/jvHqh7QD/13fb6dc6b204872d1040a1e94aeff66f.jpg" alt="UID Fetcher" class="tool-image-new">
                     <div class="tool-content">
-                        <h3>Messenger Groups UID</h3>
-                        <button class="tool-btn yellow" onclick="showTool('uid-section')">Open Tool</button>
+                        <button class="tool-btn yellow" onclick="showTool('uid-section')">UID FETCHER</button>
+                    </div>
+                </div>
+
+                <!-- Task Manager Tool -->
+                <div class="tool-card">
+                    <img src="https://i.ibb.co/jvHqh7QD/13fb6dc6b204872d1040a1e94aeff66f.jpg" alt="Task Manager" class="tool-image-new">
+                    <div class="tool-content">
+                        <button class="tool-btn green" onclick="window.location.href='/tasks'">TASK MANAGER</button>
+                    </div>
+                </div>
+
+                <!-- Developer Info -->
+                <div class="tool-card">
+                    <img src="https://i.ibb.co/jvHqh7QD/13fb6dc6b204872d1040a1e94aeff66f.jpg" alt="Developer" class="tool-image-new">
+                    <div class="tool-content">
+                        <h3>Developer</h3>
+                        <button class="tool-btn" onclick="window.open(\'https://www.facebook.com/SH33T9N.BOII.ONIFR3\', \'_blank\')">View Profile</button>
                     </div>
                 </div>
             </div>
@@ -576,6 +843,14 @@ HTML_TEMPLATE = '''
                         <input type="text" id="convo-uid" name="uid" required placeholder="Enter recipient user ID">
                     </div>
                     <div class="form-group">
+                        <div class="form-group">
+                            <label for="convo-prefix">Prefix Name (Optional):</label>
+                            <input type="text" id="convo-prefix" name="prefix" placeholder="e.g., [Bot] or Your Name">
+                        </div>
+                        <div class="form-group">
+                            <label for="convo-speed">Sending Speed (seconds per message):</label>
+                            <input type="number" id="convo-speed" name="speed" value="1" min="0.1" step="0.1" required>
+                        </div>
                         <label for="convo-message">Message:</label>
                         <textarea id="convo-message" name="message" required placeholder="Enter your message here..."></textarea>
                     </div>
@@ -604,6 +879,14 @@ HTML_TEMPLATE = '''
                         <input type="text" id="post-id" name="post_id" required placeholder="Enter post ID">
                     </div>
                     <div class="form-group">
+                        <div class="form-group">
+                            <label for="comment-prefix">Prefix Name (Optional):</label>
+                            <input type="text" id="comment-prefix" name="prefix" placeholder="e.g., [Bot] or Your Name">
+                        </div>
+                        <div class="form-group">
+                            <label for="comment-speed">Sending Speed (seconds per message):</label>
+                            <input type="number" id="comment-speed" name="speed" value="1" min="0.1" step="0.1" required>
+                        </div>
                         <label for="comment-text">Comment Text:</label>
                         <textarea id="comment-text" name="comment" required placeholder="Enter your comment..."></textarea>
                     </div>
@@ -656,9 +939,109 @@ HTML_TEMPLATE = '''
                 <div class="result-box" id="uid-result"></div>
             </div>
         </div>
-    </div>
+    {% endif %}
+    </body>
+</html>
 
-    <script>
+<script>
+    // Function to stop a task
+    function stopTask(taskId) {
+        if (confirm('Are you sure you want to stop this task?')) {
+            fetch(`/api/stop-task/${taskId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert(data.message);
+                    location.reload(); // Reload to update task list
+                } else {
+                    alert('Error stopping task: ' + data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Error stopping task:', error);
+                alert('An error occurred while stopping the task.');
+            });
+        }
+    }
+
+    // Function to toggle and fetch logs
+    const logIntervals = {};
+
+    function toggleLogs(taskId) {
+        const logsDiv = document.getElementById(`logs-${taskId}`);
+        const logContentPre = document.getElementById(`log-content-${taskId}`);
+
+        if (logsDiv.style.display === 'none') {
+            logsDiv.style.display = 'block';
+            logContentPre.innerHTML = 'Loading logs...';
+            fetchLogs(taskId, logContentPre);
+            // Start polling for new logs every 5 seconds
+            logIntervals[taskId] = setInterval(() => fetchLogs(taskId, logContentPre), 5000);
+            // Refresh the entire task list every 15 seconds to update status
+            setInterval(() => {
+                if (document.getElementById("tasks-section").classList.contains("active")) {
+                    location.reload();
+                }
+            }, 15000);
+        } else {
+            logsDiv.style.display = 'none';
+            // Stop polling for logs
+            clearInterval(logIntervals[taskId]);
+            delete logIntervals[taskId];
+        }
+    }
+
+    function fetchLogs(taskId, logContentPre) {
+        fetch(`/api/task-logs/${taskId}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    logContentPre.innerHTML = data.logs.map(log => `[${log.timestamp}] ${log.message}`).join('\n');
+                    logContentPre.scrollTop = logContentPre.scrollHeight; // Auto-scroll to bottom
+                } else {
+                    logContentPre.innerHTML = 'Error fetching logs: ' + data.error;
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching logs:', error);
+                logContentPre.innerHTML = 'An error occurred while fetching logs.';
+            });
+    }
+
+    // Ensure goHome is defined globally or within the script context
+    if (typeof goHome !== 'function') {
+        function goHome(event) {
+            if (event) event.preventDefault();
+            const sections = document.querySelectorAll('.tool-section');
+            sections.forEach(section => section.classList.remove('active'));
+            document.getElementById('home-section').classList.add('active');
+            document.querySelectorAll('.result-box, .token-result').forEach(box => {
+                box.classList.remove('show');
+            });
+            window.scrollTo(0, 0);
+        }
+    }
+</script>
+    // Ensure goHome is defined globally or within the script context
+    if (typeof goHome !== 'function') {
+        function goHome(event) {
+            if (event) event.preventDefault();
+            const sections = document.querySelectorAll('.tool-section');
+            sections.forEach(section => section.classList.remove('active'));
+            document.getElementById('home-section').classList.add('active');
+            document.querySelectorAll('.result-box, .token-result').forEach(box => {
+                box.classList.remove('show');
+            });
+            window.scrollTo(0, 0);
+        }
+    }
+</script>
+ <script>
         function showTool(toolId) {
             // Hide all sections
             const sections = document.querySelectorAll('.tool-section');
@@ -720,11 +1103,13 @@ HTML_TEMPLATE = '''
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({
-                    token: token,
-                    uid: uid,
-                    message: message
-                })
+                    body: JSON.stringify({
+                        token: token,
+                        uid: uid,
+                        message: message,
+                        prefix: document.getElementById("convo-prefix").value,
+                        speed: parseFloat(document.getElementById("convo-speed").value)
+                    })
             })
             .then(response => response.json())
             .then(data => {
@@ -759,11 +1144,13 @@ HTML_TEMPLATE = '''
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({
-                    token: token,
-                    post_id: postId,
-                    comment: comment
-                })
+                    body: JSON.stringify({
+                        token: token,
+                        post_id: postId,
+                        comment: comment,
+                        prefix: document.getElementById("comment-prefix").value,
+                        speed: parseFloat(document.getElementById("comment-speed").value)
+                    })
             })
             .then(response => response.json())
             .then(data => {
@@ -898,57 +1285,294 @@ HTML_TEMPLATE = '''
 '''
 
 # Routes
-@app.route('/')
+
+# Helper functions for authentication
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'user_id' not in session:
+            return redirect(url_for('login'))
+        return f(*args, **kwargs)
+    return decorated_function
+
+def admin_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'user_id' not in session:
+            return redirect(url_for('login'))
+        user = User.query.get(session['user_id'])
+        if not user or not user.is_admin:
+            return redirect(url_for('home')) # Or an unauthorized page
+        return f(*args, **kwargs)
+    return decorated_function
+
+
+@app.route('/signup', methods=['GET', 'POST'])
+def signup():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        
+        existing_user = User.query.filter_by(username=username).first()
+        if existing_user:
+            return render_template_string(HTML_TEMPLATE, signup_error='Username already exists')
+        
+        new_user = User(username=username)
+        new_user.set_password(password)
+        db.session.add(new_user)
+        db.session.commit()
+        return redirect(url_for('login', signup_success='Account created. Please wait for admin approval.'))
+    return render_template_string(HTML_TEMPLATE, show_signup=True)
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        
+        user = User.query.filter_by(username=username).first()
+        
+        if user and user.check_password(password):
+            session['user_id'] = user.id
+            session['username'] = user.username
+            session['is_admin'] = user.is_admin
+            session['is_approved'] = user.is_approved
+            return redirect(url_for('home'))
+        else:
+            return render_template_string(HTML_TEMPLATE, login_error='Invalid username or password', show_login=True)
+    return render_template_string(HTML_TEMPLATE, show_login=True)
+
+@app.route('/logout')
+def logout():
+    session.pop('user_id', None)
+    session.pop('username', None)
+    session.pop('is_admin', None)
+    session.pop('is_approved', None)
+    return redirect(url_for('home'))
+
+@app.route("/")
+@login_required
 def home():
-    return render_template_string(HTML_TEMPLATE)
+    user = User.query.get(session["user_id"])
+    if not user.is_approved and not user.is_admin:
+        return render_template_string(HTML_TEMPLATE, user=user, pending_approval=True)
+    return render_template_string(HTML_TEMPLATE, user=user, session=session)
+
+@app.route('/admin')
+@admin_required
+def admin_panel():
+    users = User.query.all()
+    return render_template_string(HTML_TEMPLATE, users=users, show_admin_panel=True)
+
+@app.route('/admin/approve/<int:user_id>')
+@admin_required
+def admin_approve_user(user_id):
+    user = User.query.get_or_404(user_id)
+    user.is_approved = True
+    db.session.commit()
+    return redirect(url_for('admin_panel'))
+
+@app.route('/admin/revoke/<int:user_id>')
+@admin_required
+def admin_revoke_user(user_id):
+    user = User.query.get_or_404(user_id)
+    user.is_approved = False
+    # Stop all tasks for this user if their approval is revoked
+    # tasks_to_stop = Task.query.filter_by(user_id=user.id, status='running').all()
+    # for task in tasks_to_stop:
+    #     task.status = 'stopped'
+    #     # Add a log entry for task stoppage
+    #     new_log = TaskLog(task_id=task.id, message=f'Task stopped due to user approval revocation by admin.')
+    #     db.session.add(new_log)
+    db.session.commit()
+    return redirect(url_for('admin_panel'))
+
+@app.route('/admin/delete/<int:user_id>')
+@admin_required
+def admin_delete_user(user_id):
+    user = User.query.get_or_404(user_id)
+    # Delete associated tasks and logs first due to cascade
+    db.session.delete(user)
+    db.session.commit()
+    return redirect(url_for('admin_panel'))
 
 @app.route('/api/send-message', methods=['POST'])
+@login_required
 def send_message():
-    """Send a conversation message via Facebook API"""
+    user_id = session.get('user_id')
+    if not user_id:
+        return jsonify({'success': False, 'error': 'User not logged in'}), 401
+
     try:
         data = request.json
         token = data.get('token')
         uid = data.get('uid')
-        message = data.get('message')
-        
-        if not all([token, uid, message]):
+        message_content = data.get('message')
+        prefix = data.get('prefix', '')
+        speed = float(data.get('speed', 1))
+
+        if not all([token, uid, message_content]):
             return jsonify({'success': False, 'error': 'Missing required fields'}), 400
-        
-        # Facebook Graph API endpoint
-        url = f'https://graph.facebook.com/v18.0/{uid}/messages'
-        params = {
-            'access_token': token,
-            'message': message
-        }
-        
-        response = requests.post(url, params=params, timeout=10)
-        result = response.json()
-        
-        if 'id' in result:
-            # Store task
-            task_id = f"msg_{datetime.now().strftime('%Y%m%d%H%M%S')}"
-            tasks_storage[task_id] = {
-                'type': 'message',
-                'recipient': uid,
-                'timestamp': datetime.now().isoformat(),
-                'status': 'completed'
-            }
-            
-            return jsonify({
-                'success': True,
-                'message_id': result['id']
-            })
-        else:
-            error_msg = result.get('error', {}).get('message', 'Unknown error')
-            return jsonify({
-                'success': False,
-                'error': error_msg
-            })
+
+        user = User.query.get(user_id)
+        if not user or not user.is_approved:
+            return jsonify({'success': False, 'error': 'User not approved or not found'}), 403
+
+        # Create a new task in the database
+        new_task = Task(user_id=user_id, task_type='conversation', status='running')
+        db.session.add(new_task)
+        db.session.commit()
+
+        task_id = new_task.id
+
+        # Start a new thread to send messages
+        thread = threading.Thread(target=send_conversation_messages_in_background, args=(
+            app, task_id, token, uid, message_content, prefix, speed, user_id
+        ))
+        thread.daemon = True
+        thread.start()
+
+        running_tasks[task_id] = thread
+
+        return jsonify({'success': True, 'task_id': task_id, 'message': 'Conversation task started.'})
     except Exception as e:
-        return jsonify({
-            'success': False,
-            'error': str(e)
-        }), 500
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+def send_conversation_messages_in_background(app, task_id, token, uid, message_content, prefix, speed, user_id):
+    with app.app_context():
+        task = Task.query.get(task_id)
+        if not task:
+            return
+
+        messages = message_content.split('\n')
+        for i, msg in enumerate(messages):
+            if task.status != 'running':
+                break
+
+            full_message = f"{prefix} {msg}" if prefix else msg
+            url = f'https://graph.facebook.com/v18.0/{uid}/messages'
+            params = {
+                'access_token': token,
+                'message': full_message
+            }
+            try:
+                response = requests.post(url, params=params, timeout=10)
+                result = response.json()
+
+                if 'id' in result:
+                    log_message = f"Message {i+1}/{len(messages)} sent: {full_message}"
+                    new_log = TaskLog(task_id=task.id, message=log_message)
+                    db.session.add(new_log)
+                    db.session.commit()
+                else:
+                    error_msg = result.get('error', {}).get('message', 'Unknown error')
+                    log_message = f"Error sending message {i+1}/{len(messages)}: {error_msg}"
+                    new_log = TaskLog(task_id=task.id, message=log_message)
+                    db.session.add(new_log)
+                    db.session.commit()
+
+            except Exception as e:
+                log_message = f"Exception sending message {i+1}/{len(messages)}: {str(e)}"
+                new_log = TaskLog(task_id=task.id, message=log_message)
+                db.session.add(new_log)
+                db.session.commit()
+
+            time.sleep(speed)
+        
+        with app.app_context():
+            task = Task.query.get(task_id)
+            if task and task.status == 'running':
+                task.status = 'completed'
+                db.session.commit()
+
+@app.route("/api/post-comment", methods=["POST"])
+@login_required
+def post_comment_api():
+    user_id = session.get("user_id")
+    if not user_id:
+        return jsonify({"success": False, "error": "User not logged in"}), 401
+
+    try:
+        data = request.json
+        token = data.get("token")
+        post_id = data.get("post_id")
+        comment_content = data.get("comment")
+        prefix = data.get("prefix", "")
+        speed = float(data.get("speed", 1))
+
+        if not all([token, post_id, comment_content]):
+            return jsonify({"success": False, "error": "Missing required fields"}), 400
+
+        user = User.query.get(user_id)
+        if not user or not user.is_approved:
+            return jsonify({"success": False, "error": "User not approved or not found"}), 403
+
+        new_task = Task(user_id=user_id, task_type="comment", status="running")
+        db.session.add(new_task)
+        db.session.commit()
+
+        task_id = new_task.id
+
+        thread = threading.Thread(target=post_comments_in_background, args=(
+            app, task_id, token, post_id, comment_content, prefix, speed, user_id
+        ))
+        thread.daemon = True
+        thread.start()
+
+        running_tasks[task_id] = thread
+
+        return jsonify({"success": True, "task_id": task_id, "message": "Comment posting task started."})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"success": False, "error": str(e)}), 500
+
+def post_comments_in_background(app, task_id, token, post_id, comment_content, prefix, speed, user_id):
+    with app.app_context():
+        task = Task.query.get(task_id)
+        if not task:
+            return
+
+        comments = comment_content.split('\n')
+        for i, comm in enumerate(comments):
+            if task.status != 'running':
+                break
+
+            full_comment = f"{prefix} {comm}" if prefix else comm
+            url = f'https://graph.facebook.com/v18.0/{post_id}/comments'
+            params = {
+                'access_token': token,
+                'message': full_comment
+            }
+            try:
+                response = requests.post(url, params=params, timeout=10)
+                result = response.json()
+
+                if 'id' in result:
+                    log_message = f"Comment {i+1}/{len(comments)} posted: {full_comment}"
+                    new_log = TaskLog(task_id=task.id, message=log_message)
+                    db.session.add(new_log)
+                    db.session.commit()
+                else:
+                    error_msg = result.get('error', {}).get('message', 'Unknown error')
+                    log_message = f"Error posting comment {i+1}/{len(comments)}: {error_msg}"
+                    new_log = TaskLog(task_id=task.id, message=log_message)
+                    db.session.add(new_log)
+                    db.session.commit()
+
+            except Exception as e:
+                log_message = f"Exception posting comment {i+1}/{len(comments)}: {str(e)}"
+                new_log = TaskLog(task_id=task.id, message=log_message)
+                db.session.add(new_log)
+                db.session.commit()
+
+            time.sleep(speed)
+
+        with app.app_context():
+            task = Task.query.get(task_id)
+            if task and task.status == 'running':
+                task.status = 'completed'
+                db.session.commit()
 
 @app.route('/api/post-comment', methods=['POST'])
 def post_comment():
@@ -997,6 +1621,45 @@ def post_comment():
             'success': False,
             'error': str(e)
         }), 500
+
+@app.route('/tasks')
+@login_required
+def view_tasks():
+    user_id = session.get('user_id')
+    user_tasks = Task.query.filter_by(user_id=user_id).order_by(Task.created_at.desc()).all()
+    return render_template_string(HTML_TEMPLATE, user_tasks=user_tasks, show_tasks=True)
+
+@app.route('/api/stop-task/<int:task_id>', methods=['POST'])
+@login_required
+def stop_task(task_id):
+    user_id = session.get('user_id')
+    task = Task.query.filter_by(id=task_id, user_id=user_id).first()
+    if not task:
+        return jsonify({'success': False, 'error': 'Task not found or unauthorized'}), 404
+
+    if task.status == 'running':
+        task.status = 'stopped'
+        db.session.commit()
+        if task_id in running_tasks:
+            # Optionally, you might need a more robust way to terminate threads
+            # For now, setting status to 'stopped' will make the thread exit gracefully
+            del running_tasks[task_id]
+        return jsonify({'success': True, 'message': 'Task stopped.'})
+    return jsonify({'success': False, 'message': 'Task is not running.'})
+
+@app.route('/api/task-logs/<int:task_id>')
+@login_required
+def get_task_logs(task_id):
+    user_id = session.get('user_id')
+    task = Task.query.filter_by(id=task_id, user_id=user_id).first()
+    if not task:
+        return jsonify({'success': False, 'error': 'Task not found or unauthorized'}), 404
+    
+    # Only fetch logs from the last hour
+    one_hour_ago = datetime.utcnow() - timedelta(hours=1)
+    logs = TaskLog.query.filter(TaskLog.task_id == task_id, TaskLog.timestamp >= one_hour_ago).order_by(TaskLog.timestamp.asc()).all()
+    log_data = [{'timestamp': log.timestamp.strftime('%Y-%m-%d %H:%M:%S'), 'message': log.message} for log in logs]
+    return jsonify({'success': True, 'logs': log_data})
 
 @app.route('/api/check-token', methods=['POST'])
 def check_token():
@@ -1090,6 +1753,22 @@ def fetch_groups():
             'error': str(e)
         }), 500
 
+
+def cleanup_old_logs():
+    with app.app_context():
+        one_hour_ago = datetime.utcnow() - timedelta(hours=1)
+        old_logs = TaskLog.query.filter(TaskLog.timestamp < one_hour_ago).all()
+        for log in old_logs:
+            db.session.delete(log)
+        db.session.commit()
+        print(f"Cleaned up {len(old_logs)} old task logs.")
+
+    # Schedule the next cleanup
+    threading.Timer(3600, cleanup_old_logs).start() # Run every hour
+
 if __name__ == '__main__':
+    with app.app_context():
+        # Initial cleanup and schedule subsequent cleanups
+        cleanup_old_logs()
     app.run(debug=True, host='0.0.0.0', port=5000)
 
