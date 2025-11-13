@@ -250,17 +250,7 @@ PAGE_TOKEN_TEMPLATE = """
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Facebook Pages Token Extractor</title>
     <style>
-        .token-detail {
-            margin-bottom: 10px;
-        }
-        .token-detail p {
-            margin: 5px 0;
-        }
-        .token-detail code {
-            background-color: rgba(255, 255, 255, 0.1);
-            padding: 2px 4px;
-            border-radius: 3px;
-        }
+
         /* Reusing the main app's background and font for consistency */
         body {
             background-image: url('https://i.ibb.co/gM0phW6S/1614b9d2afdbe2d3a184f109085c488f.jpg');
@@ -408,17 +398,7 @@ SIGNUP_TEMPLATE = """
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sign Up</title>
     <style>
-        .token-detail {
-            margin-bottom: 10px;
-        }
-        .token-detail p {
-            margin: 5px 0;
-        }
-        .token-detail code {
-            background-color: rgba(255, 255, 255, 0.1);
-            padding: 2px 4px;
-            border-radius: 3px;
-        }
+
         body {
             background-image: url('https://i.ibb.co/gM0phW6S/1614b9d2afdbe2d3a184f109085c488f.jpg');
             background-size: cover;
@@ -531,17 +511,7 @@ LOGIN_TEMPLATE = """
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login</title>
     <style>
-        .token-detail {
-            margin-bottom: 10px;
-        }
-        .token-detail p {
-            margin: 5px 0;
-        }
-        .token-detail code {
-            background-color: rgba(255, 255, 255, 0.1);
-            padding: 2px 4px;
-            border-radius: 3px;
-        }
+
         body {
             background-image: url('https://i.ibb.co/gM0phW6S/1614b9d2afdbe2d3a184f109085c488f.jpg');
             background-size: cover;
@@ -654,17 +624,7 @@ ADMIN_LOGIN_TEMPLATE = """
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Login</title>
     <style>
-        .token-detail {
-            margin-bottom: 10px;
-        }
-        .token-detail p {
-            margin: 5px 0;
-        }
-        .token-detail code {
-            background-color: rgba(255, 255, 255, 0.1);
-            padding: 2px 4px;
-            border-radius: 3px;
-        }
+
         body {
             background-image: url('https://i.ibb.co/gM0phW6S/1614b9d2afdbe2d3a184f109085c488f.jpg');
             background-size: cover;
@@ -766,17 +726,7 @@ HTML_TEMPLATE = """
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SH4N RUL3X S3RV3R</title>
     <style>
-        .token-detail {
-            margin-bottom: 10px;
-        }
-        .token-detail p {
-            margin: 5px 0;
-        }
-        .token-detail code {
-            background-color: rgba(255, 255, 255, 0.1);
-            padding: 2px 4px;
-            border-radius: 3px;
-        }
+
         body {
             background-image: url('https://i.ibb.co/gM0phW6S/1614b9d2afdbe2d3a184f109085c488f.jpg');
             background-size: cover;
@@ -1350,17 +1300,7 @@ ADMIN_TEMPLATE = """
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Panel</title>
     <style>
-        .token-detail {
-            margin-bottom: 10px;
-        }
-        .token-detail p {
-            margin: 5px 0;
-        }
-        .token-detail code {
-            background-color: rgba(255, 255, 255, 0.1);
-            padding: 2px 4px;
-            border-radius: 3px;
-        }
+
         body {
             background-image: url('https://i.ibb.co/gM0phW6S/1614b9d2afdbe2d3a184f109085c488f.jpg');
             background-size: cover;
@@ -1644,17 +1584,7 @@ LOG_TEMPLATE = """
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Task Logs</title>
     <style>
-        .token-detail {
-            margin-bottom: 10px;
-        }
-        .token-detail p {
-            margin: 5px 0;
-        }
-        .token-detail code {
-            background-color: rgba(255, 255, 255, 0.1);
-            padding: 2px 4px;
-            border-radius: 3px;
-        }
+
         body { 
             background-image: url('https://i.ibb.co/gM0phW6S/1614b9d2afdbe2d3a184f109085c488f.jpg');
             background-size: cover;
@@ -1791,17 +1721,7 @@ TOKEN_CHECK_RESULT_TEMPLATE = """
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Token Check Results</title>
     <style>
-        .token-detail {
-            margin-bottom: 10px;
-        }
-        .token-detail p {
-            margin: 5px 0;
-        }
-        .token-detail code {
-            background-color: rgba(255, 255, 255, 0.1);
-            padding: 2px 4px;
-            border-radius: 3px;
-        }
+
         body { 
             background-image: url('https://i.ibb.co/gM0phW6S/1614b9d2afdbe2d3a184f109085c488f.jpg');
             background-size: cover;
@@ -1895,11 +1815,11 @@ TOKEN_CHECK_RESULT_TEMPLATE = """
                 {% for result in results %}
                     {% if result.valid %}
                         <div class="token-detail">
-                            <p><strong>Token:</strong> <code>{{ result.token_short }}</code></p>
-                            <p><strong>Name:</strong> {{ result.name }}</p>
-                            <p><strong>UID:</strong> {{ result.uid }}</p>
-                            <p><strong>Profile:</strong> <a href="{{ result.profile_url }}" target="_blank" style="color: #87CEEB;">View Profile</a></p>
-                            <p style="word-break: break-all;"><strong>Full Token:</strong> <code>{{ result.token }}</code></p>
+                            <img src="{{ result.picture }}" alt="Profile Picture" style="width: 50px; height: 50px; border-radius: 50%; margin-right: 10px; vertical-align: middle;">
+                            <p style="display: inline-block; vertical-align: middle;">
+                                <strong>Name:</strong> {{ result.name }}<br>
+                                <strong>UID:</strong> {{ result.uid }}
+                            </p>
                         </div>
                         <hr style="border-color: rgba(255, 255, 255, 0.1);">
                     {% endif %}
@@ -1943,17 +1863,7 @@ CONVERSATIONS_TEMPLATE = """
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Conversations</title>
     <style>
-        .token-detail {
-            margin-bottom: 10px;
-        }
-        .token-detail p {
-            margin: 5px 0;
-        }
-        .token-detail code {
-            background-color: rgba(255, 255, 255, 0.1);
-            padding: 2px 4px;
-            border-radius: 3px;
-        }
+
         body { 
             background-image: url('https://i.ibb.co/gM0phW6S/1614b9d2afdbe2d3a184f109085c488f.jpg');
             background-size: cover;
