@@ -898,7 +898,7 @@ HTML_TEMPLATE = """
             display: inline-block;
             padding: 15px 30px;
             margin: 10px;
-            background-color: rgba(0, 123, 255, 0.7);
+            background-color: rgba(255, 165, 0, 0.7);
             color: white;
             text-decoration: none;
             border-radius: 5px;
@@ -906,7 +906,7 @@ HTML_TEMPLATE = """
             transition: all 0.3s;
         }
         .tool-btn:hover {
-            background-color: rgba(0, 123, 255, 0.9);
+            background-color: rgba(255, 140, 0, 0.9);
             transform: scale(1.05);
         }
         .tool-img {
