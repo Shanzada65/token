@@ -1109,8 +1109,7 @@ HTML_TEMPLATE = """
             <p>Your account is waiting for admin approval.Contact With Developer For pproval</p>
         </div>
         {% else %}
-        <div class="approved">
-        </div>
+
         {% endif %}
         
         <ul class="nav-tabs">
