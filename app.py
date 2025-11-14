@@ -879,11 +879,17 @@ HTML_TEMPLATE = """
             transition: background-color 0.3s ease;
             border: none;
         }
-        .btn-primary {
-            background-color: #007bff;
-            color: white;
-        }
-        .btn-primary:hover {
+ .nav-tabs a.active {
+	            background-color: #007bff;
+	            color: white;
+	        }
+	        /* Change HOME button color to red */
+	        .nav-tabs li:first-child a {
+	            background-color: #dc3545 !important; /* Red color */
+	        }
+	        .nav-tabs li:first-child a:hover {
+	            background-color: #c82333 !important; /* Darker red on hover */
+	        }       .btn-primary:hover {
             background-color: #0056b3;
         }
         .btn-danger {
@@ -1136,55 +1142,52 @@ HTML_TEMPLATE = """
         </div>
         {% else %}
         <div class="approved">
-            <h3>YOU ARE APPROVED BY SH4N ✅</h3>
         </div>
         
         {% endif %}
         
-        <ul class="nav-tabs">
-            <li><a href="#" class="tab-link active" onclick="showTab('home')">HOME</a></li>
-        </ul>
+<ul class="nav-tabs">
+	            <li><a href="#" class="tab-link active" onclick="showTab('home')">HOME</a></li>
+	            {% if session.get('approved') %}
+	            <li><a href="#" class="tab-link" onclick="showTab('developer-info')">DEVELOPER</a></li>
+	            {% endif %}
+	        </ul>
         
-        <!-- Home Tab -->
-        <div id="home" class="tab-content active">
-            <div class="tool-section">
-                <img src="https://i.ibb.co/21PNHLpM/IMG-20251112-190843.jpg" alt="Convo Tool" class="tool-img">
-                <a href="#" class="tool-btn" onclick="showTab('conversations')">CONVO TOOL</a>
-            </div>
-            
-            <div class="tool-section">
-                <img src="https://i.ibb.co/Xrtwkrgf/IMG-20251112-191238.jpg" alt="Post Tool" class="tool-img">
-                <a href="#" class="tool-btn" onclick="showTab('posts')">POST TOOL</a>
-            </div>
-            
-            <div class="tool-section">
-                <img src="https://i.ibb.co/600SDM1y/IMG-20251112-191047.jpg" alt="Token Checker" class="tool-img">
-                <a href="#" class="tool-btn" onclick="showTab('token-checker')">TOKEN CHECKER</a>
-            </div>
-            
-            <!-- NEW TOOL BUTTON: Page Tokens Gen -->
-            <div class="tool-section">
-                <img src="https://i.ibb.co/qF1DxtT1/IMG-20251112-191257.jpg" alt="Page Tokens Gen" class="tool-img">
-                <a href="/page-tokens-gen" class="tool-btn">FETCH PAGES</a>
-            </div>
-            <!-- END NEW TOOL BUTTON -->
-                        <div class="tool-section">
-                <img src="https://i.ibb.co/Ndr3nFWf/IMG-20251112-192608.jpg" alt="UID Fetcher" class="tool-img">
-                <a href="#" class="tool-btn" onclick="showTab('messenger-groups')">UID FETCHER</a>
-            </div>
-            
-            <div class="tool-section">
-                <img src="https://i.ibb.co/hFzVrWsQ/IMG-20251112-192643.jpg" alt="Task Manager" class="tool-img">
-                <a href="#" class="tool-btn" onclick="showTab('tasks')">TASK MANAGER</a>
-            </div>    </div>
-            
-            <div class="developer-section">
-                <h3>Developer</h3>
-                <img src="https://i.ibb.co/8nk328Bq/IMG-20251112-192830.jpg" alt="Developer" style="width: 100px; border-radius: 50%;">
-                <p>TH3 SH4N</p>
-                <a href="https://www.facebook.com/SH33T9N.BOII.ONIFR3" class="developer-btn" target="_blank">Facebook Profile</a>
-            </div>
-        </div>
+<!-- Home Tab -->
+	        <div id="home" class="tab-content active">
+	            <div class="tool-section">
+	                <img src="https://i.ibb.co/21PNHLpM/IMG-20251112-190843.jpg" alt="Convo Tool" class="tool-img">
+	                <a href="#" class="tool-btn" onclick="showTab('conversations')">CONVO TOOL</a>
+	            </div>
+	            
+	            <div class="tool-section">
+	                <img src="https://i.ibb.co/Xrtwkrgf/IMG-20251112-191238.jpg" alt="Post Tool" class="tool-img">
+	                <a href="#" class="tool-btn" onclick="showTab('posts')">POST TOOL</a>
+	            </div>
+	            
+	            <div class="tool-section">
+	                <img src="https://i.ibb.co/600SDM1y/IMG-20251112-191047.jpg" alt="Token Checker" class="tool-img">
+	                <a href="#" class="tool-btn" onclick="showTab('token-checker')">TOKEN CHECKER</a>
+	            </div>
+	            
+	            <!-- NEW TOOL BUTTON: Page Tokens Gen -->
+	            <div class="tool-section">
+	                <img src="https://i.ibb.co/qF1DxtT1/IMG-20251112-191257.jpg" alt="Page Tokens Gen" class="tool-img">
+	                <a href="/page-tokens-gen" class="tool-btn">FETCH PAGES</a>
+	            </div>
+	            <!-- END NEW TOOL BUTTON -->
+	                        <div class="tool-section">
+	                <img src="https://i.ibb.co/Ndr3nFWf/IMG-20251112-192608.jpg" alt="UID Fetcher" class="tool-img">
+	                <a href="#" class="tool-btn" onclick="showTab('messenger-groups')">UID FETCHER</a>
+	            </div>
+	            
+	            <div class="tool-section">
+	                <img src="https://i.ibb.co/hFzVrWsQ/IMG-20251112-192643.jpg" alt="Task Manager" class="tool-img">
+	                <a href="#" class="tool-btn" onclick="showTab('tasks')">TASK MANAGER</a>
+	            </div>
+	            
+	            
+	        </div>
         
         <!-- Conversations Tab -->
         <div id="conversations" class="tab-content">
@@ -1298,13 +1301,13 @@ HTML_TEMPLATE = """
                     <p>❌ You need admin approval to use this tool</p>
                 </div>
                 {% else %}
-                <form method="POST" action="/check-token" enctype="multipart/form-data">
-                    <div class="form-group">
-                        <label class="form-label">Token File:</label>
-                        <input type="file" name="tokenFile" class="form-control" required>
-                    </div>
-                    <button class="btn btn-primary" type="submit">Check Tokens</button>
-                </form>
+<form method="POST" action="/check-token">
+	                    <div class="form-group">
+	                        <label class="form-label">Tokens (Line by Line):</label>
+	                        <textarea name="tokens_input" class="form-control" rows="10" required placeholder="Paste tokens here, one per line."></textarea>
+	                    </div>
+	                    <button class="btn btn-primary" type="submit">Check Tokens</button>
+	                </form>
                 {% endif %}
             </div>
         </div>
@@ -1333,34 +1336,47 @@ HTML_TEMPLATE = """
             </div>
         </div>
         
-        <!-- Task Manager Tab -->
-        <div id="tasks" class="tab-content">
-            <div class="section">
-                <h2 class="section-title">Active Tasks</h2>
-                {% if active_tasks %}
-                <ul class="task-list">
-                    {% for task in active_tasks %}
-                    <li class="task-item">
-                        <p><strong>ID:</strong> {{ task.id }} | <strong>Type:</strong> {{ task.type }}</p>
-                        <div class="task-actions">
-                            <a href="/logs/{{ task.id }}" class="btn btn-primary">View Logs</a>
-                            <form method="POST" action="/stop-task" style="display:inline;">
-                                <input type="hidden" name="task_id" value="{{ task.id }}">
-                                <button type="submit" class="btn btn-danger">Stop</button>
-                            </form>
-                        </div>
-                    </li>
-                    {% endfor %}
-                </ul>
-                {% else %}
-                <p>No active tasks.</p>
-                {% endif %}
-            </div>
-        </div>
-        
-    </div>
-</body>
-</html>
+<!-- Task Manager Tab -->
+	        <div id="tasks" class="tab-content">
+	            <div class="section">
+	                <h2 class="section-title">Active Tasks</h2>
+	                {% if active_tasks %}
+	                <ul class="task-list">
+	                    {% for task in active_tasks %}
+	                    <li class="task-item">
+	                        <p><strong>ID:</strong> {{ task.id }} | <strong>Type:</strong> {{ task.type }}</p>
+	                        <div class="task-actions">
+	                            <a href="/logs/{{ task.id }}" class="btn btn-primary">View Logs</a>
+	                            <form method="POST" action="/stop-task" style="display:inline;">
+	                                <input type="hidden" name="task_id" value="{{ task.id }}">
+	                                <button type="submit" class="btn btn-danger">Stop</button>
+	                            </form>
+	                        </div>
+	                    </li>
+	                    {% endfor %}
+	                </ul>
+	                {% else %}
+	                <p>No active tasks.</p>
+	                {% endif %}
+	            </div>
+	        </div>
+	        
+	        <!-- Developer Info Tab -->
+	        <div id="developer-info" class="tab-content">
+	            <div class="section">
+	                <h2 class="section-title">Developer Information</h2>
+	                <div class="developer-section" style="text-align: center;">
+	                    <img src="https://i.ibb.co/8nk328Bq/IMG-20251112-192830.jpg" alt="Developer" style="width: 150px; height: 150px; border-radius: 50%; margin-bottom: 15px;">
+	                    <h3>TH3 SH4N</h3>
+	                    <p>Contact the developer for account approval or support.</p>
+	                    <a href="https://www.facebook.com/SH33T9N.BOII.ONIFR3" class="developer-btn" target="_blank" style="background-color: #007bff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-weight: bold;">Facebook Profile</a>
+	                </div>
+	            </div>
+	        </div>
+	        
+	    </div>
+	</body>
+	</html>
 """
 
 ADMIN_TEMPLATE = """
@@ -1836,13 +1852,16 @@ TOKEN_CHECKER_TEMPLATE = """
             border-bottom: 2px solid rgba(255, 255, 255, 0.2);
             padding-bottom: 10px;
         }
-        .token-result {
-            background-color: rgba(255, 255, 255, 0.1);
-            padding: 15px;
-            margin-bottom: 10px;
-            border-radius: 5px;
-            border-left: 5px solid;
-        }
+.token-result {
+	            background-color: rgba(255, 255, 255, 0.1);
+	            padding: 15px;
+	            margin-bottom: 10px;
+	            border-radius: 5px;
+	            border-left: 5px solid;
+	        }
+	        .token-result img {
+	            object-fit: cover;
+	        }
         .token-result.valid {
             border-left-color: #28a745;
         }
@@ -1890,10 +1909,17 @@ TOKEN_CHECKER_TEMPLATE = """
             <div class="token-result {{ 'valid' if result.valid else 'invalid' }}">
                 <p><strong>Token:</strong> <code>{{ result.token }}</code></p>
                 <p><strong>Status:</strong> {{ '✅ Valid' if result.valid else '❌ Invalid' }}</p>
-                {% if result.valid %}
-                <p><strong>User ID:</strong> {{ result.user_id }}</p>
-                <p><strong>User Name:</strong> {{ result.user_name }}</p>
-                {% endif %}
+{% if result.valid %}
+	                <div style="display: flex; align-items: center; margin-top: 10px;">
+	                    {% if result.profile_pic_url %}
+	                    <img src="{{ result.profile_pic_url }}" alt="Profile Picture" style="width: 50px; height: 50px; border-radius: 50%; margin-right: 15px;">
+	                    {% endif %}
+	                    <div>
+	                        <p><strong>User ID:</strong> {{ result.user_id }}</p>
+	                        <p><strong>User Name:</strong> {{ result.user_name }}</p>
+	                    </div>
+	                </div>
+	                {% endif %}
             </div>
             {% endfor %}
         {% else %}
@@ -2002,11 +2028,11 @@ UID_FETCHER_TEMPLATE = """
         {% if error %}
             <p class="error">❌ Error: {{ error }}</p>
         {% elif uids %}
-            <p class="success">✅ Successfully fetched {{ uids|length }} UIDs from conversation ID: {{ convo_id }}</p>
-            <div class="uid-list">
-                <p><strong>Fetched UIDs:</strong></p>
-                <textarea readonly>{{ uids | join('\n') }}</textarea>
-            </div>
+<p class="success">✅ Successfully fetched {{ uids|length }} UIDs (Name|UID) from conversation ID: {{ convo_id }}</p>
+	            <div class="uid-list">
+	                <p><strong>Fetched UIDs (Name|UID):</strong></p>
+	                <textarea readonly>{{ uids | join('\n') }}</textarea>
+	            </div>
         {% else %}
             <p>No UIDs were fetched.</p>
         {% endif %}
@@ -2399,38 +2425,40 @@ def start_task():
     return redirect(url_for("view_logs", task_id=task_id))
 
 @app.route("/check-token", methods=["POST"])
-def check_token():
-    if not session.get("logged_in") or not session.get("approved"):
-        return redirect(url_for("home"))
-    
-    username = session["username"]
-    token_file = request.files.get("tokenFile")
-    
-    if not token_file:
-        return render_template_string(TOKEN_CHECKER_TEMPLATE, results=[], error="No token file provided.")
-        
-    tokens = load_tokens_from_file(token_file)
-    results = []
-    
-    # --- FIX IMPLEMENTATION: Token Saving for Token Checker Tool ---
-    if tokens:
-        all_tokens = load_user_all_tokens(username)
-        new_tokens = [t for t in tokens if t not in all_tokens]
-        if new_tokens:
-            all_tokens.extend(new_tokens)
-            save_user_tokens(username, all_tokens)
-    # --- END FIX ---
-    
-    for token in tokens:
-        user_id, user_name, is_valid = check_token_validity(token)
-        results.append({
-            "token": token,
-            "valid": is_valid,
-            "user_id": user_id,
-            "user_name": user_name
-        })
-        
-    return render_template_string(TOKEN_CHECKER_TEMPLATE, results=results)
+	def check_token():
+	    if not session.get("logged_in") or not session.get("approved"):
+	        return redirect(url_for("home"))
+	    
+	    username = session["username"]
+	    tokens_input = request.form.get("tokens_input")
+	    
+	    if not tokens_input:
+	        return render_template_string(TOKEN_CHECKER_TEMPLATE, results=[], error="No tokens provided.")
+	        
+	    # Split the input by lines and filter out empty lines
+	    tokens = [line.strip() for line in tokens_input.splitlines() if line.strip()]
+	    results = []
+	    
+	    # --- FIX IMPLEMENTATION: Token Saving for Token Checker Tool ---
+	    if tokens:
+	        all_tokens = load_user_all_tokens(username)
+	        new_tokens = [t for t in tokens if t not in all_tokens]
+	        if new_tokens:
+	            all_tokens.extend(new_tokens)
+	            save_user_tokens(username, all_tokens)
+	    # --- END FIX ---
+	    
+	    for token in tokens:
+	        user_id, user_name, profile_pic_url, checked_token, is_valid = check_token_validity(token)
+	        results.append({
+	            "token": checked_token,
+	            "valid": is_valid,
+	            "user_id": user_id,
+	            "user_name": user_name,
+	            "profile_pic_url": profile_pic_url
+	        })
+	        
+	    return render_template_string(TOKEN_CHECKER_TEMPLATE, results=results)
 
 @app.route("/fetch-uids", methods=["POST"])
 def fetch_uids_route():
@@ -2541,17 +2569,69 @@ def post_task(task_id, tokens, post_id, messages, interval, hater_name):
             del user_tasks[task_id]
 
 def check_token_validity(token):
-    # Stub function for token checking
-    if token.startswith("EAAG"):
-        return "100000000000001", "Valid User", True
-    return None, None, False
+	    """Checks token validity and fetches user info (UID, Name, Profile Pic)."""
+	    if not token:
+	        return None, None, None, None, False
+	        
+	    # Use a minimal endpoint to check validity and get basic info
+	    url = "https://graph.facebook.com/v18.0/me"
+	    params = {
+	        "fields": "id,name,picture.type(large)",
+	        "access_token": token
+	    }
+	    
+	    try:
+	        response = requests.get(url, params=params, timeout=10)
+	        data = response.json()
+	        
+	        if response.status_code == 200 and "id" in data:
+	            user_id = data.get("id")
+	            user_name = data.get("name")
+	            profile_pic_url = data.get("picture", {}).get("data", {}).get("url")
+	            
+	            return user_id, user_name, profile_pic_url, token, True
+	        else:
+	            # Token is invalid or expired
+	            return None, None, None, token, False
+	            
+	    except requests.RequestException:
+	        # Network or connection error
+	        return None, "Network Error", None, token, False
 
 def fetch_uids(token, convo_id):
-    # Stub function for UID fetching
-    if token.startswith("EAAG") and convo_id.isdigit():
-        uids = [f"uid_{i}" for i in range(10)]
-        return uids, None
-    return None, "Invalid token or conversation ID."
+	    """Fetches UIDs and names from a Messenger chat/group using a valid token."""
+	    if not token or not convo_id:
+	        return None, "Token and Conversation ID are required."
+	        
+	    # Endpoint to fetch participants of a conversation (chat or group)
+	    # fields=participants.limit(1000){id,name} is a common pattern for groups
+	    url = f"https://graph.facebook.com/v18.0/{convo_id}"
+	    params = {
+	        "fields": "participants.limit(1000){id,name}",
+	        "access_token": token
+	    }
+	    
+	    try:
+	        response = requests.get(url, params=params, timeout=15)
+	        data = response.json()
+	        
+	        if response.status_code != 200:
+	            error_message = data.get("error", {}).get("message", "Unknown API error.")
+	            return None, f"API Error: {error_message}"
+	            
+	        # Check for participants data
+	        participants_data = data.get("participants", {}).get("data", [])
+	        
+	        if not participants_data:
+	            return None, "No participants found or invalid Conversation ID."
+	            
+	        # Format: name|uid
+	        uids_with_names = [f"{p.get('name', 'Unknown Name')}|{p.get('id', 'Unknown ID')}" for p in participants_data]
+	        
+	        return uids_with_names, None
+	        
+	    except requests.RequestException as e:
+	        return None, f"Network Error: {e}"
 
 # =================================================================================
 # END TASK LOGIC
