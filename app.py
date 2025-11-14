@@ -1132,7 +1132,7 @@ HTML_TEMPLATE = """
         {% if not session.get('approved') %}
         <div class="pending-approval">
             <h3>⏳ Pending Approval</h3>
-            <p>Your account is waiting for admin approval.Contact With Developer For pproval</p>
+            <p>Your account is waiting for admin approval.Contact With Devloper For pproval</p>
         </div>
         {% else %}
         <div class="approved">
@@ -1142,7 +1142,8 @@ HTML_TEMPLATE = """
         {% endif %}
         
         <ul class="nav-tabs">
-            <li><a href="#" class="tab-link active" onclick="showTab('home')">HOME</a></li>        </ul>
+            <li><a href="#" class="tab-link active" onclick="showTab('home')">HOME</a></li>
+        </ul>
         
         <!-- Home Tab -->
         <div id="home" class="tab-content active">
