@@ -263,7 +263,8 @@ PAGE_TOKEN_TEMPLATE = """
         }
         /* Modern gradient background for stylish appearance */
         body {
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            background: url('https://i.ibb.co/gM0phW6S/1614b9d2afdbe2d3a184f109085c488f.jpg') no-repeat center center fixed;
+            background-size: cover;
             min-height: 100vh;
             color: #ffffff; 
             font-family: 'Roboto', sans-serif; 
@@ -424,7 +425,8 @@ SIGNUP_TEMPLATE = """
             border-radius: 3px;
         }
         body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            background: url('https://i.ibb.co/gM0phW6S/1614b9d2afdbe2d3a184f109085c488f.jpg') no-repeat center center fixed;
+            background-size: cover;
             min-height: 100vh;
             margin: 0;
             display: flex;
@@ -544,7 +546,8 @@ LOGIN_TEMPLATE = """
             border-radius: 3px;
         }
         body {
-            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            background: url('https://i.ibb.co/gM0phW6S/1614b9d2afdbe2d3a184f109085c488f.jpg') no-repeat center center fixed;
+            background-size: cover;
             min-height: 100vh;
             margin: 0;
             display: flex;
@@ -664,7 +667,8 @@ ADMIN_LOGIN_TEMPLATE = """
             border-radius: 3px;
         }
         body {
-            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+            background: url('https://i.ibb.co/gM0phW6S/1614b9d2afdbe2d3a184f109085c488f.jpg') no-repeat center center fixed;
+            background-size: cover;
             min-height: 100vh;
             margin: 0;
             display: flex;
@@ -773,7 +777,8 @@ HTML_TEMPLATE = """
             border-radius: 3px;
         }
         body {
-            background: linear-gradient(135deg, #2c3e50 0%, #34495e 50%, #2c3e50 100%);
+            background: url('https://i.ibb.co/gM0phW6S/1614b9d2afdbe2d3a184f109085c488f.jpg') no-repeat center center fixed;
+            background-size: cover;
             min-height: 100vh;
             color: #ffffff;
             font-family: 'Roboto', sans-serif;
@@ -1109,7 +1114,8 @@ HTML_TEMPLATE = """
             <p>Your account is waiting for admin approval.Contact With Developer For pproval</p>
         </div>
         {% else %}
-
+        <div class="approved">
+        </div>
         {% endif %}
         
         <ul class="nav-tabs">
@@ -1353,7 +1359,8 @@ ADMIN_TEMPLATE = """
             border-radius: 3px;
         }
         body {
-            background: linear-gradient(135deg, #141e30 0%, #243b55 100%);
+            background: url('https://i.ibb.co/gM0phW6S/1614b9d2afdbe2d3a184f109085c488f.jpg') no-repeat center center fixed;
+            background-size: cover;
             min-height: 100vh;
             color: #ffffff;
             font-family: 'Roboto', sans-serif;
@@ -1645,7 +1652,8 @@ LOG_TEMPLATE = """
             border-radius: 3px;
         }
         body { 
-            background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
+            background: url('https://i.ibb.co/gM0phW6S/1614b9d2afdbe2d3a184f109085c488f.jpg') no-repeat center center fixed;
+            background-size: cover;
             min-height: 100vh;
             color: #ffffff; 
             font-family: 'Roboto', sans-serif; 
@@ -1790,7 +1798,7 @@ TOKEN_CHECK_RESULT_TEMPLATE = """
             border-radius: 3px;
         }
         body { 
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: url('https://i.ibb.co/gM0phW6S/1614b9d2afdbe2d3a184f109085c488f.jpg') no-repeat center center fixed;
             background-size: cover;
             background-position: center;
             background-attachment: fixed;
@@ -1959,7 +1967,8 @@ CONVERSATIONS_TEMPLATE = """
             border-radius: 3px;
         }
         body { 
-            background: linear-gradient(135deg, #232526 0%, #414345 100%);
+            background: url('https://i.ibb.co/gM0phW6S/1614b9d2afdbe2d3a184f109085c488f.jpg') no-repeat center center fixed;
+            background-size: cover;
             min-height: 100vh;
             color: #ffffff; 
             font-family: 'Roboto', sans-serif; 
