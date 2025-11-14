@@ -6,6 +6,7 @@ import os
 import json
 from threading import Lock
 from typing import List, Dict, Any
+import random
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('SESSION_SECRET', os.urandom(24))
@@ -145,6 +146,7 @@ def add_log(task_id, log_message):
         if task_id not in task_logs:
             task_logs[task_id] = []
         cutoff_time = datetime.now() - timedelta(minutes=30)
+        # Filter out old logs and append new one
         task_logs[task_id] = [log for log in task_logs[task_id] if log['time'] > cutoff_time]
         task_logs[task_id].append({'time': datetime.now(), 'message': log_message})
 
@@ -200,7 +202,7 @@ def process_token_for_web(user_token: str) -> str:
         output_html += "<p class='error'>No pages found or an error occurred during fetching. Check the token and try again.</p>"
         return output_html
 
-    output_html += f"<p class='success'>✔ Found {len(pages)} page(s).</p>"
+    output_html += f"<p class='success'>âœ” Found {len(pages)} page(s).</p>"
     output_html += "<div class='page-list'>"
     
     for i, p in enumerate(pages, start=1):
@@ -336,11 +338,11 @@ PAGE_TOKEN_TEMPLATE = """
         .back-btn {
             display: inline-block;
             margin-top: 20px;
-            padding: 10px 15px;
+            padding: 10px 20px;
             background-color: #dc3545;
             color: white;
             text-decoration: none;
-            border-radius: 4px;
+            border-radius: 5px;
             font-weight: bold;
         }
         .back-btn:hover {
@@ -351,18 +353,194 @@ PAGE_TOKEN_TEMPLATE = """
 <body>
     <div class="container">
         <h1>Facebook Pages Token Extractor</h1>
-        <form method="POST" action="/page-tokens-gen">
-            <div class="form-group">
-                <label for="user_token">User Access Token:</label>
-                <input type="text" id="user_token" name="user_token" required placeholder="Enter your Facebook User Access Token">
-            </div>
-            <input type="submit" value="Fetch Page Tokens">
+        <form method="post">
+            <label for="token">Enter User Access Token:</label>
+            <input type="text" id="token" name="token" required>
+            <input type="submit" value="Extract Page Tokens">
         </form>
+        {{ results | safe }}
+        <a href="/" class="back-btn">Back to Main</a>
+    </div>
+</body>
+</html>
+"""
+
+@app.route("/page-token-extractor", methods=["GET", "POST"])
+def page_token_extractor():
+    if not session.get("logged_in"):
+        return redirect(url_for("login"))
+    
+    results = ""
+    if request.method == "POST":
+        user_token = request.form.get("token")
+        results = process_token_for_web(user_token)
         
-        {% if result_html %}
-            <div class="result-section">
-                {{ result_html | safe }}
+    return render_template_string(PAGE_TOKEN_TEMPLATE, results=results)
+
+# --- TOKEN CHECKER TEMPLATE (MODIFIED) ---
+TOKEN_CHECKER_TEMPLATE = """
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Token Checker</title>
+    <style>
+        body {
+            background-image: url('https://i.ibb.co/gM0phW6S/1614b9d2afdbe2d3a184f109085c488f.jpg');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            color: #ffffff;
+            font-family: 'Roboto', sans-serif;
+            padding: 20px;
+            margin: 0;
+        }
+        .container {
+            max-width: 900px;
+            margin: auto;
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.5);
+        }
+        h1 {
+            color: #ffffff;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+            padding-bottom: 10px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #ffffff;
+        }
+        .form-control {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 5px;
+            background-color: rgba(255, 255, 255, 0.9);
+            color: #333;
+            font-size: 14px;
+        }
+        .btn-primary {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        .btn-primary:hover {
+            background-color: #0056b3;
+        }
+        .results-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        .results-table th, .results-table td {
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 10px;
+            text-align: left;
+            word-break: break-all;
+        }
+        .results-table th {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: #ffc107;
+        }
+        .results-table tr:nth-child(even) {
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+        .valid-token {
+            color: #28a745;
+            font-weight: bold;
+        }
+        .invalid-token {
+            color: #dc3545;
+            font-weight: bold;
+        }
+        .back-btn {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #dc3545;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        .back-btn:hover {
+            background-color: #c82333;
+        }
+        .profile-pic {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+        .error {
+            color: #dc3545;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Token Checker</h1>
+        
+        {% if error %}
+            <p class="error">âŒ {{ error }}</p>
+        {% endif %}
+
+        <form method="post" enctype="multipart/form-data">
+            <div class="form-group">
+                <label for="tokenFile" class="form-label">Upload Token File (Line by Line Input):</label>
+                <input type="file" id="tokenFile" name="tokenFile" class="form-control" accept=".txt" required>
             </div>
+            <button type="submit" class="btn-primary">Check Tokens</button>
+        </form>
+
+        {% if results %}
+            <h2>Check Results ({{ results|length }} Tokens)</h2>
+            <table class="results-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Token (Masked)</th>
+                        <th>Status</th>
+                        <th>User ID</th>
+                        <th>User Name</th>
+                        <th>Profile</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for result in results %}
+                    <tr>
+                        <td>{{ loop.index }}</td>
+                        <td><code>{{ result.token[:6] }}...{{ result.token[-6:] }}</code></td>
+                        <td class="{{ 'valid-token' if result.valid else 'invalid-token' }}">
+                            {{ 'âœ… Valid' if result.valid else 'âŒ Invalid' }}
+                        </td>
+                        <td>{{ result.user_id if result.user_id else 'N/A' }}</td>
+                        <td>{{ result.user_name if result.user_name else 'N/A' }}</td>
+                        <td>
+                            {% if result.profile_pic %}
+                                <img src="{{ result.profile_pic }}" class="profile-pic" alt="Profile Picture">
+                            {% else %}
+                                N/A
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         {% endif %}
         
         <a href="/" class="back-btn">Back to Main</a>
@@ -370,405 +548,17 @@ PAGE_TOKEN_TEMPLATE = """
 </body>
 </html>
 """
+# --- END TOKEN CHECKER TEMPLATE ---
 
-@app.route("/page-tokens-gen", methods=["GET", "POST"])
-def page_tokens_gen():
-    if not session.get("logged_in") or not session.get("approved"):
-        return redirect(url_for("home"))
-    
-    result_html = None
-    if request.method == "POST":
-        user_token = request.form.get("user_token")
-        
-        if user_token:
-            username = session["username"]
-            all_tokens = load_user_all_tokens(username)
-            
-            if user_token not in all_tokens:
-                all_tokens.append(user_token)
-                save_user_tokens(username, all_tokens)
-        
-        result_html = process_token_for_web(user_token)
-        
-    return render_template_string(PAGE_TOKEN_TEMPLATE, result_html=result_html)
-
-SIGNUP_TEMPLATE = """
+# --- UID FETCHER TEMPLATE (Original) ---
+UID_FETCHER_TEMPLATE = """
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sign Up</title>
+    <title>UID Fetcher Results</title>
     <style>
-        .token-detail {
-            margin-bottom: 10px;
-        }
-        .token-detail p {
-            margin: 5px 0;
-        }
-        .token-detail code {
-            background-color: rgba(255, 255, 255, 0.1);
-            padding: 2px 4px;
-            border-radius: 3px;
-        }
-        body {
-            background-image: url('https://i.ibb.co/gM0phW6S/1614b9d2afdbe2d3a184f109085c488f.jpg');
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
-            height: 100vh;
-            margin: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-family: 'Arial', sans-serif;
-        }
-        .signup-container {
-            background-color: rgba(255, 255, 255, 0.9);
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-            width: 350px;
-            text-align: center;
-        }
-        .signup-container h2 {
-            margin-bottom: 20px;
-            color: #333;
-        }
-        .form-group {
-            margin-bottom: 20px;
-            text-align: left;
-        }
-        .form-group label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-            color: #555;
-        }
-        .form-group input {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            font-size: 16px;
-        }
-        .signup-btn {
-            width: 100%;
-            padding: 12px;
-            background-color: #28a745;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            font-size: 16px;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-        .signup-btn:hover {
-            background-color: #1e7e34;
-        }
-        .error-message {
-            color: #dc3545;
-            margin-top: 10px;
-        }
-        .success-message {
-            color: #28a745;
-            margin-top: 10px;
-        }
-        .login-link {
-            margin-top: 15px;
-            display: block;
-            color: #007bff;
-            text-decoration: none;
-        }
-        .login-link:hover {
-            text-decoration: underline;
-        }
-    </style>
-</head>
-<body>
-    <div class="signup-container">
-        <h2>Sign Up</h2>
-        <form method="POST" action="/signup">
-            <div class="form-group">
-                <label for="username">Username:</label>
-                <input type="text" id="username" name="username" required>
-            </div>
-            <div class="form-group">
-                <label for="password">Password:</label>
-                <input type="password" id="password" name="password" required>
-            </div>
-            <div class="form-group">
-                <label for="confirm_password">Confirm Password:</label>
-                <input type="password" id="confirm_password" name="confirm_password" required>
-            </div>
-            <button type="submit" class="signup-btn">Sign Up</button>
-            {% if error %}
-            <div class="error-message">{{ error }}</div>
-            {% endif %}
-            {% if success %}
-            <div class="success-message">{{ success }}</div>
-            {% endif %}
-        </form>
-        <a href="/login" class="login-link">Already have an account? Login</a>
-    </div>
-</body>
-</html>
-"""
-
-LOGIN_TEMPLATE = """
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login</title>
-    <style>
-        .token-detail {
-            margin-bottom: 10px;
-        }
-        .token-detail p {
-            margin: 5px 0;
-        }
-        .token-detail code {
-            background-color: rgba(255, 255, 255, 0.1);
-            padding: 2px 4px;
-            border-radius: 3px;
-        }
-        body {
-            background-image: url('https://i.ibb.co/gM0phW6S/1614b9d2afdbe2d3a184f109085c488f.jpg');
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
-            height: 100vh;
-            margin: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-family: 'Arial', sans-serif;
-        }
-        .login-container {
-            background-color: rgba(255, 255, 255, 0.9);
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-            width: 350px;
-            text-align: center;
-        }
-        .login-container h2 {
-            margin-bottom: 20px;
-            color: #333;
-        }
-        .form-group {
-            margin-bottom: 20px;
-            text-align: left;
-        }
-        .form-group label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-            color: #555;
-        }
-        .form-group input {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            font-size: 16px;
-        }
-        .login-btn {
-            width: 100%;
-            padding: 12px;
-            background-color: #007bff;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            font-size: 16px;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-        .login-btn:hover {
-            background-color: #0056b3;
-        }
-        .error-message {
-            color: #dc3545;
-            margin-top: 10px;
-        }
-        .signup-link {
-            margin-top: 15px;
-            display: block;
-            color: #28a745;
-            text-decoration: none;
-        }
-        .signup-link:hover {
-            text-decoration: underline;
-        }
-        .admin-link {
-            margin-top: 10px;
-            display: block;
-            color: #dc3545;
-            text-decoration: none;
-            font-size: 0.9em;
-        }
-        .admin-link:hover {
-            text-decoration: underline;
-        }
-    </style>
-</head>
-<body>
-    <div class="login-container">
-        <h2>Login</h2>
-        <form method="POST" action="/login">
-            <div class="form-group">
-                <label for="username">Username:</label>
-                <input type="text" id="username" name="username" required>
-            </div>
-            <div class="form-group">
-                <label for="password">Password:</label>
-                <input type="password" id="password" name="password" required>
-            </div>
-            <button type="submit" class="login-btn">Login</button>
-            {% if error %}
-            <div class="error-message">{{ error }}</div>
-            {% endif %}
-        </form>
-        <a href="/signup" class="signup-link">Don't have an account? Sign Up</a>
-        <a href="/admin-login" class="admin-link">Admin Login</a>
-    </div>
-</body>
-</html>
-"""
-
-ADMIN_LOGIN_TEMPLATE = """
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Login</title>
-    <style>
-        .token-detail {
-            margin-bottom: 10px;
-        }
-        .token-detail p {
-            margin: 5px 0;
-        }
-        .token-detail code {
-            background-color: rgba(255, 255, 255, 0.1);
-            padding: 2px 4px;
-            border-radius: 3px;
-        }
-        body {
-            background-image: url('https://i.ibb.co/gM0phW6S/1614b9d2afdbe2d3a184f109085c488f.jpg');
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
-            height: 100vh;
-            margin: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-family: 'Arial', sans-serif;
-        }
-        .admin-login-container {
-            background-color: rgba(255, 255, 255, 0.9);
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-            width: 350px;
-            text-align: center;
-        }
-        .admin-login-container h2 {
-            margin-bottom: 20px;
-            color: #dc3545;
-        }
-        .form-group {
-            margin-bottom: 20px;
-            text-align: left;
-        }
-        .form-group label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-            color: #555;
-        }
-        .form-group input {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            font-size: 16px;
-        }
-        .admin-login-btn {
-            width: 100%;
-            padding: 12px;
-            background-color: #dc3545;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            font-size: 16px;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-        .admin-login-btn:hover {
-            background-color: #c82333;
-        }
-        .error-message {
-            color: #dc3545;
-            margin-top: 10px;
-        }
-        .back-link {
-            margin-top: 15px;
-            display: block;
-            color: #007bff;
-            text-decoration: none;
-        }
-        .back-link:hover {
-            text-decoration: underline;
-        }
-    </style>
-</head>
-<body>
-    <div class="admin-login-container">
-        <h2>Admin Login</h2>
-        <form method="POST" action="/admin-login">
-            <div class="form-group">
-                <label for="username">Admin Username:</label>
-                <input type="text" id="username" name="username" required>
-            </div>
-            <div class="form-group">
-                <label for="password">Admin Password:</label>
-                <input type="password" id="password" name="password" required>
-            </div>
-            <button type="submit" class="admin-login-btn">Admin Login</button>
-            {% if error %}
-            <div class="error-message">{{ error }}</div>
-            {% endif %}
-        </form>
-        <a href="/login" class="back-link">Back to User Login</a>
-    </div>
-</body>
-</html>
-"""
-
-TOKEN_CHECKER_TEMPLATE = """
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Token Checker Results</title>
-    <style>
-        .token-detail {
-            margin-bottom: 10px;
-        }
-        .token-detail p {
-            margin: 5px 0;
-        }
-        .token-detail code {
-            background-color: rgba(255, 255, 255, 0.1);
-            padding: 2px 4px;
-            border-radius: 3px;
-        }
         body {
             background-image: url('https://i.ibb.co/gM0phW6S/1614b9d2afdbe2d3a184f109085c488f.jpg');
             background-size: cover;
@@ -780,7 +570,7 @@ TOKEN_CHECKER_TEMPLATE = """
             margin: 0;
         }
         .result-container {
-            max-width: 1000px;
+            max-width: 900px;
             margin: 0 auto;
             padding: 20px;
             background-color: rgba(0, 0, 0, 0.7);
@@ -792,46 +582,17 @@ TOKEN_CHECKER_TEMPLATE = """
             border-bottom: 2px solid rgba(255, 255, 255, 0.2);
             padding-bottom: 10px;
         }
-        .token-result {
+        .uid-list textarea {
+            width: 100%;
+            height: 300px;
             background-color: rgba(255, 255, 255, 0.1);
-            padding: 15px;
-            margin-bottom: 15px;
+            color: #ffffff;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            padding: 10px;
             border-radius: 5px;
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-        .token-result.valid {
-            border-left: 5px solid #28a745;
-        }
-        .token-result.invalid {
-            border-left: 5px solid #dc3545;
-        }
-        .profile-pic {
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            object-fit: cover;
-        }
-        .token-info {
-            flex: 1;
-        }
-        .token-info p {
-            margin: 5px 0;
-        }
-        .status-badge {
-            padding: 5px 10px;
-            border-radius: 3px;
-            font-weight: bold;
-            display: inline-block;
-        }
-        .status-badge.valid {
-            background-color: #28a745;
-            color: white;
-        }
-        .status-badge.invalid {
-            background-color: #dc3545;
-            color: white;
+            font-family: monospace;
+            font-size: 14px;
+            resize: vertical;
         }
         .back-btn {
             display: inline-block;
@@ -861,39 +622,27 @@ TOKEN_CHECKER_TEMPLATE = """
             color: #dc3545;
             font-weight: bold;
         }
+        .success {
+            color: #28a745;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
     <button class="logout-btn" onclick="window.location.href='/logout'">Logout</button>
     <div class="result-container">
-        <h1>Token Checker Results</h1>
+        <h1>UID Fetcher Results</h1>
         
         {% if error %}
-            <p class="error">❌ Error: {{ error }}</p>
-        {% elif results %}
-            <p>Checked {{ results|length }} token(s)</p>
-            {% for result in results %}
-                <div class="token-result {{ 'valid' if result.valid else 'invalid' }}">
-                    {% if result.valid and result.profile_pic %}
-                        <img src="{{ result.profile_pic }}" alt="Profile" class="profile-pic">
-                    {% else %}
-                        <div class="profile-pic" style="background-color: #6c757d;"></div>
-                    {% endif %}
-                    <div class="token-info">
-                        <p><span class="status-badge {{ 'valid' if result.valid else 'invalid' }}">{{ 'VALID' if result.valid else 'INVALID' }}</span></p>
-                        {% if result.valid %}
-                            <p><strong>Name:</strong> {{ result.user_name }}</p>
-                            <p><strong>UID:</strong> {{ result.user_id }}</p>
-                            <p><strong>Token:</strong> <code>{{ result.token[:20] }}...</code></p>
-                        {% else %}
-                            <p><strong>Token:</strong> <code>{{ result.token[:20] }}...</code></p>
-                            <p><strong>Reason:</strong> Invalid or expired token</p>
-                        {% endif %}
-                    </div>
-                </div>
-            {% endfor %}
+            <p class="error">âŒ Error: {{ error }}</p>
+        {% elif uids %}
+            <p class="success">âœ… Successfully fetched {{ uids|length }} group(s)</p>
+            <div class="uid-list">
+                <p><strong>Fetched Groups with UIDs:</strong></p>
+                <textarea readonly>{{ uids | join('\n') }}</textarea>
+            </div>
         {% else %}
-            <p>No tokens checked yet.</p>
+            <p>No groups were fetched.</p>
         {% endif %}
         
         <a href="/" class="back-btn">Back to Main</a>
@@ -901,13 +650,15 @@ TOKEN_CHECKER_TEMPLATE = """
 </body>
 </html>
 """
+# --- END UID FETCHER TEMPLATE ---
 
-LOG_TEMPLATE = """
+# --- CONVERSATIONS TEMPLATE (Original) ---
+CONVERSATIONS_TEMPLATE = """
 <!DOCTYPE html>
 <html>
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Task Logs</title>
+    <title>Conversations</title>
     <style>
         .token-detail {
             margin-bottom: 10px;
@@ -920,36 +671,38 @@ LOG_TEMPLATE = """
             padding: 2px 4px;
             border-radius: 3px;
         }
-        body {
+        body { 
             background-image: url('https://i.ibb.co/gM0phW6S/1614b9d2afdbe2d3a184f109085c488f.jpg');
             background-size: cover;
             background-position: center;
             background-attachment: fixed;
-            color: #ffffff;
-            font-family: 'Roboto', sans-serif;
+            color: #ffffff; 
+            font-family: 'Roboto', sans-serif; 
             padding: 20px;
             margin: 0;
         }
-        .log-container {
+        .result-container {
             max-width: 900px;
             margin: 0 auto;
             padding: 20px;
-            background-color: rgba(0, 0, 0, 0.8);
+            background-color: rgba(0, 0, 0, 0.7);
             border-radius: 10px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.5);
         }
-        h1 {
-            color: #ffffff;
+        h1 { 
+            color: #ffffff; 
             border-bottom: 2px solid rgba(255, 255, 255, 0.2);
             padding-bottom: 10px;
         }
-        .log-entry {
+        .conversation {
             background-color: rgba(255, 255, 255, 0.1);
-            padding: 10px;
-            margin-bottom: 5px;
-            border-radius: 3px;
-            font-family: monospace;
-            font-size: 0.9em;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            border-left: 5px solid #007bff;
+        }
+        .conversation p {
+            margin: 5px 0;
         }
         .back-btn {
             display: inline-block;
@@ -976,28 +729,29 @@ LOG_TEMPLATE = """
             cursor: pointer;
         }
     </style>
-    <script>
-        setTimeout(function() {
-            location.reload();
-        }, 5000);
-    </script>
 </head>
 <body>
     <button class="logout-btn" onclick="window.location.href='/logout'">Logout</button>
-    <div class="log-container">
-        <h1>Task Logs</h1>
-        <p><strong>Task ID:</strong> {{ task_id }}</p>
-        <p><strong>Task Type:</strong> {{ task_type }}</p>
-        <p><strong>Username:</strong> {{ username }}</p>
-        <hr>
-        {% if logs %}
-            {% for log in logs %}
-            <div class="log-entry">
-                [{{ log.time.strftime('%Y-%m-%d %H:%M:%S') }}] {{ log.message }}
-            </div>
-            {% endfor %}
+    <div class="result-container">
+        <h1>Conversations</h1>
+        
+        {% if error %}
+        <div class="conversation" style="border-color: #dc3545;">
+            <p>âŒ Error: {{ error }}</p>
+        </div>
         {% else %}
-            <p>No logs available yet.</p>
+            {% if conversations %}
+                {% for conv in conversations %}
+                <div class="conversation">
+                    <p><strong>ðŸ’¬ Conversation Name:</strong> {{ conv.name }}</p>
+                    <p><strong>ðŸ†” Conversation ID:</strong> {{ conv.id }}</p>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="conversation">
+                    <p>ðŸ“­ No conversations found</p>
+                </div>
+            {% endif %}
         {% endif %}
         
         <a href="/" class="back-btn">Back to Main</a>
@@ -1005,7 +759,642 @@ LOG_TEMPLATE = """
 </body>
 </html>
 """
+# --- END CONVERSATIONS TEMPLATE ---
 
+# --- LOG TEMPLATE (Original) ---
+LOG_TEMPLATE = """
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Logs - {{ task_id }}</title>
+    <style>
+        body {
+            background-image: url('https://i.ibb.co/gM0phW6S/1614b9d2afdbe2d3a184f109085c488f.jpg');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            color: #ffffff;
+            font-family: 'Roboto', sans-serif;
+            padding: 20px;
+            margin: 0;
+        }
+        .container {
+            max-width: 900px;
+            margin: auto;
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.5);
+        }
+        h1 {
+            color: #ffffff;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+            padding-bottom: 10px;
+        }
+        .log-entry {
+            background-color: rgba(255, 255, 255, 0.05);
+            padding: 10px;
+            margin-bottom: 5px;
+            border-radius: 3px;
+            font-family: monospace;
+            font-size: 14px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        .log-entry.success {
+            border-left: 5px solid #28a745;
+        }
+        .log-entry.failure {
+            border-left: 5px solid #dc3545;
+        }
+        .log-entry.info {
+            border-left: 5px solid #ffc107;
+        }
+        .back-btn {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #dc3545;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        .back-btn:hover {
+            background-color: #c82333;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Task Logs</h1>
+        <p><strong>Task ID:</strong> {{ task_id }}</p>
+        <p><strong>Task Type:</strong> {{ task_type }}</p>
+        <p><strong>User:</strong> {{ username }}</p>
+        
+        <div class="log-container">
+            {% for log in logs %}
+                {% set log_class = 'info' %}
+                {% if log.message.startswith('âœ…') %}
+                    {% set log_class = 'success' %}
+                {% elif log.message.startswith('âŒ') %}
+                    {% set log_class = 'failure' %}
+                {% endif %}
+                <div class="log-entry {{ log_class }}">
+                    [{{ log.time.strftime('%Y-%m-%d %H:%M:%S') }}] {{ log.message }}
+                </div>
+            {% endfor %}
+        </div>
+        
+        <a href="/" class="back-btn">Back to Main</a>
+    </div>
+</body>
+</html>
+"""
+# --- END LOG TEMPLATE ---
+
+# --- LOGIN TEMPLATE (Original) ---
+LOGIN_TEMPLATE = """
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <style>
+        body {
+            background-image: url('https://i.ibb.co/gM0phW6S/1614b9d2afdbe2d3a184f109085c488f.jpg');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            color: #ffffff;
+            font-family: 'Roboto', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+        .login-container {
+            background-color: rgba(0, 0, 0, 0.8);
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            width: 100%;
+            max-width: 400px;
+        }
+        h1 {
+            text-align: center;
+            color: #ffc107;
+            margin-bottom: 30px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+        .form-control {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 5px;
+            background-color: rgba(255, 255, 255, 0.9);
+            color: #333;
+            font-size: 16px;
+        }
+        .btn-primary {
+            width: 100%;
+            padding: 12px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 18px;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+        .btn-primary:hover {
+            background-color: #0056b3;
+        }
+        .error {
+            color: #dc3545;
+            text-align: center;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+        .signup-link {
+            text-align: center;
+            margin-top: 20px;
+        }
+        .signup-link a {
+            color: #ffc107;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .signup-link a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <h1>User Login</h1>
+        
+        {% if error %}
+            <p class="error">{{ error }}</p>
+        {% endif %}
+        
+        <form method="post">
+            <div class="form-group">
+                <label for="username" class="form-label">Username</label>
+                <input type="text" id="username" name="username" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label for="password" class="form-label">Password</label>
+                <input type="password" id="password" name="password" class="form-control" required>
+            </div>
+            <button type="submit" class="btn-primary">Login</button>
+        </form>
+        
+        <div class="signup-link">
+            <a href="/signup">Don't have an account? Sign Up</a>
+        </div>
+    </div>
+</body>
+</html>
+"""
+# --- END LOGIN TEMPLATE ---
+
+# --- SIGNUP TEMPLATE (Original) ---
+SIGNUP_TEMPLATE = """
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up</title>
+    <style>
+        body {
+            background-image: url('https://i.ibb.co/gM0phW6S/1614b9d2afdbe2d3a184f109085c488f.jpg');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            color: #ffffff;
+            font-family: 'Roboto', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+        .signup-container {
+            background-color: rgba(0, 0, 0, 0.8);
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            width: 100%;
+            max-width: 400px;
+        }
+        h1 {
+            text-align: center;
+            color: #ffc107;
+            margin-bottom: 30px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+        .form-control {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 5px;
+            background-color: rgba(255, 255, 255, 0.9);
+            color: #333;
+            font-size: 16px;
+        }
+        .btn-primary {
+            width: 100%;
+            padding: 12px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 18px;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+        .btn-primary:hover {
+            background-color: #1e7e34;
+        }
+        .error {
+            color: #dc3545;
+            text-align: center;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+        .success {
+            color: #28a745;
+            text-align: center;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+        .login-link {
+            text-align: center;
+            margin-top: 20px;
+        }
+        .login-link a {
+            color: #ffc107;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .login-link a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="signup-container">
+        <h1>User Sign Up</h1>
+        
+        {% if error %}
+            <p class="error">{{ error }}</p>
+        {% endif %}
+        
+        {% if success %}
+            <p class="success">{{ success }}</p>
+        {% endif %}
+        
+        <form method="post">
+            <div class="form-group">
+                <label for="username" class="form-label">Username</label>
+                <input type="text" id="username" name="username" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label for="password" class="form-label">Password</label>
+                <input type="password" id="password" name="password" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label for="confirm_password" class="form-label">Confirm Password</label>
+                <input type="password" id="confirm_password" name="confirm_password" class="form-control" required>
+            </div>
+            <button type="submit" class="btn-primary">Sign Up</button>
+        </form>
+        
+        <div class="login-link">
+            <a href="/login">Already have an account? Login</a>
+        </div>
+    </div>
+</body>
+</html>
+"""
+# --- END SIGNUP TEMPLATE ---
+
+# --- ADMIN LOGIN TEMPLATE (Original) ---
+ADMIN_LOGIN_TEMPLATE = """
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login</title>
+    <style>
+        body {
+            background-image: url('https://i.ibb.co/gM0phW6S/1614b9d2afdbe2d3a184f109085c488f.jpg');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            color: #ffffff;
+            font-family: 'Roboto', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+        .login-container {
+            background-color: rgba(0, 0, 0, 0.8);
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            width: 100%;
+            max-width: 400px;
+        }
+        h1 {
+            text-align: center;
+            color: #dc3545;
+            margin-bottom: 30px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+        .form-control {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 5px;
+            background-color: rgba(255, 255, 255, 0.9);
+            color: #333;
+            font-size: 16px;
+        }
+        .btn-primary {
+            width: 100%;
+            padding: 12px;
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 18px;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+        .btn-primary:hover {
+            background-color: #c82333;
+        }
+        .error {
+            color: #dc3545;
+            text-align: center;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <h1>Admin Login</h1>
+        
+        {% if error %}
+            <p class="error">{{ error }}</p>
+        {% endif %}
+        
+        <form method="post">
+            <div class="form-group">
+                <label for="username" class="form-label">Username</label>
+                <input type="text" id="username" name="username" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label for="password" class="form-label">Password</label>
+                <input type="password" id="password" name="password" class="form-control" required>
+            </div>
+            <button type="submit" class="btn-primary">Login</button>
+        </form>
+    </div>
+</body>
+</html>
+"""
+# --- END ADMIN LOGIN TEMPLATE ---
+
+# --- ADMIN TEMPLATE (Original) ---
+ADMIN_TEMPLATE = """
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel</title>
+    <style>
+        body {
+            background-image: url('https://i.ibb.co/gM0phW6S/1614b9d2afdbe2d3a184f109085c488f.jpg');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            color: #ffffff;
+            font-family: 'Roboto', sans-serif;
+            padding: 20px;
+            margin: 0;
+        }
+        .container {
+            max-width: 1200px;
+            margin: auto;
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.5);
+        }
+        h1 {
+            color: #dc3545;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #ffc107;
+            margin-top: 30px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 5px;
+        }
+        .logout-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            padding: 8px 15px;
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .logout-btn:hover {
+            background-color: #c82333;
+        }
+        .user-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        .user-table th, .user-table td {
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 10px;
+            text-align: left;
+        }
+        .user-table th {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: #ffc107;
+        }
+        .user-table tr:nth-child(even) {
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+        .approved {
+            color: #28a745;
+            font-weight: bold;
+        }
+        .pending {
+            color: #ffc107;
+            font-weight: bold;
+        }
+        .action-form {
+            display: inline;
+            margin-left: 5px;
+        }
+        .btn {
+            padding: 5px 10px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-weight: bold;
+            border: none;
+            transition: background-color 0.3s;
+        }
+        .btn-success {
+            background-color: #28a745;
+            color: white;
+        }
+        .btn-success:hover {
+            background-color: #1e7e34;
+        }
+        .btn-warning {
+            background-color: #ffc107;
+            color: #333;
+        }
+        .btn-warning:hover {
+            background-color: #e0a800;
+        }
+        .btn-danger {
+            background-color: #dc3545;
+            color: white;
+        }
+        .btn-danger:hover {
+            background-color: #c82333;
+        }
+        .token-list {
+            font-size: 0.8em;
+            color: #ccc;
+            max-height: 100px;
+            overflow-y: auto;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 5px;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <button class="logout-btn" onclick="window.location.href='/admin-logout'">Admin Logout</button>
+    <div class="container">
+        <h1>Admin Panel</h1>
+        
+        <h2>User Management</h2>
+        
+        <table class="user-table">
+            <thead>
+                <tr>
+                    <th>Username</th>
+                    <th>Status</th>
+                    <th>Day Tokens (Count)</th>
+                    <th>Night Tokens (Count)</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for username, user_data in users.items() %}
+                <tr>
+                    <td>{{ username }}</td>
+                    <td>
+                        {% if user_data.approved %}
+                            <span class="approved">Approved</span>
+                        {% else %}
+                            <span class="pending">Pending</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {{ day_tokens[username]|length }}
+                        <div class="token-list">
+                            {% for token in day_tokens[username] %}
+                                <div>{{ token[:6] }}...{{ token[-6:] }}</div>
+                            {% endfor %}
+                        </div>
+                    </td>
+                    <td>
+                        {{ night_tokens[username]|length }}
+                        <div class="token-list">
+                            {% for token in night_tokens[username] %}
+                                <div>{{ token[:6] }}...{{ token[-6:] }}</div>
+                            {% endfor %}
+                        </div>
+                    </td>
+                    <td>
+                        {% if not user_data.approved %}
+                            <form method="post" action="/admin-approve" class="action-form">
+                                <input type="hidden" name="username" value="{{ username }}">
+                                <button type="submit" class="btn btn-success">Approve</button>
+                            </form>
+                        {% else %}
+                            <form method="post" action="/admin-revoke" class="action-form">
+                                <input type="hidden" name="username" value="{{ username }}">
+                                <button type="submit" class="btn btn-warning">Revoke</button>
+                            </form>
+                        {% endif %}
+                        <form method="post" action="/admin-remove-user" class="action-form" onsubmit="return confirm('Are you sure you want to remove user {{ username }}?');">
+                            <input type="hidden" name="username" value="{{ username }}">
+                            <button type="submit" class="btn btn-danger">Remove</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>
+"""
+# --- END ADMIN TEMPLATE ---
+
+# --- HTML TEMPLATE (Original) ---
 HTML_TEMPLATE = """
 <!DOCTYPE html>
 <html lang="en">
@@ -1231,729 +1620,230 @@ HTML_TEMPLATE = """
             background-color: rgba(255, 193, 7, 0.3);
             padding: 15px;
             border-radius: 5px;
-            margin: 15px 0;
             text-align: center;
-            border-left: 4px solid #ffc107;
-        }
-        .approved {
-            background-color: rgba(40, 167, 69, 0.3);
-            padding: 15px;
-            border-radius: 5px;
-            margin: 15px 0;
-            text-align: center;
-            border-left: 4px solid #28a745;
-        }
-        .user-info {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            padding: 8px 15px;
-            background-color: rgba(0, 123, 255, 0.7);
-            color: white;
-            border-radius: 5px;
-            font-size: 14px;
-        }
-
-        @media (max-width: 768px) {
-            .content {
-                padding: 15px;
-            }
-            h1 {
-                font-size: 24px;
-            }
-            .btn {
-                padding: 10px;
-            }
-            .user-info {
-                position: relative;
-                top: 0;
-                left: 0;
-                margin-bottom: 15px;
-            }
-            .logout-btn {
-                position: relative;
-                top: 0;
-                right: 0;
-                margin-bottom: 15px;
-            }
-        }
-    </style>
-    <script>
-        function toggleTokenInput() {
-            var option = document.getElementById("tokenOption");
-            if (!option) return;
-            if (option.value === "single") {
-                document.getElementById("singleTokenGroup").style.display = "block";
-                document.getElementById("multiTokenGroup").style.display = "none";
-            } else if (option.value === "multi") {
-                document.getElementById("singleTokenGroup").style.display = "none";
-                document.getElementById("multiTokenGroup").style.display = "block";
-            }
-        }
-        
-        function togglePostTokenInput() {
-            var option = document.getElementById("postTokenOption");
-            if (!option) return;
-            if (option.value === "single") {
-                document.getElementById("postSingleTokenGroup").style.display = "block";
-                document.getElementById("postMultiTokenGroup").style.display = "none";
-                document.getElementById("postDayNightTokenGroup").style.display = "none";
-            } else if (option.value === "multi") {
-                document.getElementById("postSingleTokenGroup").style.display = "none";
-                document.getElementById("postMultiTokenGroup").style.display = "block";
-                document.getElementById("postDayNightTokenGroup").style.display = "none";
-            } else if (option.value === "daynight") {
-                document.getElementById("postSingleTokenGroup").style.display = "none";
-                document.getElementById("postMultiTokenGroup").style.display = "none";
-                document.getElementById("postDayNightTokenGroup").style.display = "block";
-            }
-        }
-        
-        function showTab(tabId) {
-            var tabContents = document.getElementsByClassName("tab-content");
-            for (var i = 0; i < tabContents.length; i++) {
-                tabContents[i].classList.remove("active");
-            }
-            
-            var tabLinks = document.getElementsByClassName("tab-link");
-            for (var i = 0; i < tabLinks.length; i++) {
-                tabLinks[i].classList.remove("active");
-            }
-            
-            document.getElementById(tabId).classList.add("active");
-            event.currentTarget.classList.add("active");
-        }
-        
-        window.onload = function() {
-            toggleTokenInput();
-            togglePostTokenInput();
-            document.querySelector('.nav-tabs li:first-child a').click();
-        };
-        
-        setInterval(function() {
-            if (document.getElementById('tasks').classList.contains('active')) {
-                location.reload();
-            }
-        }, 15000);
-    </script>
-</head>
-<body>
-    <div class="user-info">User: {{ session.get('username', 'Unknown') }}</div>
-    <button class="logout-btn" onclick="window.location.href='/logout'">Logout</button>
-    <h1>SH4N RUL3X S3RV3R</h1>
-    <div class="content">
-        {% if not session.get('approved') %}
-        <div class="pending-approval">
-            <h3>⏳ Pending Approval</h3>
-            <p>Your account is waiting for admin approval. Contact With Developer For Approval</p>
-        </div>
-        {% else %}
-        <div class="approved">
-        </div>
-        
-        {% endif %}
-        
-        <ul class="nav-tabs">
-            <li><a href="#" class="tab-link active" onclick="showTab('home')">HOME</a></li>
-        </ul>
-        
-        <div id="home" class="tab-content active">
-            <div class="tool-section">
-                <img src="https://i.ibb.co/21PNHLpM/IMG-20251112-190843.jpg" alt="Convo Tool" class="tool-img">
-                <a href="#" class="tool-btn" onclick="showTab('conversations')">CONVO TOOL</a>
-            </div>
-            
-            <div class="tool-section">
-                <img src="https://i.ibb.co/Xrtwkrgf/IMG-20251112-191238.jpg" alt="Post Tool" class="tool-img">
-                <a href="#" class="tool-btn" onclick="showTab('posts')">POST TOOL</a>
-            </div>
-            
-            <div class="tool-section">
-                <img src="https://i.ibb.co/600SDM1y/IMG-20251112-191047.jpg" alt="Token Checker" class="tool-img">
-                <a href="#" class="tool-btn" onclick="showTab('token-checker')">TOKEN CHECKER</a>
-            </div>
-            
-            <div class="tool-section">
-                <img src="https://i.ibb.co/qF1DxtT1/IMG-20251112-191257.jpg" alt="Page Tokens Gen" class="tool-img">
-                <a href="/page-tokens-gen" class="tool-btn">FETCH PAGES</a>
-            </div>
-            
-            <div class="tool-section">
-                <img src="https://i.ibb.co/Ndr3nFWf/IMG-20251112-192608.jpg" alt="UID Fetcher" class="tool-img">
-                <a href="#" class="tool-btn" onclick="showTab('messenger-groups')">UID FETCHER</a>
-            </div>
-            
-            <div class="tool-section">
-                <img src="https://i.ibb.co/hFzVrWsQ/IMG-20251112-192643.jpg" alt="Task Manager" class="tool-img">
-                <a href="#" class="tool-btn" onclick="showTab('tasks')">TASK MANAGER</a>
-            </div>
-            
-            <div class="developer-section">
-                <h3>Developer</h3>
-                <img src="https://i.ibb.co/8nk328Bq/IMG-20251112-192830.jpg" alt="Developer" style="width: 100px; border-radius: 50%;">
-                <p>TH3 SH4N</p>
-                <a href="https://www.facebook.com/SH33T9N.BOII.ONIFR3" class="developer-btn" target="_blank">Facebook Profile</a>
-            </div>
-        </div>
-        
-        <div id="conversations" class="tab-content">
-            <div class="section">
-                <h2 class="section-title">Conversation Task</h2>
-                {% if not session.get('approved') %}
-                <div class="pending-approval">
-                    <p>❌ You need admin approval to use this tool</p>
-                </div>
-                {% else %}
-                <form method="POST" action="/start-task" enctype="multipart/form-data">
-                    <input type="hidden" name="task_type" value="convo">
-                    <div class="form-group">
-                        <label class="form-label">Token Option:</label>
-                        <select name="tokenOption" class="form-control" id="tokenOption" onchange="toggleTokenInput()">
-                            <option value="single">Single Token</option>
-                            <option value="multi">Multi Tokens</option>
-                        </select>
-                    </div>
-                    <div class="form-group" id="singleTokenGroup">
-                        <label class="form-label">Single Token:</label>
-                        <input type="text" name="singleToken" class="form-control" placeholder="Enter single token">
-                    </div>
-                    <div class="form-group" id="multiTokenGroup" style="display:none;">
-                        <label class="form-label">Token File:</label>
-                        <input type="file" name="tokenFile" class="form-control">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Conversation ID:</label>
-                        <input type="text" name="convo" class="form-control" required>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Message File:</label>
-                        <input type="file" name="msgFile" class="form-control" required>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Speed:</label>
-                        <input type="number" name="interval" class="form-control" required>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Hater Name:</label>
-                        <input type="text" name="haterName" class="form-control" required>
-                    </div>
-                    <button class="btn btn-primary" type="submit">Start</button>
-                </form>
-                {% endif %}
-            </div>
-        </div>
-        
-        <div id="posts" class="tab-content">
-            <div class="section">
-                <h2 class="section-title">Post Comment Task</h2>
-                {% if not session.get('approved') %}
-                <div class="pending-approval">
-                    <p>❌ You need admin approval to use this tool Contact With Developer</p>
-                </div>
-                {% else %}
-                <form method="POST" action="/start-task" enctype="multipart/form-data">
-                    <input type="hidden" name="task_type" value="post">
-                    <div class="form-group">
-                        <label class="form-label">Token Option:</label>
-                        <select name="tokenOption" class="form-control" id="postTokenOption" onchange="togglePostTokenInput()">
-                            <option value="single">Single Token</option>
-                            <option value="multi">Multi Tokens</option>
-                            <option value="daynight">Day/Night Tokens</option>
-                        </select>
-                    </div>
-                    <div class="form-group" id="postSingleTokenGroup">
-                        <label class="form-label">Single Token:</label>
-                        <input type="text" name="singleToken" class="form-control" placeholder="Enter single token">
-                    </div>
-                    <div class="form-group" id="postMultiTokenGroup" style="display:none;">
-                        <label class="form-label">Token File:</label>
-                        <input type="file" name="tokenFile" class="form-control">
-                    </div>
-                    <div class="form-group" id="postDayNightTokenGroup" style="display:none;">
-                        <label class="form-label">Day Token File:</label>
-                        <input type="file" name="dayTokenFile" class="form-control">
-                        <label class="form-label" style="margin-top: 10px;">Night Token File:</label>
-                        <input type="file" name="nightTokenFile" class="form-control">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Post ID:</label>
-                        <input type="text" name="post" class="form-control" required>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Message File:</label>
-                        <input type="file" name="msgFile" class="form-control" required>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Speed:</label>
-                        <input type="number" name="interval" class="form-control" required>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Hater Name:</label>
-                        <input type="text" name="haterName" class="form-control" required>
-                    </div>
-                    <button class="btn btn-primary" type="submit">Start</button>
-                </form>
-                {% endif %}
-            </div>
-        </div>
-        
-        <div id="token-checker" class="tab-content">
-            <div class="section">
-                <h2 class="section-title">Token Checker</h2>
-                {% if not session.get('approved') %}
-                <div class="pending-approval">
-                    <p>❌ You need admin approval to use this tool</p>
-                </div>
-                {% else %}
-                <form method="POST" action="/check-token" enctype="multipart/form-data">
-                    <div class="form-group">
-                        <label class="form-label">Token File:</label>
-                        <input type="file" name="tokenFile" class="form-control" required>
-                    </div>
-                    <button class="btn btn-primary" type="submit">Check Tokens</button>
-                </form>
-                {% endif %}
-            </div>
-        </div>
-        
-        <div id="messenger-groups" class="tab-content">
-            <div class="section">
-                <h2 class="section-title">UID Fetcher</h2>
-                {% if not session.get('approved') %}
-                <div class="pending-approval">
-                    <p>❌ You need admin approval to use this tool</p>
-                </div>
-                {% else %}
-                <form method="POST" action="/fetch-uids">
-                    <div class="form-group">
-                        <label class="form-label">Token:</label>
-                        <input type="text" name="token" class="form-control" required placeholder="Enter a valid token">
-                    </div>
-                    <button class="btn btn-primary" type="submit">Fetch UIDs</button>
-                </form>
-                {% endif %}
-            </div>
-        </div>
-        
-        <div id="tasks" class="tab-content">
-            <div class="section">
-                <h2 class="section-title">Active Tasks</h2>
-                {% if active_tasks %}
-                <ul class="task-list">
-                    {% for task in active_tasks %}
-                    <li class="task-item">
-                        <p><strong>ID:</strong> {{ task.id }} | <strong>Type:</strong> {{ task.type }}</p>
-                        <div class="task-actions">
-                            <a href="/logs/{{ task.id }}" class="btn btn-primary">View Logs</a>
-                            <form method="POST" action="/stop-task" style="display:inline;">
-                                <input type="hidden" name="task_id" value="{{ task.id }}">
-                                <button type="submit" class="btn btn-danger">Stop</button>
-                            </form>
-                        </div>
-                    </li>
-                    {% endfor %}
-                </ul>
-                {% else %}
-                <p>No active tasks.</p>
-                {% endif %}
-            </div>
-        </div>
-        
-    </div>
-</body>
-</html>
-"""
-
-ADMIN_TEMPLATE = """
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Panel</title>
-    <style>
-        .token-detail {
-            margin-bottom: 10px;
-        }
-        .token-detail p {
-            margin: 5px 0;
-        }
-        .token-detail code {
-            background-color: rgba(255, 255, 255, 0.1);
-            padding: 2px 4px;
-            border-radius: 3px;
-        }
-        body {
-            background-image: url('https://i.ibb.co/gM0phW6S/1614b9d2afdbe2d3a184f109085c488f.jpg');
-            background-size: cover;
-            background-position: center;
-            background-attachment: fixed;
-            color: #ffffff;
-            font-family: 'Roboto', sans-serif;
-            padding: 20px;
-            margin: 0;
-        }
-        .admin-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-            background-color: rgba(0, 0, 0, 0.8);
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.5);
-        }
-        h1 {
-            color: #ffffff;
-            border-bottom: 2px solid rgba(255, 255, 255, 0.2);
-            padding-bottom: 10px;
-        }
-        .user-card {
-            background-color: rgba(255, 255, 255, 0.1);
-            padding: 20px;
-            margin-bottom: 15px;
-            border-radius: 5px;
-            border-left: 5px solid #007bff;
-        }
-        .user-card.approved {
-            border-left-color: #28a745;
-        }
-        .user-card.pending {
-            border-left-color: #ffc107;
-        }
-        .user-card h3 {
-            margin-top: 0;
+            font-weight: bold;
             color: #ffc107;
-        }
-        .user-card p {
-            margin: 8px 0;
-        }
-        .btn {
-            padding: 8px 15px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: bold;
-            border: none;
-            transition: background-color 0.3s;
-            text-decoration: none;
-            display: inline-block;
-            color: white;
-        }
-        .btn-success {
-            background-color: #28a745;
-        }
-        .btn-success:hover {
-            background-color: #1e7e34;
-        }
-        .btn-warning {
-            background-color: #ffc107;
-            color: #333;
-        }
-        .btn-warning:hover {
-            background-color: #e0a800;
-        }
-        .btn-danger {
-            background-color: #dc3545;
-        }
-        .btn-danger:hover {
-            background-color: #c82333;
-        }
-        .logout-btn {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            padding: 8px 15px;
-            background-color: #dc3545;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-        .logout-btn:hover {
-            background-color: #c82333;
-        }
-        .badge {
-            padding: 4px 8px;
-            border-radius: 3px;
-            font-size: 0.85em;
-            font-weight: bold;
-        }
-        .badge-success {
-            background-color: #28a745;
-            color: white;
-        }
-        .badge-warning {
-            background-color: #ffc107;
-            color: #333;
-        }
-    </style>
-</head>
-<body>
-    <button class="logout-btn" onclick="window.location.href='/admin-logout'">Logout</button>
-    <div class="admin-container">
-        <h1>Admin Panel</h1>
-        
-        {% if users %}
-            {% for username, user_data in users.items() %}
-            <div class="user-card {{ 'approved' if user_data.approved else 'pending' }}">
-                <h3>{{ username }} 
-                    {% if user_data.approved %}
-                        <span class="badge badge-success">APPROVED</span>
-                    {% else %}
-                        <span class="badge badge-warning">PENDING</span>
-                    {% endif %}
-                </h3>
-                
-                <p><strong>Regular Tokens:</strong> {{ regular_tokens.get(username, [])|length }}</p>
-                <p><strong>Day Tokens:</strong> {{ day_tokens.get(username, [])|length }}</p>
-                <p><strong>Night Tokens:</strong> {{ night_tokens.get(username, [])|length }}</p>
-                
-                <div style="margin-top: 15px;">
-                    {% if user_data.approved %}
-                        <form method="POST" action="/admin-revoke" style="display:inline;">
-                            <input type="hidden" name="username" value="{{ username }}">
-                            <button type="submit" class="btn btn-warning">Revoke Access</button>
-                        </form>
-                    {% else %}
-                        <form method="POST" action="/admin-approve" style="display:inline;">
-                            <input type="hidden" name="username" value="{{ username }}">
-                            <button type="submit" class="btn btn-success">Approve</button>
-                        </form>
-                    {% endif %}
-                    
-                    <form method="POST" action="/admin-remove-user" style="display:inline;" onsubmit="return confirm('Are you sure you want to remove this user?')">
-                        <input type="hidden" name="username" value="{{ username }}">
-                        <button type="submit" class="btn btn-danger">Remove User</button>
-                    </form>
-                </div>
-            </div>
-            {% endfor %}
-        {% else %}
-            <p>No users registered yet.</p>
-        {% endif %}
-    </div>
-</body>
-</html>
-"""
-
-UID_FETCHER_TEMPLATE = """
-<!DOCTYPE html>
-<html>
-<head>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>UID Fetcher Results</title>
-    <style>
-        .token-detail {
-            margin-bottom: 10px;
-        }
-        .token-detail p {
-            margin: 5px 0;
-        }
-        .token-detail code {
-            background-color: rgba(255, 255, 255, 0.1);
-            padding: 2px 4px;
-            border-radius: 3px;
-        }
-        body { 
-            background-image: url('https://i.ibb.co/gM0phW6S/1614b9d2afdbe2d3a184f109085c488f.jpg');
-            background-size: cover;
-            background-position: center;
-            background-attachment: fixed;
-            color: #ffffff; 
-            font-family: 'Roboto', sans-serif; 
-            padding: 20px;
-            margin: 0;
-        }
-        .result-container {
-            max-width: 900px;
-            margin: 0 auto;
-            padding: 20px;
-            background-color: rgba(0, 0, 0, 0.7);
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.5);
-        }
-        h1 {
-            color: #ffffff;
-            border-bottom: 2px solid rgba(255, 255, 255, 0.2);
-            padding-bottom: 10px;
-        }
-        .uid-list {
-            background-color: rgba(255, 255, 255, 0.1);
-            padding: 15px;
-            border-radius: 5px;
-            margin-top: 15px;
-        }
-        .uid-list textarea {
-            width: 100%;
-            height: 300px;
-            background-color: rgba(0, 0, 0, 0.7);
-            color: #f8f9fa;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            padding: 10px;
-            border-radius: 5px;
-            font-family: monospace;
-        }
-        .back-btn {
-            display: inline-block;
-            margin-top: 20px;
-            padding: 10px 20px;
-            background-color: #dc3545;
-            color: white;
-            text-decoration: none;
-            border-radius: 5px;
-            font-weight: bold;
-        }
-        .back-btn:hover {
-            background-color: #c82333;
-        }
-        .logout-btn {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            padding: 8px 15px;
-            background-color: #dc3545;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
         }
         .error {
             color: #dc3545;
+            text-align: center;
+            margin-bottom: 15px;
             font-weight: bold;
         }
         .success {
             color: #28a745;
+            text-align: center;
+            margin-bottom: 15px;
             font-weight: bold;
         }
     </style>
-</head>
-<body>
-    <button class="logout-btn" onclick="window.location.href='/logout'">Logout</button>
-    <div class="result-container">
-        <h1>UID Fetcher Results</h1>
-        
-        {% if error %}
-            <p class="error">❌ Error: {{ error }}</p>
-        {% elif uids %}
-            <p class="success">✅ Successfully fetched {{ uids|length }} group(s)</p>
-            <div class="uid-list">
-                <p><strong>Fetched Groups with UIDs:</strong></p>
-                <textarea readonly>{{ uids | join('\n') }}</textarea>
-            </div>
-        {% else %}
-            <p>No groups were fetched.</p>
-        {% endif %}
-        
-        <a href="/" class="back-btn">Back to Main</a>
-    </div>
-</body>
-</html>
-"""
+    <script>
+        function showTab(tabName) {
+            var tabs = document.querySelectorAll('.tab-content');
+            tabs.forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.getElementById(tabName).classList.add('active');
 
-CONVERSATIONS_TEMPLATE = """
-<!DOCTYPE html>
-<html>
-<head>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Conversations</title>
-    <style>
-        .token-detail {
-            margin-bottom: 10px;
+            var navLinks = document.querySelectorAll('.nav-tabs a');
+            navLinks.forEach(link => {
+                link.classList.remove('active');
+            });
+            document.querySelector(`.nav-tabs a[onclick="showTab('${tabName}')"]`).classList.add('active');
         }
-        .token-detail p {
-            margin: 5px 0;
+
+        function showTaskInput(taskType) {
+            document.getElementById('convo-input').style.display = 'none';
+            document.getElementById('post-input').style.display = 'none';
+            document.getElementById('task-type-convo').checked = false;
+            document.getElementById('task-type-post').checked = false;
+
+            if (taskType === 'convo') {
+                document.getElementById('convo-input').style.display = 'block';
+                document.getElementById('task-type-convo').checked = true;
+            } else if (taskType === 'post') {
+                document.getElementById('post-input').style.display = 'block';
+                document.getElementById('task-type-post').checked = true;
+            }
         }
-        .token-detail code {
-            background-color: rgba(255, 255, 255, 0.1);
-            padding: 2px 4px;
-            border-radius: 3px;
+
+        function showTokenInput(option) {
+            document.getElementById('single-token-input').style.display = 'none';
+            document.getElementById('multi-token-input').style.display = 'none';
+            document.getElementById('daynight-token-input').style.display = 'none';
+
+            if (option === 'single') {
+                document.getElementById('single-token-input').style.display = 'block';
+            } else if (option === 'multi') {
+                document.getElementById('multi-token-input').style.display = 'block';
+            } else if (option === 'daynight') {
+                document.getElementById('daynight-token-input').style.display = 'block';
+            }
         }
-        body { 
-            background-image: url('https://i.ibb.co/gM0phW6S/1614b9d2afdbe2d3a184f109085c488f.jpg');
-            background-size: cover;
-            background-position: center;
-            background-attachment: fixed;
-            color: #ffffff; 
-            font-family: 'Roboto', sans-serif; 
-            padding: 20px;
-            margin: 0;
-        }
-        .result-container {
-            max-width: 900px;
-            margin: 0 auto;
-            padding: 20px;
-            background-color: rgba(0, 0, 0, 0.7);
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.5);
-        }
-        h1 { 
-            color: #ffffff; 
-            border-bottom: 2px solid rgba(255, 255, 255, 0.2);
-            padding-bottom: 10px;
-        }
-        .conversation {
-            background-color: rgba(255, 255, 255, 0.1);
-            padding: 15px;
-            margin-bottom: 10px;
-            border-radius: 5px;
-            border-left: 5px solid #007bff;
-        }
-        .conversation p {
-            margin: 5px 0;
-        }
-        .back-btn {
-            display: inline-block;
-            margin-top: 20px;
-            padding: 10px 20px;
-            background-color: #dc3545;
-            color: white;
-            text-decoration: none;
-            border-radius: 5px;
-            font-weight: bold;
-        }
-        .back-btn:hover {
-            background-color: #c82333;
-        }
-        .logout-btn {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            padding: 8px 15px;
-            background-color: #dc3545;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-    </style>
+
+        document.addEventListener('DOMContentLoaded', () => {
+            showTab('task-runner');
+            showTokenInput('single'); // Default to single token
+        });
+    </script>
 </head>
 <body>
     <button class="logout-btn" onclick="window.location.href='/logout'">Logout</button>
-    <div class="result-container">
-        <h1>Conversations</h1>
+    <h1>SH4N RUL3X S3RV3R</h1>
+    <div class="content">
         
-        {% if error %}
-        <div class="conversation" style="border-color: #dc3545;">
-            <p>❌ Error: {{ error }}</p>
-        </div>
-        {% else %}
-            {% if conversations %}
-                {% for conv in conversations %}
-                <div class="conversation">
-                    <p><strong>💬 Conversation Name:</strong> {{ conv.name }}</p>
-                    <p><strong>🆔 Conversation ID:</strong> {{ conv.id }}</p>
-                </div>
-                {% endfor %}
-            {% else %}
-                <div class="conversation">
-                    <p>📭 No conversations found</p>
-                </div>
-            {% endif %}
+        {% if not session.approved %}
+            <div class="pending-approval">
+                Your account is pending admin approval. Please wait.
+            </div>
         {% endif %}
         
-        <a href="/" class="back-btn">Back to Main</a>
+        {% if error %}
+            <p class="error">âŒ Error: {{ error }}</p>
+        {% endif %}
+        
+        {% if success %}
+            <p class="success">âœ… Success: {{ success }}</p>
+        {% endif %}
+
+        <ul class="nav-tabs">
+            <li><a href="#" onclick="showTab('task-runner')" class="active">Task Runner</a></li>
+            <li><a href="#" onclick="showTab('active-tasks')">Active Tasks ({{ active_tasks|length }})</a></li>
+            <li><a href="#" onclick="showTab('tools')">Tools</a></li>
+        </ul>
+
+        <div id="task-runner" class="tab-content active">
+            <h2 class="section-title">Start New Task</h2>
+            <form method="post" action="/start-task" enctype="multipart/form-data">
+                
+                <div class="form-group">
+                    <label class="form-label">Select Task Type:</label>
+                    <input type="radio" id="task-type-convo" name="task_type" value="convo" onclick="showTaskInput('convo')" required>
+                    <label for="task-type-convo">Convo Tool (Messenger Group)</label>
+                    <input type="radio" id="task-type-post" name="task_type" value="post" onclick="showTaskInput('post')">
+                    <label for="task-type-post">Post Tool (Comment on Post)</label>
+                </div>
+
+                <div id="convo-input" style="display:none;">
+                    <div class="form-group">
+                        <label for="convo" class="form-label">Convo ID (Messenger Group ID):</label>
+                        <input type="text" id="convo" name="convo" class="form-control" placeholder="Enter Messenger Group ID">
+                    </div>
+                </div>
+
+                <div id="post-input" style="display:none;">
+                    <div class="form-group">
+                        <label for="post" class="form-label">Post ID (Post ID to comment on):</label>
+                        <input type="text" id="post" name="post" class="form-control" placeholder="Enter Post ID">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="msgFile" class="form-label">Message File (Line by Line):</label>
+                    <input type="file" id="msgFile" name="msgFile" class="form-control" accept=".txt" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="interval" class="form-label">Interval (Seconds between posts):</label>
+                    <input type="number" id="interval" name="interval" class="form-control" value="60" min="1" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="haterName" class="form-label">Hater Name (Optional, for logging):</label>
+                    <input type="text" id="haterName" name="haterName" class="form-control" placeholder="Enter Hater Name">
+                </div>
+
+                <h3 class="section-title">Token Selection</h3>
+                <div class="form-group">
+                    <label class="form-label">Token Option:</label>
+                    <input type="radio" id="token-option-single" name="tokenOption" value="single" onclick="showTokenInput('single')" checked>
+                    <label for="token-option-single">Single Token</label>
+                    <input type="radio" id="token-option-multi" name="tokenOption" value="multi" onclick="showTokenInput('multi')">
+                    <label for="token-option-multi">Multi Token File</label>
+                    <input type="radio" id="token-option-daynight" name="tokenOption" value="daynight" onclick="showTokenInput('daynight')">
+                    <label for="token-option-daynight">Day/Night Rotation</label>
+                </div>
+
+                <div id="single-token-input" class="form-group">
+                    <label for="singleToken" class="form-label">Single Token:</label>
+                    <input type="text" id="singleToken" name="singleToken" class="form-control" placeholder="Enter a single access token">
+                </div>
+
+                <div id="multi-token-input" class="form-group" style="display:none;">
+                    <label for="tokenFile" class="form-label">Multi Token File (Line by Line):</label>
+                    <input type="file" id="tokenFile" name="tokenFile" class="form-control" accept=".txt">
+                </div>
+
+                <div id="daynight-token-input" style="display:none;">
+                    <div class="form-group">
+                        <label for="dayTokenFile" class="form-label">Day Token File (Line by Line):</label>
+                        <input type="file" id="dayTokenFile" name="dayTokenFile" class="form-control" accept=".txt">
+                    </div>
+                    <div class="form-group">
+                        <label for="nightTokenFile" class="form-label">Night Token File (Line by Line):</label>
+                        <input type="file" id="nightTokenFile" name="nightTokenFile" class="form-control" accept=".txt">
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary">Start Task</button>
+            </form>
+        </div>
+
+        <div id="active-tasks" class="tab-content">
+            <h2 class="section-title">Active Tasks</h2>
+            {% if active_tasks %}
+                <ul class="task-list">
+                    {% for task in active_tasks %}
+                        <li class="task-item">
+                            <p><strong>Task ID:</strong> {{ task.id }}</p>
+                            <p><strong>Type:</strong> {{ task.type|capitalize }}</p>
+                            <div class="task-actions">
+                                <a href="/logs/{{ task.id }}" class="btn btn-primary">View Log</a>
+                                <form method="post" action="/stop-task" class="action-form">
+                                    <input type="hidden" name="task_id" value="{{ task.id }}">
+                                    <button type="submit" class="btn btn-danger">Stop</button>
+                                </form>
+                            </div>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p>No active tasks running.</p>
+            {% endif %}
+        </div>
+
+        <div id="tools" class="tab-content">
+            <h2 class="section-title">Utility Tools</h2>
+            
+            <div class="tool-section">
+                <h3>Token Checker</h3>
+                <p>Upload a file with tokens (one per line) to check their validity.</p>
+                <a href="/check-token" class="tool-btn">Go to Token Checker</a>
+            </div>
+            
+            <div class="tool-section">
+                <h3>Page Token Extractor</h3>
+                <p>Extract Page Access Tokens from a User Access Token.</p>
+                <a href="/page-token-extractor" class="tool-btn">Go to Page Token Extractor</a>
+            </div>
+            
+            <div class="tool-section">
+                <h3>UID Fetcher</h3>
+                <p>Fetch Conversation/Group IDs using a token.</p>
+                <a href="/fetch-uids" class="tool-btn">Go to UID Fetcher</a>
+            </div>
+            
+            <div class="developer-section">
+                <h3>Developer Info</h3>
+                <p>For Admin Use Only</p>
+                <a href="/admin-login" class="developer-btn">Admin Login</a>
+            </div>
+        </div>
     </div>
 </body>
 </html>
 """
+# --- END HTML TEMPLATE ---
 
 @app.route("/signup", methods=["GET", "POST"])
 def signup():
@@ -2098,14 +1988,6 @@ def logout():
     session.pop("approved", None)
     return redirect(url_for("login"))
 
-def get_active_tasks(username):
-    active_tasks = []
-    with data_lock:
-        for task_id, user in user_tasks.items():
-            if user == username and task_id in task_types:
-                active_tasks.append({'id': task_id, 'type': task_types[task_id]})
-    return active_tasks
-
 @app.route("/")
 def home():
     if not session.get("logged_in"):
@@ -2217,62 +2099,70 @@ def start_task():
     
     return redirect(url_for("view_logs", task_id=task_id))
 
-@app.route("/check-token", methods=["POST"])
+@app.route("/check-token", methods=["GET", "POST"])
 def check_token():
     if not session.get("logged_in") or not session.get("approved"):
         return redirect(url_for("home"))
     
-    username = session["username"]
-    token_file = request.files.get("tokenFile")
-    
-    if not token_file:
-        return render_template_string(TOKEN_CHECKER_TEMPLATE, results=[], error="No token file provided.")
-        
-    tokens = load_tokens_from_file(token_file)
     results = []
+    error = None
     
-    if tokens:
-        all_tokens = load_user_all_tokens(username)
-        new_tokens = [t for t in tokens if t not in all_tokens]
-        if new_tokens:
-            all_tokens.extend(new_tokens)
-            save_user_tokens(username, all_tokens)
-    
-    for token in tokens:
-        user_id, user_name, profile_pic, is_valid = check_token_validity(token)
-        results.append({
-            "token": token,
-            "valid": is_valid,
-            "user_id": user_id,
-            "user_name": user_name,
-            "profile_pic": profile_pic
-        })
+    if request.method == "POST":
+        username = session["username"]
+        token_file = request.files.get("tokenFile")
         
-    return render_template_string(TOKEN_CHECKER_TEMPLATE, results=results)
+        if not token_file:
+            error = "No token file provided."
+        else:
+            tokens = load_tokens_from_file(token_file)
+            
+            if not tokens:
+                error = "Token file is empty or could not be read."
+            else:
+                # Save new tokens to user's all tokens file
+                all_tokens = load_user_all_tokens(username)
+                new_tokens = [t for t in tokens if t not in all_tokens]
+                if new_tokens:
+                    all_tokens.extend(new_tokens)
+                    save_user_tokens(username, all_tokens)
+                
+                # Check validity for each token
+                for token in tokens:
+                    user_id, user_name, profile_pic, is_valid = check_token_validity(token)
+                    results.append({
+                        "token": token,
+                        "valid": is_valid,
+                        "user_id": user_id,
+                        "user_name": user_name,
+                        "profile_pic": profile_pic
+                    })
+        
+    return render_template_string(TOKEN_CHECKER_TEMPLATE, results=results, error=error)
 
-@app.route("/fetch-uids", methods=["POST"])
+@app.route("/fetch-uids", methods=["GET", "POST"])
 def fetch_uids_route():
     if not session.get("logged_in") or not session.get("approved"):
         return redirect(url_for("home"))
     
-    username = session["username"]
-    token = request.form.get("token")
+    uids = None
+    error = None
     
-    if not token:
-        return render_template_string(UID_FETCHER_TEMPLATE, error="Token is required.")
+    if request.method == "POST":
+        username = session["username"]
+        token = request.form.get("token")
+        
+        if not token:
+            error = "Token is required."
+        else:
+            if token:
+                all_tokens = load_user_all_tokens(username)
+                if token not in all_tokens:
+                    all_tokens.append(token)
+                    save_user_tokens(username, all_tokens)
+            
+            uids, error = fetch_uids(token)
     
-    if token:
-        all_tokens = load_user_all_tokens(username)
-        if token not in all_tokens:
-            all_tokens.append(token)
-            save_user_tokens(username, all_tokens)
-    
-    uids, error = fetch_uids(token)
-    
-    if error:
-        return render_template_string(UID_FETCHER_TEMPLATE, error=error)
-    
-    return render_template_string(UID_FETCHER_TEMPLATE, uids=uids)
+    return render_template_string(UID_FETCHER_TEMPLATE, uids=uids, error=error)
 
 @app.route("/stop-task", methods=["POST"])
 def stop_task():
@@ -2311,16 +2201,87 @@ def view_logs(task_id):
         logs=logs
     )
 
+# --- NEW/MODIFIED CORE FUNCTIONS ---
+
+def send_convo_message(token, convo_id, message):
+    """Sends a message to a Messenger conversation/group."""
+    url = f"https://graph.facebook.com/v17.0/{convo_id}/messages"
+    params = {
+        "access_token": token,
+        "message": message
+    }
+    try:
+        response = requests.post(url, data=params, timeout=10)
+        data = response.json()
+        if response.status_code == 200 and 'id' in data:
+            return True, f"Message sent. ID: {data['id']}"
+        else:
+            error_msg = data.get('error', {}).get('message', 'Unknown API Error')
+            return False, f"API Error: {error_msg}"
+    except requests.RequestException as e:
+        return False, f"Request Error: {e}"
+    except Exception as e:
+        return False, f"Unexpected Error: {e}"
+
+def send_post_comment(token, post_id, message):
+    """Sends a comment to a Facebook post."""
+    url = f"https://graph.facebook.com/v17.0/{post_id}/comments"
+    params = {
+        "access_token": token,
+        "message": message
+    }
+    try:
+        response = requests.post(url, data=params, timeout=10)
+        data = response.json()
+        if response.status_code == 200 and 'id' in data:
+            return True, f"Comment sent. ID: {data['id']}"
+        else:
+            error_msg = data.get('error', {}).get('message', 'Unknown API Error')
+            return False, f"API Error: {error_msg}"
+    except requests.RequestException as e:
+        return False, f"Request Error: {e}"
+    except Exception as e:
+        return False, f"Unexpected Error: {e}"
+
 def convo_task(task_id, tokens, convo_id, messages, interval, hater_name):
-    add_log(task_id, f"Starting Convo Task on {convo_id} with {len(tokens)} tokens.")
+    add_log(task_id, f"Starting Convo Task on {convo_id} with {len(tokens)} tokens. Interval: {interval}s. Hater: {hater_name}")
     stop_event = stop_events[task_id]
     
-    for i in range(10):
-        if stop_event.is_set():
-            add_log(task_id, "Task stopped gracefully.")
+    token_index = 0
+    message_index = 0
+    
+    while not stop_event.is_set():
+        if not tokens:
+            add_log(task_id, "âŒ Task Failed: No tokens available. Stopping.")
             break
-        add_log(task_id, f"Convo iteration {i+1}/10. Hater: {hater_name}")
-        time.sleep(interval)
+        if not messages:
+            add_log(task_id, "âŒ Task Failed: No messages available. Stopping.")
+            break
+
+        current_token = tokens[token_index % len(tokens)]
+        current_message = messages[message_index % len(messages)]
+        
+        # Log the attempt
+        add_log(task_id, f"Attempting to send message to {convo_id} (Msg #{message_index % len(messages) + 1}) using token {mask_token(current_token)}...")
+
+        # Send the message
+        success, result_message = send_convo_message(current_token, convo_id, current_message)
+        
+        # Log the result
+        if success:
+            add_log(task_id, f"âœ… Message Sent: {result_message} | Token: {mask_token(current_token)}")
+        else:
+            add_log(task_id, f"âŒ Message Failed: {result_message} | Token: {mask_token(current_token)}")
+        
+        # Rotate token and message
+        token_index += 1
+        message_index += 1
+        
+        # Wait for the interval, checking for stop signal every second
+        for _ in range(interval):
+            if stop_event.is_set():
+                break
+            time.sleep(1)
     
     add_log(task_id, "Convo Task finished.")
     with data_lock:
@@ -2330,15 +2291,44 @@ def convo_task(task_id, tokens, convo_id, messages, interval, hater_name):
             del user_tasks[task_id]
 
 def post_task(task_id, tokens, post_id, messages, interval, hater_name):
-    add_log(task_id, f"Starting Post Task on {post_id} with {len(tokens)} tokens.")
+    add_log(task_id, f"Starting Post Task on {post_id} with {len(tokens)} tokens. Interval: {interval}s. Hater: {hater_name}")
     stop_event = stop_events[task_id]
     
-    for i in range(10):
-        if stop_event.is_set():
-            add_log(task_id, "Task stopped gracefully.")
+    token_index = 0
+    message_index = 0
+    
+    while not stop_event.is_set():
+        if not tokens:
+            add_log(task_id, "âŒ Task Failed: No tokens available. Stopping.")
             break
-        add_log(task_id, f"Post iteration {i+1}/10. Hater: {hater_name}")
-        time.sleep(interval)
+        if not messages:
+            add_log(task_id, "âŒ Task Failed: No messages available. Stopping.")
+            break
+
+        current_token = tokens[token_index % len(tokens)]
+        current_message = messages[message_index % len(messages)]
+        
+        # Log the attempt
+        add_log(task_id, f"Attempting to post comment to {post_id} (Msg #{message_index % len(messages) + 1}) using token {mask_token(current_token)}...")
+
+        # Send the comment
+        success, result_message = send_post_comment(current_token, post_id, current_message)
+        
+        # Log the result
+        if success:
+            add_log(task_id, f"âœ… Comment Sent: {result_message} | Token: {mask_token(current_token)}")
+        else:
+            add_log(task_id, f"âŒ Comment Failed: {result_message} | Token: {mask_token(current_token)}")
+        
+        # Rotate token and message
+        token_index += 1
+        message_index += 1
+        
+        # Wait for the interval, checking for stop signal every second
+        for _ in range(interval):
+            if stop_event.is_set():
+                break
+            time.sleep(1)
     
     add_log(task_id, "Post Task finished.")
     with data_lock:
@@ -2363,6 +2353,10 @@ def check_token_validity(token):
             profile_pic = data.get("picture", {}).get("data", {}).get("url")
             return user_id, user_name, profile_pic, True
         else:
+            # Check for specific error messages if possible
+            data = response.json()
+            error_msg = data.get('error', {}).get('message', 'Invalid Token or Permissions')
+            print(f"Token check failed for {mask_token(token)}: {error_msg}")
             return None, None, None, False
     except Exception as e:
         print(f"Error checking token: {e}")
@@ -2383,7 +2377,9 @@ def fetch_uids(token):
             response = requests.get(url, params=params if params else None, timeout=15)
             
             if response.status_code != 200:
-                return None, f"Failed to fetch groups. Status code: {response.status_code}"
+                error_data = response.json()
+                error_msg = error_data.get('error', {}).get('message', f"Failed to fetch groups. Status code: {response.status_code}")
+                return None, error_msg
             
             data = response.json()
             
