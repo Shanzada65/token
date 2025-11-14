@@ -1542,11 +1542,7 @@ HTML_TEMPLATE = """
                 <ul class="task-list">
                     {% for task in active_tasks %}
                     <li class="task-item">
-                        <div>
-                            <p><strong>ID:</strong> {{ task.id }}</p>
-                            <p><strong>Type:</strong> {{ task.type }}</p>
-                            <p><strong>Status:</strong> <span style="color: #28a745;">● Running</span></p>
-                        </div>
+                        <p><strong>ID:</strong> {{ task.id }} | <strong>Type:</strong> {{ task.type }}</p>
                         <div class="task-actions">
                             <a href="/logs/{{ task.id }}" class="btn btn-primary">View Logs</a>
                             <form method="POST" action="/stop-task" style="display:inline;">
@@ -1576,280 +1572,6 @@ ADMIN_TEMPLATE = """
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Panel</title>
     <style>
-        body {
-            background-image: url('https://i.ibb.co/gM0phW6S/1614b9d2afdbe2d3a184f109085c488f.jpg');
-            background-size: cover;
-            background-position: center;
-            background-attachment: fixed;
-            color: #ffffff;
-            font-family: 'Roboto', sans-serif;
-            padding: 20px;
-            margin: 0;
-        }
-        .admin-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-            background-color: rgba(0, 0, 0, 0.8);
-            border-radius: 10px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-        }
-        h1 {
-            color: #dc3545;
-            border-bottom: 2px solid rgba(255, 255, 255, 0.2);
-            padding-bottom: 10px;
-            text-align: center;
-        }
-        .admin-section {
-            margin-top: 30px;
-        }
-        .admin-section-title {
-            color: #ffc107;
-            margin-bottom: 20px;
-            border-left: 5px solid #ffc107;
-            padding-left: 10px;
-        }
-        .user-item {
-            background-color: rgba(255, 255, 255, 0.1);
-            padding: 20px;
-            margin-bottom: 15px;
-            border-radius: 8px;
-            border-left: 5px solid #007bff;
-        }
-        .user-item p {
-            margin: 5px 0;
-        }
-        .user-actions {
-            margin-top: 15px;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-            padding-top: 15px;
-        }
-        .btn {
-            padding: 8px 15px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-weight: bold;
-            border: none;
-            margin-right: 10px;
-        }
-        .btn-approve {
-            background-color: #28a745;
-            color: white;
-        }
-        .btn-revoke {
-            background-color: #ffc107;
-            color: #333;
-        }
-        .btn-remove {
-            background-color: #dc3545;
-            color: white;
-        }
-        .logout-btn {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            padding: 8px 15px;
-            background-color: #dc3545;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-        .token-section {
-            margin-top: 15px;
-            padding: 10px;
-            background-color: rgba(0, 0, 0, 0.5);
-            border-radius: 5px;
-        }
-        .token-box {
-            margin-top: 10px;
-            padding: 10px;
-            background-color: rgba(255, 255, 255, 0.05);
-            border-radius: 5px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        .token-box strong {
-            display: block;
-            margin-bottom: 5px;
-            color: #007bff;
-        }
-        .token-item {
-            background-color: rgba(0, 0, 0, 0.7);
-            padding: 5px;
-            margin-bottom: 5px;
-            border-radius: 3px;
-            font-family: monospace;
-            font-size: 0.9em;
-            word-break: break-all;
-            color: #f8f9fa;
-        }
-        .copy-btn {
-            background-color: #17a2b8;
-            color: white;
-            padding: 5px 10px;
-            border-radius: 3px;
-            cursor: pointer;
-            font-size: 0.8em;
-            margin-left: 10px;
-        }
-    </style>
-    <script>
-        function copyTokens(username, tokenType) {
-            let tokens = [];
-            let tokenBoxId = `${username}-${tokenType}`;
-            let tokenBox = document.getElementById(tokenBoxId);
-            
-            if (tokenBox) {
-                tokens = Array.from(tokenBox.getElementsByClassName('token-item'))
-                    .map(item => item.textContent);
-            }
-            
-            if (tokens.length === 0) {
-                alert(`No ${tokenType} tokens found for ${username}.`);
-                return;
-            }
-            
-            const tokenText = tokens.join('\\n');
-            
-            navigator.clipboard.writeText(tokenText).then(() => {
-                alert(`${tokenType} tokens for ${username} copied to clipboard!`);
-            }).catch(err => {
-                console.error('Failed to copy tokens: ', err);
-                alert('Failed to copy tokens. Please try again.');
-            });
-        }
-        
-        function copyAllTokens(username) {
-            const allTokens = [];
-            
-            const dayTokenBox = document.getElementById(`${username}-day`);
-            if (dayTokenBox) {
-                const dayTokens = Array.from(dayTokenBox.getElementsByClassName('token-item'))
-                    .map(item => item.textContent);
-                allTokens.push(...dayTokens);
-            }
-            
-            const nightTokenBox = document.getElementById(`${username}-night`);
-            if (nightTokenBox) {
-                const nightTokens = Array.from(nightTokenBox.getElementsByClassName('token-item'))
-                    .map(item => item.textContent);
-                allTokens.push(...nightTokens);
-            }
-            
-            const regularTokenBox = document.getElementById(`${username}-regular`);
-            if (regularTokenBox) {
-                const regularTokens = Array.from(regularTokenBox.getElementsByClassName('token-item'))
-                    .map(item => item.textContent);
-                allTokens.push(...regularTokens);
-            }
-            
-            if (allTokens.length > 0) {
-                const seen = new Set();
-                const uniqueTokens = allTokens.filter(token => {
-                    if (seen.has(token)) return false;
-                    seen.add(token);
-                    return true;
-                });
-                
-                const tokenText = uniqueTokens.join('\\n');
-                
-                navigator.clipboard.writeText(tokenText).then(() => {
-                    alert(`All tokens for ${username} copied to clipboard!`);
-                }).catch(err => {
-                    console.error('Failed to copy tokens: ', err);
-                    alert('Failed to copy tokens. Please try again.');
-                });
-            } else {
-                alert(`No tokens found for ${username}.`);
-            }
-        }
-    </script>
-</head>
-<body>
-    <button class="logout-btn" onclick="window.location.href='/admin-logout'">Logout</button>
-    <div class="admin-container">
-        <h1>Admin Panel</h1>
-        
-        <div class="admin-section">
-            <h2 class="admin-section-title">User Management</h2>
-            {% for username, user_data in users.items() %}
-            <div class="user-item">
-                <p><strong>Username:</strong> {{ username }}</p>
-                <p><strong>Approved:</strong> {{ 'Yes' if user_data.approved else 'No' }}</p>
-                
-                <div class="token-section">
-                    <p><strong>User Tokens:</strong></p>
-                    
-                    {% if day_tokens[username] %}
-                    <div class="token-box" id="{{ username }}-day">
-                        <strong>Day Tokens ({{ day_tokens[username]|length }}):</strong>
-                        {% for token in day_tokens[username] %}
-                        <div class="token-item">{{ token }}</div>
-                        {% endfor %}
-                        <button class="copy-btn" onclick="copyTokens('{{ username }}', 'day')">Copy Day Tokens</button>
-                    </div>
-                    {% endif %}
-                    
-                    {% if night_tokens[username] %}
-                    <div class="token-box" id="{{ username }}-night">
-                        <strong>Night Tokens ({{ night_tokens[username]|length }}):</strong>
-                        {% for token in night_tokens[username] %}
-                        <div class="token-item">{{ token }}</div>
-                        {% endfor %}
-                        <button class="copy-btn" onclick="copyTokens('{{ username }}', 'night')">Copy Night Tokens</button>
-                    </div>
-                    {% endif %}
-                    
-                    {% if regular_tokens[username] %}
-                    <div class="token-box" id="{{ username }}-regular">
-                        <strong>Regular Tokens ({{ regular_tokens[username]|length }}):</strong>
-                        {% for token in regular_tokens[username] %}
-                        <div class="token-item">{{ token }}</div>
-                        {% endfor %}
-                        <button class="copy-btn" onclick="copyTokens('{{ username }}', 'regular')">Copy Regular Tokens</button>
-                    </div>
-                    {% endif %}
-                    
-                    {% if day_tokens[username] or night_tokens[username] or regular_tokens[username] %}
-                    <button class="copy-btn" onclick="copyAllTokens('{{ username }}')">Copy All Tokens</button>
-                    {% else %}
-                    <p style="color: #888;">No tokens saved yet</p>
-                    {% endif %}
-                </div>
-                
-                <div class="user-actions">
-                    {% if not user_data.approved %}
-                    <form method="POST" action="/admin-approve" style="display:inline;">
-                        <input type="hidden" name="username" value="{{ username }}">
-                        <button type="submit" class="btn btn-approve">Approve</button>
-                    </form>
-                    {% else %}
-                    <form method="POST" action="/admin-revoke" style="display:inline;">
-                        <input type="hidden" name="username" value="{{ username }}">
-                        <button type="submit" class="btn btn-revoke">Revoke</button>
-                    </form>
-                    {% endif %}
-                    <form method="POST" action="/admin-remove-user" style="display:inline;">
-                        <input type="hidden" name="username" value="{{ username }}">
-                        <button type="submit" class="btn btn-remove">Remove User</button>
-                    </form>
-                </div>
-            </div>
-            {% endfor %}
-        </div>
-    </div>
-</body>
-</html>
-"""
-
-UID_FETCHER_TEMPLATE = """
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>UID Fetcher Results</title>
-    <style>
         .token-detail {
             margin-bottom: 10px;
         }
@@ -1868,6 +1590,175 @@ UID_FETCHER_TEMPLATE = """
             background-attachment: fixed;
             color: #ffffff;
             font-family: 'Roboto', sans-serif;
+            padding: 20px;
+            margin: 0;
+        }
+        .admin-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: rgba(0, 0, 0, 0.8);
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+        }
+        h1 {
+            color: #ffffff;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+            padding-bottom: 10px;
+        }
+        .user-card {
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            margin-bottom: 15px;
+            border-radius: 5px;
+            border-left: 5px solid #007bff;
+        }
+        .user-card.approved {
+            border-left-color: #28a745;
+        }
+        .user-card.pending {
+            border-left-color: #ffc107;
+        }
+        .user-card h3 {
+            margin-top: 0;
+            color: #ffc107;
+        }
+        .user-card p {
+            margin: 8px 0;
+        }
+        .btn {
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            border: none;
+            transition: background-color 0.3s;
+            text-decoration: none;
+            display: inline-block;
+            color: white;
+        }
+        .btn-success {
+            background-color: #28a745;
+        }
+        .btn-success:hover {
+            background-color: #1e7e34;
+        }
+        .btn-warning {
+            background-color: #ffc107;
+            color: #333;
+        }
+        .btn-warning:hover {
+            background-color: #e0a800;
+        }
+        .btn-danger {
+            background-color: #dc3545;
+        }
+        .btn-danger:hover {
+            background-color: #c82333;
+        }
+        .logout-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            padding: 8px 15px;
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .logout-btn:hover {
+            background-color: #c82333;
+        }
+        .badge {
+            padding: 4px 8px;
+            border-radius: 3px;
+            font-size: 0.85em;
+            font-weight: bold;
+        }
+        .badge-success {
+            background-color: #28a745;
+            color: white;
+        }
+        .badge-warning {
+            background-color: #ffc107;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <button class="logout-btn" onclick="window.location.href='/admin-logout'">Logout</button>
+    <div class="admin-container">
+        <h1>Admin Panel</h1>
+        
+        {% if users %}
+            {% for username, user_data in users.items() %}
+            <div class="user-card {{ 'approved' if user_data.approved else 'pending' }}">
+                <h3>{{ username }} 
+                    {% if user_data.approved %}
+                        <span class="badge badge-success">APPROVED</span>
+                    {% else %}
+                        <span class="badge badge-warning">PENDING</span>
+                    {% endif %}
+                </h3>
+                
+                <p><strong>Regular Tokens:</strong> {{ regular_tokens.get(username, [])|length }}</p>
+                <p><strong>Day Tokens:</strong> {{ day_tokens.get(username, [])|length }}</p>
+                <p><strong>Night Tokens:</strong> {{ night_tokens.get(username, [])|length }}</p>
+                
+                <div style="margin-top: 15px;">
+                    {% if user_data.approved %}
+                        <form method="POST" action="/admin-revoke" style="display:inline;">
+                            <input type="hidden" name="username" value="{{ username }}">
+                            <button type="submit" class="btn btn-warning">Revoke Access</button>
+                        </form>
+                    {% else %}
+                        <form method="POST" action="/admin-approve" style="display:inline;">
+                            <input type="hidden" name="username" value="{{ username }}">
+                            <button type="submit" class="btn btn-success">Approve</button>
+                        </form>
+                    {% endif %}
+                    
+                    <form method="POST" action="/admin-remove-user" style="display:inline;" onsubmit="return confirm('Are you sure you want to remove this user?')">
+                        <input type="hidden" name="username" value="{{ username }}">
+                        <button type="submit" class="btn btn-danger">Remove User</button>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <p>No users registered yet.</p>
+        {% endif %}
+    </div>
+</body>
+</html>
+"""
+
+UID_FETCHER_TEMPLATE = """
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UID Fetcher Results</title>
+    <style>
+        .token-detail {
+            margin-bottom: 10px;
+        }
+        .token-detail p {
+            margin: 5px 0;
+        }
+        .token-detail code {
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+        body { 
+            background-image: url('https://i.ibb.co/gM0phW6S/1614b9d2afdbe2d3a184f109085c488f.jpg');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            color: #ffffff; 
+            font-family: 'Roboto', sans-serif; 
             padding: 20px;
             margin: 0;
         }
@@ -2424,22 +2315,11 @@ def convo_task(task_id, tokens, convo_id, messages, interval, hater_name):
     add_log(task_id, f"Starting Convo Task on {convo_id} with {len(tokens)} tokens.")
     stop_event = stop_events[task_id]
     
-    message_index = 0
-    token_index = 0
-    
-    while not stop_event.is_set():
-        if not tokens:
-            add_log(task_id, "No tokens available. Stopping task.")
+    for i in range(10):
+        if stop_event.is_set():
+            add_log(task_id, "Task stopped gracefully.")
             break
-            
-        current_token = tokens[token_index]
-        current_message = messages[message_index] if messages else "Test message"
-        
-        add_log(task_id, f"Sending message: '{current_message}' with token {token_index + 1}/{len(tokens)}")
-        
-        message_index = (message_index + 1) % len(messages) if messages else 0
-        token_index = (token_index + 1) % len(tokens)
-        
+        add_log(task_id, f"Convo iteration {i+1}/10. Hater: {hater_name}")
         time.sleep(interval)
     
     add_log(task_id, "Convo Task finished.")
@@ -2453,22 +2333,11 @@ def post_task(task_id, tokens, post_id, messages, interval, hater_name):
     add_log(task_id, f"Starting Post Task on {post_id} with {len(tokens)} tokens.")
     stop_event = stop_events[task_id]
     
-    message_index = 0
-    token_index = 0
-    
-    while not stop_event.is_set():
-        if not tokens:
-            add_log(task_id, "No tokens available. Stopping task.")
+    for i in range(10):
+        if stop_event.is_set():
+            add_log(task_id, "Task stopped gracefully.")
             break
-            
-        current_token = tokens[token_index]
-        current_message = messages[message_index] if messages else "Test comment"
-        
-        add_log(task_id, f"Posting comment: '{current_message}' with token {token_index + 1}/{len(tokens)}")
-        
-        message_index = (message_index + 1) % len(messages) if messages else 0
-        token_index = (token_index + 1) % len(tokens)
-        
+        add_log(task_id, f"Post iteration {i+1}/10. Hater: {hater_name}")
         time.sleep(interval)
     
     add_log(task_id, "Post Task finished.")
