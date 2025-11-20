@@ -169,13 +169,13 @@ HTML_TEMPLATE = '''
 <body>
     <div class="container">
         <div class="header">
-            <h1>🔐 Facebook Token Extractor</h1>
+            <h1>ðŸ” Facebook Token Extractor</h1>
             <p>Extract valid EAAD tokens from Facebook cookies</p>
         </div>
         
         <div class="content">
             <div class="instructions">
-                <h3>📋 How to Get Facebook Cookies:</h3>
+                <h3>ðŸ“‹ How to Get Facebook Cookies:</h3>
                 <ol>
                     <li>Login to <strong>facebook.com</strong> in your browser</li>
                     <li>Press <code>F12</code> to open Developer Tools</li>
@@ -197,7 +197,7 @@ HTML_TEMPLATE = '''
 Example: sb=ABCD...; datr=XYZ...; c_user=123...; xs=ABC...; fr=ABC...; wd=..."
                     id="cookies"
                     name="cookies"></textarea>
-                <button type="submit" class="btn">🚀 Extract Facebook Token</button>
+                <button type="submit" class="btn">ðŸš€ Extract Facebook Token</button>
             </form>
 
             <div id="result" class="result">
@@ -220,7 +220,7 @@ Example: sb=ABCD...; datr=XYZ...; c_user=123...; xs=ABC...; fr=ABC...; wd=..."
             }
             
             // Show loading
-            resultContent.innerHTML = '<div style="text-align: center; padding: 20px;">⏳ Processing cookies...</div>';
+            resultContent.innerHTML = '<div style="text-align: center; padding: 20px;">â³ Processing cookies...</div>';
             resultDiv.style.display = 'block';
             resultDiv.className = 'result';
             
@@ -252,7 +252,7 @@ Example: sb=ABCD...; datr=XYZ...; c_user=123...; xs=ABC...; fr=ABC...; wd=..."
             let html = `
                 <div class="success">
                     <div style="padding: 20px;">
-                        <h3 style="color: #1877f2; margin-bottom: 15px;">✅ Token Successfully Extracted!</h3>
+                        <h3 style="color: #1877f2; margin-bottom: 15px;">âœ… Token Successfully Extracted!</h3>
                         
                         <div style="margin-bottom: 15px;">
                             <strong>Valid EAAD Token Found:</strong>
@@ -262,7 +262,7 @@ Example: sb=ABCD...; datr=XYZ...; c_user=123...; xs=ABC...; fr=ABC...; wd=..."
                             ${data.access_token}
                         </div>
                         
-                        <button class="copy-btn" onclick="copyToken()">📋 Copy Token</button>
+                        <button class="copy-btn" onclick="copyToken()">ðŸ“‹ Copy Token</button>
                         
                         <div class="info-grid">
             `;
@@ -270,7 +270,7 @@ Example: sb=ABCD...; datr=XYZ...; c_user=123...; xs=ABC...; fr=ABC...; wd=..."
             if (data.user_id) {
                 html += `
                     <div class="info-item">
-                        <strong>👤 User ID:</strong><br>
+                        <strong>ðŸ‘¤ User ID:</strong><br>
                         ${data.user_id}
                     </div>
                 `;
@@ -279,7 +279,7 @@ Example: sb=ABCD...; datr=XYZ...; c_user=123...; xs=ABC...; fr=ABC...; wd=..."
             if (data.token_type) {
                 html += `
                     <div class="info-item">
-                        <strong>🔑 Token Type:</strong><br>
+                        <strong>ðŸ”‘ Token Type:</strong><br>
                         ${data.token_type}
                     </div>
                 `;
@@ -288,7 +288,7 @@ Example: sb=ABCD...; datr=XYZ...; c_user=123...; xs=ABC...; fr=ABC...; wd=..."
             if (data.token_length) {
                 html += `
                     <div class="info-item">
-                        <strong>📏 Token Length:</strong><br>
+                        <strong>ðŸ“ Token Length:</strong><br>
                         ${data.token_length} characters
                     </div>
                 `;
@@ -296,21 +296,21 @@ Example: sb=ABCD...; datr=XYZ...; c_user=123...; xs=ABC...; fr=ABC...; wd=..."
             
             html += `
                     <div class="info-item">
-                        <strong>🕒 Extraction Time:</strong><br>
+                        <strong>ðŸ•’ Extraction Time:</strong><br>
                         ${new Date().toLocaleString()}
                     </div>
                 </div>
                 
                 <div style="margin-top: 20px; padding: 15px; background: #e8f5e8; border-radius: 5px;">
-                    <strong>💡 Usage:</strong> This token can be used with Facebook Graph API for authorized requests.
+                    <strong>ðŸ’¡ Usage:</strong> This token can be used with Facebook Graph API for authorized requests.
                 </div>
             `;
             
             if (data.cookie_info) {
                 html += `
                     <div style="margin-top: 20px;">
-                        <h4>🍪 Extracted Cookies Info:</h4>
-                        <div style="background: white; padding: 15px; border-radius: 5px; margin-top: 10px; font-size: 12px; max-height: 150px; overflow-y: auto;">
+                        <h4>ðŸª Extracted Cookies Info:</h4>
+                        <div style="margin-top: 10px; padding: 15px; background: #f0f2f5; border-radius: 5px; font-size: 12px;">
                 `;
                 
                 for (const [key, value] of Object.entries(data.cookie_info)) {
@@ -334,10 +334,10 @@ Example: sb=ABCD...; datr=XYZ...; c_user=123...; xs=ABC...; fr=ABC...; wd=..."
             resultContent.innerHTML = `
                 <div class="error">
                     <div style="padding: 20px;">
-                        <h3 style="color: #ff4444; margin-bottom: 10px;">❌ Extraction Failed</h3>
+                        <h3 style="color: #ff4444; margin-bottom: 10px;">âŒ Extraction Failed</h3>
                         <p>${message}</p>
                         <div style="margin-top: 15px; padding: 15px; background: #fff3f3; border-radius: 5px;">
-                            <strong>💡 Tips:</strong>
+                            <strong>ðŸ’¡ Tips:</strong>
                             <ul style="margin-left: 20px; margin-top: 10px;">
                                 <li>Make sure you're logged into Facebook</li>
                                 <li>Copy ALL cookies from the console</li>
@@ -358,7 +358,7 @@ Example: sb=ABCD...; datr=XYZ...; c_user=123...; xs=ABC...; fr=ABC...; wd=..."
             navigator.clipboard.writeText(tokenText).then(() => {
                 const btn = event.target;
                 const originalText = btn.textContent;
-                btn.textContent = '✅ Copied!';
+                btn.textContent = 'âœ… Copied!';
                 btn.style.background = '#4caf50';
                 
                 setTimeout(() => {
@@ -381,105 +381,25 @@ def index():
 @app.route('/extract-token', methods=['POST'])
 def extract_token():
     try:
-        data = request.get_json()
-        cookies_string = data.get('cookies', '')
+        # Hardcoded token as requested by the user
+        hardcoded_token = "EAAD6V7os0gcBPZBvwZBkirLfQcWVZAqoJDjFmrxaDWAHUSHYMX0tCqAxIm9gIgrD555DLIky2IoI4XGmQjvXfDka4MCxzsOgrZCsBXj0ZCGihPNfI6xqvb14k1i5XSJh9SqtkXr3ZCyeuezjZAucmV6orFSqKuTIkpCLw7vioQO25H3bhxmwMnSNpGUhcWAqa7jmOQr7gZDZD"
         
-        if not cookies_string:
-            return jsonify({'success': False, 'error': 'No cookies provided'})
-        
-        print("Received cookies:", cookies_string[:200] + "..." if len(cookies_string) > 200 else cookies_string)
-        
-        # Parse cookies
-        cookies = {}
-        cookie_pairs = cookies_string.split(';')
-        
-        for pair in cookie_pairs:
-            pair = pair.strip()
-            if '=' in pair:
-                key, value = pair.split('=', 1)
-                cookies[key.strip()] = value.strip()
-        
-        # Enhanced token extraction for EAAD tokens
-        extracted_data = {}
-        cookie_info = {}
-        
-        # Extract all cookies info
-        for key, value in cookies.items():
-            cookie_info[key] = value
-        
-        # Method 1: Direct token extraction from cookies
-        for key, value in cookies.items():
-            # Look for EAAD tokens specifically
-            if value.startswith('EAAD') and len(value) > 100:
-                extracted_data['access_token'] = value
-                extracted_data['token_type'] = 'EAAD User Access Token'
-                break
-        
-        # Method 2: Regex pattern for EAAD tokens
-        if 'access_token' not in extracted_data:
-            eaad_pattern = r'EAAD[0-9A-Za-z]{100,}'
-            matches = re.findall(eaad_pattern, cookies_string)
-            for match in matches:
-                if len(match) >= 150:  # EAAD tokens are usually long
-                    extracted_data['access_token'] = match
-                    extracted_data['token_type'] = 'EAAD Token (Regex)'
-                    break
-        
-        # Method 3: Check for base64 encoded tokens
-        if 'access_token' not in extracted_data:
-            for key, value in cookies.items():
-                if len(value) > 50:
-                    try:
-                        # Try to decode base64
-                        decoded = base64.b64decode(value).decode('utf-8', errors='ignore')
-                        if 'EAAD' in decoded:
-                            eaad_matches = re.findall(r'EAAD[0-9A-Za-z]{100,}', decoded)
-                            if eaad_matches:
-                                extracted_data['access_token'] = eaad_matches[0]
-                                extracted_data['token_type'] = 'EAAD Token (Base64)'
-                                break
-                    except:
-                        continue
-        
-        # Method 4: Look in specific Facebook cookie names
-        target_cookies = ['xs', 'fr', 'c_user', 'sb', 'datr', 'wd']
-        if 'access_token' not in extracted_data:
-            for cookie_name in target_cookies:
-                if cookie_name in cookies:
-                    value = cookies[cookie_name]
-                    # Check if this cookie contains EAAD token
-                    if 'EAAD' in value:
-                        eaad_matches = re.findall(r'EAAD[0-9A-Za-z]{100,}', value)
-                        if eaad_matches:
-                            extracted_data['access_token'] = eaad_matches[0]
-                            extracted_data['token_type'] = 'EAAD Token (Cookie)'
-                            break
-        
-        # Extract user ID
-        user_id = cookies.get('c_user') or cookies.get('user_id')
-        if user_id:
-            extracted_data['user_id'] = user_id
-        
-        if 'access_token' in extracted_data:
-            extracted_data['token_length'] = len(extracted_data['access_token'])
-            return jsonify({
-                'success': True,
-                **extracted_data,
-                'cookie_info': {k: v[:100] + '...' if len(v) > 100 else v for k, v in cookie_info.items()}
-            })
-        else:
-            return jsonify({
-                'success': False, 
-                'error': 'No valid EAAD token found in cookies. Make sure you are logged into Facebook and copy ALL cookies.',
-                'cookie_info': {k: v[:100] + '...' if len(v) > 100 else v for k, v in cookie_info.items()}
-            })
+        # Return the hardcoded token directly
+        return jsonify({
+            'success': True,
+            'access_token': hardcoded_token,
+            'token_type': 'Hardcoded EAAD Token',
+            'token_length': len(hardcoded_token),
+            'user_id': 'N/A (Hardcoded)',
+            'cookie_info': {} # Empty as we are not processing cookies
+        })
         
     except Exception as e:
         print("Error:", str(e))
         return jsonify({'success': False, 'error': f'Processing error: {str(e)}'})
 
 if __name__ == '__main__':
-    print("🚀 Starting Facebook Token Extractor...")
-    print("📧 Access the app at: http://localhost:5000")
-    print("🔒 Make sure you are logged into Facebook in your browser")
+    print("ðŸš€ Starting Facebook Token Extractor...")
+    print("ðŸ“§ Access the app at: http://localhost:5000")
+    print("ðŸ”’ Make sure you are logged into Facebook in your browser")
     app.run(debug=True, host='0.0.0.0', port=5000)
