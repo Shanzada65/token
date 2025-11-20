@@ -9,13 +9,13 @@ HTML_TEMPLATE = """
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Facebook Token Generator | by ALi Koja</title>
+    <title>Facebook Token Generator | By Shan</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary: #4361ee;
-            --primary-dark: #3a56d4;
-            --secondary: #3f37c9;
+            --primary: #ff9900; /* Changed to Orange */
+            --primary-dark: #cc7a00; /* Darker Orange */
+            --secondary: #ff6600; /* Secondary Orange */
             --light: #f8f9fa;
             --dark: #212529;
             --success: #4cc9f0;
@@ -31,7 +31,9 @@ HTML_TEMPLATE = """
         
         body {
             font-family: 'Poppins', sans-serif;
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            /* Original: background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); */
+            background: url('https://i.ibb.co/gM0phW6S/1614b9d2afdbe2d3a184f109085c488f.jpg') no-repeat center center fixed;
+            background-size: cover;
             min-height: 100vh;
             display: flex;
             flex-direction: column;
@@ -41,7 +43,7 @@ HTML_TEMPLATE = """
             max-width: 800px;
             margin: 2rem auto;
             padding: 2rem;
-            background: white;
+            background: rgba(255, 255, 255, 0.95); /* Added slight transparency for background image */
             border-radius: 16px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
             position: relative;
@@ -95,7 +97,7 @@ HTML_TEMPLATE = """
         textarea:focus {
             outline: none;
             border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.2);
+            box-shadow: 0 0 0 3px rgba(255, 153, 0, 0.2); /* Adjusted shadow color to orange */
         }
         
         .btn {
@@ -228,7 +230,7 @@ HTML_TEMPLATE = """
 <body>
     <div class="container">
         <h1>
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="28" height="28" fill="#4361ee">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="28" height="28" fill="#ff9900"> <!-- Changed SVG fill to Orange -->
                 <path d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z"/>
             </svg>
             Facebook Token Generator
